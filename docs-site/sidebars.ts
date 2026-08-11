@@ -9,6 +9,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "doc",
+      id: "demo",
+      label: "Demo & Live Links",
+    },
+    {
+      type: "doc",
       id: "quickstart",
       label: "Quick Start",
     },

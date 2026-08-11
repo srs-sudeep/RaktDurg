@@ -7,20 +7,34 @@ function HeroBanner() {
   return (
     <div className={styles.heroBanner}>
       <div className="container">
-        <div className={styles.heroLogo}>RD</div>
+        <img src="/img/logo.svg" alt="RaktDurg" className={styles.heroLogoImg} />
         <h1 className={styles.heroTitle}>RAKT Durg</h1>
         <p className={styles.heroSubtitle}>
           District-Level Digital Blood Bank Platform
           <br />
           Durg District Hospital &amp; Red Cross Blood Bank, Chhattisgarh
         </p>
+        <div className={styles.partners}>
+          <img src="/img/partners/IIT_Bhilai.svg" alt="IIT Bhilai" />
+          <img src="/img/partners/IBITF.jpeg" alt="IBITF" />
+          <img src="/img/partners/recogx.webp" alt="Recogx Init" />
+        </div>
+        <p className={styles.partnerCredit}>By IBITF and IIT Bhilai · Powered by Recogx Init</p>
         <div className={styles.heroCtas}>
-          <Link className="button button--primary button--lg" to="/quickstart">
-            Quick Start →
+          <Link className="button button--primary button--lg" to="/demo">
+            Demo &amp; live links →
           </Link>
-          <Link className="button button--outline button--lg" to="/architecture/overview">
-            Architecture
+          <Link className="button button--outline button--lg" to="/quickstart">
+            Quick Start
           </Link>
+          <a
+            className="button button--outline button--lg"
+            href="http://8.231.102.114/login"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Live login
+          </a>
           <a
             className="button button--outline button--lg"
             href="http://8.231.102.114"
@@ -54,7 +68,7 @@ const features = [
   {
     emoji: "🔒",
     title: "RBAC + Audit Trail",
-    desc: "8 roles, JWT + refresh token rotation, append-only audit_logs table protected by PostgreSQL RULE.",
+    desc: "JWT + refresh token rotation, append-only audit_logs table protected by PostgreSQL RULE.",
   },
   {
     emoji: "🏕️",
@@ -72,10 +86,19 @@ const features = [
     desc: "First-Expiry-First-Out component reservation using SELECT … FOR UPDATE SKIP LOCKED for safe concurrency.",
   },
   {
-    emoji: "🇮🇳",
-    title: "DPDP Compliant",
-    desc: "No raw Aadhaar stored. ABHA reference only. Consent fields. Retention policy enforced at the data model layer.",
+    emoji: "📈",
+    title: "Prometheus + Grafana",
+    desc: "API /metrics scraped on the Docker network; Grafana dashboards at /grafana on the production VM.",
   },
+];
+
+const links = [
+  { label: "Web app", href: "http://8.231.102.114" },
+  { label: "Login", href: "http://8.231.102.114/login" },
+  { label: "Public stock", href: "http://8.231.102.114/public/stock" },
+  { label: "Docs", href: "https://rakt-durg-docs.vercel.app/" },
+  { label: "Grafana", href: "http://8.231.102.114/grafana/" },
+  { label: "Releases", href: "https://github.com/srs-sudeep/RaktDurg/releases" },
 ];
 
 export default function Home(): JSX.Element {
@@ -87,6 +110,28 @@ export default function Home(): JSX.Element {
     >
       <HeroBanner />
       <main>
+        <section className={styles.links}>
+          <div className="container">
+            <h2>Live links</h2>
+            <div className={styles.linksGrid}>
+              {links.map((item) => (
+                <a
+                  key={item.href}
+                  className={styles.linkCard}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {item.label}
+                </a>
+              ))}
+              <Link className={styles.linkCard} to="/demo">
+                Demo accounts →
+              </Link>
+            </div>
+          </div>
+        </section>
+
         <section className={styles.features}>
           <div className="container">
             <div className={styles.featuresGrid}>
@@ -119,6 +164,7 @@ export default function Home(): JSX.Element {
                 <tr><td>Mobile</td><td>Flutter 3 · Riverpod · sqflite · go_router · Dio</td></tr>
                 <tr><td>Auth</td><td>JWT (15 min access · 7 day refresh) · bcrypt · SHA-256 token hash</td></tr>
                 <tr><td>Real-time</td><td>SSE via FastAPI + Redis pub/sub</td></tr>
+                <tr><td>Monitoring</td><td>Prometheus · Grafana</td></tr>
                 <tr><td>CI / CD</td><td>GitHub Actions (VM deploy) · Vercel (docs)</td></tr>
               </tbody>
             </table>

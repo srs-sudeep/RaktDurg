@@ -1,8 +1,20 @@
 # RaktDurg docs site
 
+<p align="center">
+  <img src="static/img/logo.svg" alt="RaktDurg" width="96" />
+</p>
+
 Docusaurus documentation for the RaktDurg platform.
 
 **Live:** https://rakt-durg-docs.vercel.app/
+
+| | |
+|--|--|
+| App | http://8.231.102.114 |
+| Login / demo | http://8.231.102.114/login |
+| Demo accounts | https://rakt-durg-docs.vercel.app/demo |
+| Grafana | http://8.231.102.114/grafana/ |
+| Releases | https://github.com/srs-sudeep/RaktDurg/releases |
 
 ## Local
 

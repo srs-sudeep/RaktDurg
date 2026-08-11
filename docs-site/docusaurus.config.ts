@@ -50,11 +50,12 @@ const config: Config = {
       },
       items: [
         { to: "/", label: "Docs", position: "left" },
+        { to: "/demo", label: "Demo", position: "left" },
         { to: "/api/overview", label: "API Reference", position: "left" },
         { to: "/ops/docker", label: "Ops", position: "left" },
         {
-          href: "http://8.231.102.114/health",
-          label: "Live API",
+          href: "http://8.231.102.114/login",
+          label: "Live login",
           position: "right",
         },
         {
@@ -96,6 +97,7 @@ const config: Config = {
           title: "Links",
           items: [
             { label: "Documentation", href: "https://rakt-durg-docs.vercel.app/" },
+            { label: "Demo & logins", to: "/demo" },
             { label: "Web app", href: "http://8.231.102.114" },
             { label: "GitHub", href: "https://github.com/srs-sudeep/RaktDurg" },
           ],

@@ -7,14 +7,34 @@ slug: /intro
 
 # RAKT Durg
 
+<p align="center">
+  <img src="/img/logo.svg" alt="RaktDurg" width="120" />
+</p>
+
+<p align="center">
+  <img src="/img/partners/IIT_Bhilai.svg" alt="IIT Bhilai" height="48" />
+  &nbsp;&nbsp;
+  <img src="/img/partners/IBITF.jpeg" alt="IBITF" height="40" />
+  &nbsp;&nbsp;
+  <img src="/img/partners/recogx.webp" alt="Recogx Init" height="36" />
+</p>
+
+<p align="center"><em>By IBITF and IIT Bhilai · Powered by Recogx Init</em></p>
+
 RAKT Durg is a district-level digital blood bank management platform built for Durg District Hospital and the Chhattisgarh Red Cross Blood Bank. It **complements** (does not replace) the national e-RaktKosh system.
+
+## Live links
 
 | | URL |
 |--|--|
 | Documentation (this site) | https://rakt-durg-docs.vercel.app/ |
-| Live web app | http://8.231.102.114 |
-| Monitoring (Grafana) | http://8.231.102.114/grafana/ |
+| Web app | http://8.231.102.114 |
+| Login / demo | http://8.231.102.114/login |
+| Public stock | http://8.231.102.114/public/stock |
+| Grafana | http://8.231.102.114/grafana/ |
 | Mobile releases | https://github.com/srs-sudeep/RaktDurg/releases |
+
+Want credentials? → **[Demo & Live Links](./demo.md)**
 
 ## What Problem Does It Solve?
 
@@ -54,13 +74,15 @@ RAKT Durg provides all of this as a self-hosted, auditable system that also expo
 │  – JWT auth / RBAC            – SSE stock stream            │
 ├─────────────────────────────────────────────────────────────┤
 │  PostgreSQL 16   │   Redis 7   │   Celery 5 workers         │
+│  Prometheus      │   Grafana   │   (production monitoring)  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Quick Navigation
 
+- Try the live demo → [Demo & Live Links](./demo.md)
 - New here? → [Quick Start](./quickstart.md)
 - Want the big picture? → [Architecture Overview](./architecture/overview.md)
 - Setting up locally? → [Backend Setup](./backend/setup.md)
 - API endpoints? → [API Reference Overview](./api/overview.md)
-- Deploying? → [Docker & Compose](./ops/docker.md)
+- Deploying? → [CI / CD](./ops/ci-cd.md) · [Docker & Compose](./ops/docker.md)

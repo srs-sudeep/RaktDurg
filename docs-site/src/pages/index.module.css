@@ -10,6 +10,69 @@
   border-bottom-color: #3f0d0d;
 }
 
+.heroLogoImg {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 1rem;
+  object-fit: contain;
+}
+
+.partners {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin: 0 auto 0.75rem;
+}
+
+.partners img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.partnerCredit {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-bottom: 1.75rem;
+}
+
+.links {
+  padding: 2.5rem 0 1rem;
+}
+
+.links h2 {
+  margin-bottom: 1rem;
+}
+
+.linksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.linkCard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  color: var(--ifm-font-color-base);
+  background: var(--ifm-background-surface-color);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.linkCard:hover {
+  border-color: #fca5a5;
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+}
+
 .heroLogo {
   display: inline-flex;
   width: 72px;
