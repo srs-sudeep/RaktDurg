@@ -23,7 +23,9 @@ jobs:
           ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
       - name: Sync application source to VM
         run: |
-          tar czf /tmp/raktdurg-sync.tgz backend web infra
+          COPYFILE_DISABLE=1 tar czf /tmp/raktdurg-sync.tgz \
+            --exclude='._*' --exclude='.DS_Store' \
+            backend web infra
           scp -i ~/.ssh/id_ed25519 /tmp/raktdurg-sync.tgz \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/raktdurg-sync.tgz"
           ssh -i ~/.ssh/id_ed25519 "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
