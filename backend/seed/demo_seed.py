@@ -101,14 +101,11 @@ async def run(db: AsyncSession) -> None:
     # ── Users ─────────────────────────────────────────────────────────────────
     users: dict[str, uuid.UUID] = {}
     role_creds = {
-        UserRoleEnum.ADMIN: ("admin", "admin123"),
-        UserRoleEnum.MEDICAL_OFFICER: ("dr_meena", "meena123"),
-        UserRoleEnum.LAB_TECH: ("lab_rahul", "rahul123"),
-        UserRoleEnum.PHLEBOTOMIST: ("phlebotomist_seema", "seema123"),
-        UserRoleEnum.INVENTORY_OFFICER: ("inventory_ravi", "ravi123"),
+        UserRoleEnum.SUPERADMIN: ("superadmin", "super123"),
+        UserRoleEnum.DISTRICT_ADMIN: ("district_admin", "district123"),
+        UserRoleEnum.DOCTOR: ("dr_meena", "meena123"),
         UserRoleEnum.ORGANIZER: ("organizer_priya", "priya123"),
-        UserRoleEnum.DONOR: ("donor_ajay", "ajay123"),
-        UserRoleEnum.CITIZEN_READ: ("citizen_pooja", "pooja123"),
+        UserRoleEnum.CITIZEN: ("citizen_ajay", "ajay123"),
     }
 
     from app.services.auth import hash_password
@@ -126,7 +123,7 @@ async def run(db: AsyncSession) -> None:
             """),
             {
                 "id": str(user_id),
-                "fid": str(facility_id),
+                "fid": str(facility_id) if role not in (UserRoleEnum.ORGANIZER, UserRoleEnum.CITIZEN) else None,
                 "role": role.value,
                 "username": username,
                 "email": f"{username}@rakt.local",
@@ -188,7 +185,7 @@ async def run(db: AsyncSession) -> None:
                 "bg": bg.value,
                 "status": DonorStatusEnum.ACTIVE.value,
                 "fid": str(facility_id),
-                "created_by": str(users[UserRoleEnum.PHLEBOTOMIST.value]),
+                "created_by": str(users[UserRoleEnum.DISTRICT_ADMIN.value]),
             },
         )
         donor_ids.append(donor_id)
@@ -226,7 +223,7 @@ async def run(db: AsyncSession) -> None:
 
     camp_approved_id = uid()
     camp_completed_id = uid()
-    mo_id = users[UserRoleEnum.MEDICAL_OFFICER.value]
+    mo_id = users[UserRoleEnum.DOCTOR.value]
 
     for camp_id, camp_name, status, camp_date, expected in [
         (camp_approved_id, "Lions Club Blood Drive", CampStatusEnum.APPROVED, days_from_now(7).date(), 50),
@@ -281,7 +278,7 @@ async def run(db: AsyncSession) -> None:
             {
                 "id": str(screening_id),
                 "did": str(donor_id),
-                "by": str(users[UserRoleEnum.PHLEBOTOMIST.value]),
+                "by": str(users[UserRoleEnum.DISTRICT_ADMIN.value]),
                 "dt": donation_date,
                 "questionnaire": '{"had_recent_illness":false,"had_recent_surgery":false}',
             },
@@ -302,7 +299,7 @@ async def run(db: AsyncSession) -> None:
                 "did": str(donor_id),
                 "sid": str(screening_id),
                 "fid": str(facility_id),
-                "by": str(users[UserRoleEnum.PHLEBOTOMIST.value]),
+                "by": str(users[UserRoleEnum.DISTRICT_ADMIN.value]),
                 "dt": donation_date,
                 "vol": random.randint(350, 450),
             },
@@ -350,7 +347,7 @@ async def run(db: AsyncSession) -> None:
                 "exp": expiry,
                 "rel": release_status.value,
                 "lc": lifecycle.value,
-                "by": str(users[UserRoleEnum.LAB_TECH.value]),
+                "by": str(users[UserRoleEnum.DISTRICT_ADMIN.value]),
             },
         )
         unit_ids.append(unit_id)
@@ -401,7 +398,7 @@ async def run(db: AsyncSession) -> None:
                         "ct": comp_type.value,
                         "reason": LedgerReasonEnum.COLLECTION.value,
                         "ref": str(comp_id),
-                        "by": str(users[UserRoleEnum.LAB_TECH.value]),
+                        "by": str(users[UserRoleEnum.DISTRICT_ADMIN.value]),
                     },
                 )
 
@@ -436,7 +433,7 @@ async def run(db: AsyncSession) -> None:
                 "priority": priority.value,
                 "status": req_status.value,
                 "indication": random.choice(["Surgical blood loss", "Severe anaemia", "Road traffic accident", "Haematological disorder"]),
-                "by": str(users[UserRoleEnum.MEDICAL_OFFICER.value]),
+                "by": str(users[UserRoleEnum.DOCTOR.value]),
             },
         )
 

@@ -145,11 +145,8 @@ class DonorStatusEnum(str, enum.Enum):
 
 
 class UserRoleEnum(str, enum.Enum):
-    ADMIN = "admin"
-    MEDICAL_OFFICER = "medical_officer"
-    LAB_TECH = "lab_tech"
-    PHLEBOTOMIST = "phlebotomist"
-    INVENTORY_OFFICER = "inventory_officer"
+    SUPERADMIN = "superadmin"
+    DISTRICT_ADMIN = "district_admin"
+    DOCTOR = "doctor"
     ORGANIZER = "organizer"
-    DONOR = "donor"
-    CITIZEN_READ = "citizen_read"
+    CITIZEN = "citizen"

@@ -5,7 +5,6 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.enums import UserRoleEnum
-from app.models.facility import Facility
 from app.models.auth import User
 from tests.conftest import auth_header
 
@@ -23,7 +22,7 @@ class TestLogin:
         self, client: AsyncClient, seed_users: dict[UserRoleEnum, User]
     ):
         resp = await client.post(
-            "/auth/token", json={"username": "test_admin", "password": "testpass123"}
+            "/auth/token", json={"username": "test_superadmin", "password": "testpass123"}
         )
         assert resp.status_code == 200
         body = resp.json()
@@ -36,7 +35,7 @@ class TestLogin:
         self, client: AsyncClient, seed_users: dict[UserRoleEnum, User]
     ):
         resp = await client.post(
-            "/auth/token", json={"username": "test_admin", "password": "wrong"}
+            "/auth/token", json={"username": "test_superadmin", "password": "wrong"}
         )
         assert resp.status_code == 401
 
@@ -52,7 +51,7 @@ class TestRefresh:
         self, client: AsyncClient, seed_users: dict[UserRoleEnum, User]
     ):
         login = await client.post(
-            "/auth/token", json={"username": "test_admin", "password": "testpass123"}
+            "/auth/token", json={"username": "test_superadmin", "password": "testpass123"}
         )
         refresh_token = login.json()["refresh_token"]
 
@@ -64,14 +63,12 @@ class TestRefresh:
         self, client: AsyncClient, seed_users: dict[UserRoleEnum, User]
     ):
         login = await client.post(
-            "/auth/token", json={"username": "test_admin", "password": "testpass123"}
+            "/auth/token", json={"username": "test_superadmin", "password": "testpass123"}
         )
         refresh_token = login.json()["refresh_token"]
 
-        # Use the refresh token once
         await client.post("/auth/refresh", json={"refresh_token": refresh_token})
 
-        # Second use of same token must fail (rotation invalidates it)
         resp = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
         assert resp.status_code == 401
 
@@ -81,14 +78,13 @@ class TestLogout:
         self, client: AsyncClient, seed_users: dict[UserRoleEnum, User]
     ):
         login = await client.post(
-            "/auth/token", json={"username": "test_admin", "password": "testpass123"}
+            "/auth/token", json={"username": "test_superadmin", "password": "testpass123"}
         )
         refresh_token = login.json()["refresh_token"]
 
         logout = await client.post("/auth/logout", json={"refresh_token": refresh_token})
         assert logout.status_code == 200
 
-        # Revoked token cannot be used for refresh
         resp = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
         assert resp.status_code == 401
 
@@ -97,12 +93,12 @@ class TestMe:
     async def test_me_returns_current_user(
         self, client: AsyncClient, seed_users: dict[UserRoleEnum, User]
     ):
-        admin = seed_users[UserRoleEnum.ADMIN]
+        admin = seed_users[UserRoleEnum.SUPERADMIN]
         resp = await client.get("/auth/me", headers=auth_header(admin))
         assert resp.status_code == 200
         body = resp.json()
-        assert body["username"] == "test_admin"
-        assert body["role"] == UserRoleEnum.ADMIN.value
+        assert body["username"] == "test_superadmin"
+        assert body["role"] == UserRoleEnum.SUPERADMIN.value
 
     async def test_me_without_token_returns_403(self, client: AsyncClient):
         resp = await client.get("/auth/me")
@@ -119,14 +115,11 @@ class TestRBAC:
     @pytest.mark.parametrize(
         "role",
         [
-            UserRoleEnum.ADMIN,
-            UserRoleEnum.MEDICAL_OFFICER,
-            UserRoleEnum.LAB_TECH,
-            UserRoleEnum.PHLEBOTOMIST,
-            UserRoleEnum.INVENTORY_OFFICER,
+            UserRoleEnum.SUPERADMIN,
+            UserRoleEnum.DISTRICT_ADMIN,
+            UserRoleEnum.DOCTOR,
             UserRoleEnum.ORGANIZER,
-            UserRoleEnum.DONOR,
-            UserRoleEnum.CITIZEN_READ,
+            UserRoleEnum.CITIZEN,
         ],
     )
     async def test_any_role_can_reach_health(

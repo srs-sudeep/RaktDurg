@@ -47,19 +47,16 @@ async def seed(db: AsyncSession) -> None:
 
     print("Seeding users (one per role)…")
     roles_passwords = [
-        (UserRoleEnum.ADMIN, "admin123"),
-        (UserRoleEnum.MEDICAL_OFFICER, "medofficer123"),
-        (UserRoleEnum.LAB_TECH, "labtech123"),
-        (UserRoleEnum.PHLEBOTOMIST, "phlebo123"),
-        (UserRoleEnum.INVENTORY_OFFICER, "inventory123"),
+        (UserRoleEnum.SUPERADMIN, "super123"),
+        (UserRoleEnum.DISTRICT_ADMIN, "district123"),
+        (UserRoleEnum.DOCTOR, "doctor123"),
         (UserRoleEnum.ORGANIZER, "organizer123"),
-        (UserRoleEnum.DONOR, "donor123"),
-        (UserRoleEnum.CITIZEN_READ, "citizen123"),
+        (UserRoleEnum.CITIZEN, "citizen123"),
     ]
     users: dict[UserRoleEnum, User] = {}
     for role, password in roles_passwords:
         user = User(
-            facility_id=facility.id if role not in (UserRoleEnum.ORGANIZER, UserRoleEnum.DONOR, UserRoleEnum.CITIZEN_READ) else None,
+            facility_id=facility.id if role not in (UserRoleEnum.ORGANIZER, UserRoleEnum.CITIZEN) else None,
             role=role,
             username=f"seed_{role.value}",
             email=f"seed_{role.value}@rakt.local",
@@ -81,7 +78,7 @@ async def seed(db: AsyncSession) -> None:
                 component_type=ct,
                 low_stock_qty=2,
                 near_expiry_days=3,
-                updated_by=users[UserRoleEnum.ADMIN].id,
+                updated_by=users[UserRoleEnum.SUPERADMIN].id,
             )
             db.add(threshold)
 

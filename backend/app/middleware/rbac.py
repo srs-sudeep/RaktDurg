@@ -48,35 +48,20 @@ def require_roles(*roles: UserRoleEnum):
 
 
 # Convenience pre-built dependencies
-require_admin = require_roles(UserRoleEnum.ADMIN)
+require_superadmin = require_roles(UserRoleEnum.SUPERADMIN)
 
-require_clinical = require_roles(
-    UserRoleEnum.ADMIN,
-    UserRoleEnum.MEDICAL_OFFICER,
+require_doctor = require_roles(
+    UserRoleEnum.SUPERADMIN,
+    UserRoleEnum.DOCTOR,
 )
 
-require_lab = require_roles(
-    UserRoleEnum.ADMIN,
-    UserRoleEnum.MEDICAL_OFFICER,
-    UserRoleEnum.LAB_TECH,
+require_district_admin = require_roles(
+    UserRoleEnum.SUPERADMIN,
+    UserRoleEnum.DISTRICT_ADMIN,
 )
 
-require_inventory = require_roles(
-    UserRoleEnum.ADMIN,
-    UserRoleEnum.MEDICAL_OFFICER,
-    UserRoleEnum.INVENTORY_OFFICER,
-)
-
-require_phlebotomist = require_roles(
-    UserRoleEnum.ADMIN,
-    UserRoleEnum.MEDICAL_OFFICER,
-    UserRoleEnum.PHLEBOTOMIST,
-)
-
-require_staff = require_roles(
-    UserRoleEnum.ADMIN,
-    UserRoleEnum.MEDICAL_OFFICER,
-    UserRoleEnum.LAB_TECH,
-    UserRoleEnum.PHLEBOTOMIST,
-    UserRoleEnum.INVENTORY_OFFICER,
+require_facility_staff = require_roles(
+    UserRoleEnum.SUPERADMIN,
+    UserRoleEnum.DISTRICT_ADMIN,
+    UserRoleEnum.DOCTOR,
 )

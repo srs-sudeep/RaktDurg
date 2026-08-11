@@ -14,10 +14,10 @@ from httpx import AsyncClient
 async def test_wallet_disabled_by_default(client: AsyncClient, seed_users, wallet_flag_off):
     from tests.conftest import auth_header
 
-    admin = next(u for u in seed_users.values() if u.role.value == "admin")
+    superadmin = next(u for u in seed_users.values() if u.role.value == "superadmin")
     resp = await client.get(
         f"/wallet/donors/{uuid.uuid4()}",
-        headers=auth_header(admin),
+        headers=auth_header(superadmin),
     )
     assert resp.status_code == 503
 
@@ -26,7 +26,7 @@ async def test_wallet_disabled_by_default(client: AsyncClient, seed_users, walle
 async def test_wallet_credit_disabled(client: AsyncClient, seed_users, wallet_flag_off):
     from tests.conftest import auth_header
 
-    admin = next(u for u in seed_users.values() if u.role.value == "admin")
+    superadmin = next(u for u in seed_users.values() if u.role.value == "superadmin")
     body = {
         "amount": 1,
         "reference_type": "donation",
@@ -35,7 +35,7 @@ async def test_wallet_credit_disabled(client: AsyncClient, seed_users, wallet_fl
     resp = await client.post(
         f"/wallet/donors/{uuid.uuid4()}/credit",
         json=body,
-        headers=auth_header(admin),
+        headers=auth_header(superadmin),
     )
     assert resp.status_code == 503
 

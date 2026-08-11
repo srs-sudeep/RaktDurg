@@ -13,8 +13,8 @@ export default function CampsPage() {
   const apply = useApplyCamp();
   const review = useReviewCamp();
   const [showApply, setShowApply] = useState(false);
-  const canApprove = user?.role === "admin" || user?.role === "medical_officer";
-  const canApply = user?.role === "organizer" || user?.role === "admin";
+  const canApprove = user?.role === "superadmin" || user?.role === "doctor";
+  const canApply = user?.role === "organizer" || user?.role === "superadmin";
 
   async function onApply(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

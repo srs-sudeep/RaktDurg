@@ -89,7 +89,7 @@ All credentials are passed via environment variables or Docker secrets. No passw
 
 Blood donation and health screening data is classified as **sensitive personal data** under DPDP. Additional protections:
 - Access restricted to authorised clinical roles
-- `citizen_read` role has no access to health data
+- `citizen` role has no access to authenticated staff health data endpoints
 - All access logged in audit trail
 - Data encrypted at rest (PostgreSQL full-disk encryption in production)
 - Data encrypted in transit (HTTPS/TLS in production)

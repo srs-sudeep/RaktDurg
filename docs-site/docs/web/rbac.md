@@ -10,14 +10,11 @@ title: Web RBAC
 ```typescript
 // web/src/lib/rbac.ts
 export const USER_ROLES = [
-  "admin",
-  "medical_officer",
-  "lab_tech",
-  "phlebotomist",
-  "inventory_officer",
+  "superadmin",
+  "district_admin",
+  "doctor",
   "organizer",
-  "donor",
-  "citizen_read",
+  "citizen",
 ] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];
@@ -27,13 +24,15 @@ export type UserRole = (typeof USER_ROLES)[number];
 
 ```typescript
 export const ROUTE_ROLES: Record<string, UserRole[]> = {
-  "/dashboard":    ["admin","medical_officer","lab_tech","phlebotomist","inventory_officer"],
-  "/units":        ["admin","medical_officer","lab_tech"],
-  "/donors":       ["admin","medical_officer","lab_tech","phlebotomist"],
-  "/camps":        ["admin","medical_officer","organizer"],
-  "/requisitions": ["admin","medical_officer","inventory_officer"],
-  "/wallet":       ["admin","medical_officer","donor"],
-  "/admin":        ["admin"],
+  "/dashboard":    ["superadmin", "district_admin", "doctor"],
+  "/units":        ["superadmin", "district_admin", "doctor"],
+  "/donors":       ["superadmin", "district_admin", "doctor"],
+  "/camps":        ["superadmin", "doctor", "organizer", "district_admin"],
+  "/camps/approval": ["superadmin", "doctor"],
+  "/camps/apply":  ["organizer", "superadmin"],
+  "/requisitions": ["superadmin", "doctor", "district_admin"],
+  "/wallet":       ["superadmin", "doctor", "citizen"],
+  "/admin":        ["superadmin"],
 };
 
 export function canAccess(role: UserRole, path: string): boolean {
@@ -42,6 +41,14 @@ export function canAccess(role: UserRole, path: string): boolean {
   return allowed.includes(role);
 }
 ```
+
+## Post-login redirects
+
+| Role | Default route |
+|------|---------------|
+| `superadmin`, `district_admin`, `doctor` | `/dashboard` |
+| `organizer` | `/camps/apply` |
+| `citizen` | `/public/stock` |
 
 ## ProtectedRoute Component
 
@@ -68,37 +75,12 @@ export function ProtectedRoute({ roles, children }: ProtectedRouteProps) {
 }
 ```
 
-## Usage in Router
-
-```typescript
-// web/src/routes/index.tsx
-const router = createBrowserRouter([
-  { path: "/login", element: <LoginPage /> },
-  { path: "/public/stock", element: <PublicStockPage /> },
-  { path: "/unauthorized", element: <UnauthorizedPage /> },
-  {
-    path: "/dashboard",
-    element: (
-      <ProtectedRoute
-        roles={["admin","medical_officer","lab_tech","phlebotomist","inventory_officer"]}
-      >
-        <DashboardPage />
-      </ProtectedRoute>
-    ),
-  },
-]);
-```
-
 ## Role-Based UI Elements
-
-Use `canAccess()` or direct role checks to conditionally render UI:
 
 ```typescript
 const { user } = useAuth();
 
-// Show admin panel link only for admin
-{user?.role === "admin" && <Link to="/admin">Admin Panel</Link>}
+{user?.role === "superadmin" && <Link to="/admin">Admin Panel</Link>}
 
-// Show wallet tab for eligible roles
 {canAccess(user?.role, "/wallet") && <WalletTab />}
 ```

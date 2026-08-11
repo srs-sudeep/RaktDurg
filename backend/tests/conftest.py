@@ -108,7 +108,7 @@ async def seed_users(db: AsyncSession, facility: Facility) -> dict[UserRoleEnum,
     for role in UserRoleEnum:
         user = User(
             facility_id=facility.id if role not in (
-                UserRoleEnum.ORGANIZER, UserRoleEnum.DONOR, UserRoleEnum.CITIZEN_READ
+                UserRoleEnum.ORGANIZER, UserRoleEnum.CITIZEN
             ) else None,
             role=role,
             username=f"test_{role.value}",

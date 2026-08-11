@@ -87,11 +87,11 @@ async def test_list_donors_requires_auth(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_create_donor_phlebotomist(client: AsyncClient, seed_users, facility):
+async def test_create_donor_district_admin(client: AsyncClient, seed_users, facility):
     from tests.conftest import auth_header
 
-    phlebotomist = next(u for u in seed_users.values() if u.role.value == "phlebotomist")
-    headers = auth_header(phlebotomist)
+    district_admin = next(u for u in seed_users.values() if u.role.value == "district_admin")
+    headers = auth_header(district_admin)
 
     payload = {
         "name": "Ramesh Kumar",
@@ -113,7 +113,7 @@ async def test_create_donor_phlebotomist(client: AsyncClient, seed_users, facili
 async def test_citizen_cannot_create_donor(client: AsyncClient, seed_users):
     from tests.conftest import auth_header
 
-    citizen = next(u for u in seed_users.values() if u.role.value == "citizen_read")
+    citizen = next(u for u in seed_users.values() if u.role.value == "citizen")
     headers = auth_header(citizen)
 
     payload = {
@@ -133,7 +133,7 @@ async def test_citizen_cannot_create_donor(client: AsyncClient, seed_users):
 async def test_list_donors_pagination(client: AsyncClient, seed_users):
     from tests.conftest import auth_header
 
-    lab = next(u for u in seed_users.values() if u.role.value == "lab_tech")
+    lab = next(u for u in seed_users.values() if u.role.value == "district_admin")
     headers = auth_header(lab)
 
     resp = await client.get("/donors?page=1&page_size=5", headers=headers)
@@ -149,7 +149,7 @@ async def test_get_nonexistent_donor(client: AsyncClient, seed_users):
     import uuid
     from tests.conftest import auth_header
 
-    lab = next(u for u in seed_users.values() if u.role.value == "lab_tech")
+    lab = next(u for u in seed_users.values() if u.role.value == "district_admin")
     headers = auth_header(lab)
 
     resp = await client.get(f"/donors/{uuid.uuid4()}", headers=headers)

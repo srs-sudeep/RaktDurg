@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.database import get_db
-from app.middleware.rbac import require_lab, require_roles, get_current_user
+from app.middleware.rbac import require_facility_staff, require_district_admin, require_roles, get_current_user
 from app.models.enums import UserRoleEnum
 from app.models.unit import BloodUnit, Component, TestResult
 from app.schemas.units import (
@@ -35,7 +35,9 @@ router = APIRouter(prefix="/units", tags=["units"])
 @router.post("", response_model=UnitOut, status_code=status.HTTP_201_CREATED)
 async def create_blood_unit(
     body: UnitCreateRequest,
-    actor=Depends(require_roles(UserRoleEnum.LAB_TECH, UserRoleEnum.ADMIN, UserRoleEnum.PHLEBOTOMIST)),
+    actor=Depends(require_roles(
+        UserRoleEnum.DISTRICT_ADMIN, UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR,
+    )),
     db: AsyncSession = Depends(get_db),
 ):
     unit = await create_unit(body, actor.id, db)
@@ -49,10 +51,7 @@ async def list_units(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     facility_id: uuid.UUID | None = None,
-    _actor=Depends(require_roles(
-        UserRoleEnum.LAB_TECH, UserRoleEnum.ADMIN,
-        UserRoleEnum.PHLEBOTOMIST, UserRoleEnum.INVENTORY_OFFICER, UserRoleEnum.MEDICAL_OFFICER,
-    )),
+    _actor=Depends(require_facility_staff),
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(BloodUnit)
@@ -73,10 +72,7 @@ async def list_units(
 @router.get("/scan/{barcode}", response_model=BarcodeLookupResponse)
 async def scan_barcode(
     barcode: str,
-    _actor=Depends(require_roles(
-        UserRoleEnum.LAB_TECH, UserRoleEnum.ADMIN,
-        UserRoleEnum.PHLEBOTOMIST, UserRoleEnum.INVENTORY_OFFICER, UserRoleEnum.MEDICAL_OFFICER,
-    )),
+    _actor=Depends(require_facility_staff),
     db: AsyncSession = Depends(get_db),
 ):
     unit = await get_unit_by_barcode(barcode, db)
@@ -99,7 +95,7 @@ async def scan_barcode(
 @router.get("/{unit_id}", response_model=UnitOut)
 async def get_unit(
     unit_id: uuid.UUID,
-    _actor=Depends(require_lab),
+    _actor=Depends(require_facility_staff),
     db: AsyncSession = Depends(get_db),
 ):
     unit = await db.get(BloodUnit, unit_id)
@@ -112,7 +108,7 @@ async def get_unit(
 async def add_test_results(
     unit_id: uuid.UUID,
     body: RecordTestsRequest,
-    actor=Depends(require_lab),
+    actor=Depends(require_facility_staff),
     db: AsyncSession = Depends(get_db),
 ):
     unit = await db.get(BloodUnit, unit_id)
@@ -134,7 +130,7 @@ async def add_test_results(
 async def separate(
     unit_id: uuid.UUID,
     body: SeparateComponentsRequest,
-    actor=Depends(require_lab),
+    actor=Depends(require_facility_staff),
     db: AsyncSession = Depends(get_db),
 ):
     unit = await db.get(BloodUnit, unit_id)
@@ -156,7 +152,9 @@ async def separate(
 async def change_state(
     unit_id: uuid.UUID,
     body: UnitTransitionRequest,
-    actor=Depends(require_roles(UserRoleEnum.LAB_TECH, UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER)),
+    actor=Depends(require_roles(
+        UserRoleEnum.DISTRICT_ADMIN, UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR,
+    )),
     db: AsyncSession = Depends(get_db),
 ):
     unit = await db.get(BloodUnit, unit_id)

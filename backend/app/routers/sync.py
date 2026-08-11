@@ -32,8 +32,9 @@ router = APIRouter(prefix="/sync", tags=["sync"])
 async def bulk_sync(
     body: BulkSyncRequest,
     actor=Depends(require_roles(
-        UserRoleEnum.PHLEBOTOMIST, UserRoleEnum.LAB_TECH,
-        UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER,
+        UserRoleEnum.DISTRICT_ADMIN,
+        UserRoleEnum.SUPERADMIN,
+        UserRoleEnum.DOCTOR,
     )),
     db: AsyncSession = Depends(get_db),
 ):

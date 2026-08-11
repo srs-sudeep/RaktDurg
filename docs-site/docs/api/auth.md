@@ -11,7 +11,7 @@ Login. Returns access and refresh tokens.
 
 **Request** (JSON):
 ```json
-{"username": "admin", "password": "admin123"}
+{"username": "superadmin", "password": "super123"}
 ```
 
 **Response:**

@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { PageLoader } from "@/components/SplashScreen";
 import { ROUTE_ROLES, type UserRole } from "@/lib/rbac";
 
 function rolesForPath(pathname: string): UserRole[] | null {
@@ -16,11 +17,7 @@ export function ProtectedRoute() {
   const { pathname } = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-red-600 border-t-transparent" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!user) {

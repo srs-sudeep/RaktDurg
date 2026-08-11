@@ -1,5 +1,5 @@
 export function defaultRouteForRole(role: string): string {
-  if (role === "donor") return "/wallet";
-  if (role === "citizen_read") return "/public/stock";
+  if (role === "citizen") return "/public/stock";
+  if (role === "organizer") return "/camps/apply";
   return "/dashboard";
 }

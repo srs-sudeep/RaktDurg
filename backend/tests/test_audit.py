@@ -22,7 +22,7 @@ async def test_login_write_produces_audit_entry(
     before_count = len(before_count_result.scalars().all())
 
     await client.post(
-        "/auth/token", json={"username": "test_admin", "password": "testpass123"}
+        "/auth/token", json={"username": "test_superadmin", "password": "testpass123"}
     )
 
     await db.expire_all()
@@ -39,7 +39,7 @@ async def test_audit_entry_has_actor_after_authenticated_post(
     seed_users: dict[UserRoleEnum, User],
 ):
     """An authenticated POST should record the actor_id in the audit log."""
-    admin = seed_users[UserRoleEnum.ADMIN]
+    admin = seed_users[UserRoleEnum.SUPERADMIN]
 
     # Login to get a refresh token (POST with valid auth)
     await client.post(
@@ -95,7 +95,7 @@ async def test_audit_entry_fields_populated(
 ):
     """Each audit entry should have action, entity_type, entity_id, and timestamp populated."""
     await client.post(
-        "/auth/token", json={"username": "test_admin", "password": "testpass123"}
+        "/auth/token", json={"username": "test_superadmin", "password": "testpass123"}
     )
     await db.expire_all()
 

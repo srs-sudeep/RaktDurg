@@ -24,7 +24,7 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 @router.post("/erakkosh/export")
 async def trigger_export(
     export_date: date | None = None,
-    _actor=Depends(require_roles(UserRoleEnum.ADMIN)),
+    _actor=Depends(require_roles(UserRoleEnum.SUPERADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     """Manually trigger e-RaktKosh daily export for a given date (defaults to today)."""
@@ -36,7 +36,7 @@ async def trigger_export(
 
 @router.get("/feature-flags")
 async def list_flags(
-    _actor=Depends(require_roles(UserRoleEnum.ADMIN)),
+    _actor=Depends(require_roles(UserRoleEnum.SUPERADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(FeatureFlag))
@@ -48,7 +48,7 @@ async def list_flags(
 async def toggle_flag(
     name: str,
     is_enabled: bool,
-    actor=Depends(require_roles(UserRoleEnum.ADMIN)),
+    actor=Depends(require_roles(UserRoleEnum.SUPERADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(FeatureFlag).where(FeatureFlag.name == name))

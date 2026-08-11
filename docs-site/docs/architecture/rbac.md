@@ -5,91 +5,70 @@ title: RBAC — Roles & Permissions
 
 # RBAC — Roles & Permissions
 
-RAKT Durg uses eight roles. Every API endpoint declares which roles may access it via a `require_roles()` FastAPI dependency.
+RAKT Durg uses **five roles**. Every API endpoint declares which roles may access it via a `require_roles()` FastAPI dependency.
 
 ## Role Definitions
 
 | Role | Who | Key Permissions |
 |------|-----|----------------|
-| `admin` | System administrator | Everything; feature flag management; e-RaktKosh export trigger |
-| `medical_officer` | Doctor / MO | Approve/reject camps; review screenings; requisition management |
-| `lab_tech` | Laboratory technician | Record test results; manage unit lifecycle; view stock |
-| `phlebotomist` | Blood collection staff | Register donors; conduct screenings; create donations |
-| `inventory_officer` | Inventory manager | Manage stock; process requisitions; issue components |
-| `organizer` | Camp organiser (NGO/volunteer) | Apply for camps; manage camp events |
-| `donor` | Registered blood donor | View own donation history; view wallet balance |
-| `citizen_read` | Public user | View public stock page only; no authenticated API access |
+| `superadmin` | System administrator | All facilities, feature flags, e-RaktKosh export, full API |
+| `district_admin` | Facility operations staff | Units, donors, screenings, stock, barcodes, sync, camps, requisitions |
+| `doctor` | Medical officer | Camp approval, clinical requisitions, wallet oversight |
+| `organizer` | Camp organiser (NGO/volunteer) | Apply for camps; manage own camp events |
+| `citizen` | Public / donor user | Public stock; wallet when linked as a registered donor |
+
+Former roles merged: `lab_tech`, `phlebotomist`, and `inventory_officer` → **`district_admin`**; `donor` and `citizen_read` → **`citizen`**.
 
 ## Permission Matrix
 
-| Action | admin | medical_officer | lab_tech | phlebotomist | inventory_officer | organizer | donor | citizen_read |
-|--------|-------|-----------------|----------|--------------|-------------------|-----------|-------|--------------|
-| View public stock | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| View authenticated stock | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ |
-| Create blood unit | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
-| Record test results | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| Register donor | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
-| Conduct screening | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
-| Create/manage camp | ✓ | ✓ | ✗ | ✗ | ✗ | ✓ | ✗ | ✗ |
-| Approve/reject camp | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| Create requisition | ✓ | ✓ | ✗ | ✗ | ✓ | ✗ | ✗ | ✗ |
-| Reserve/issue components | ✓ | ✓ | ✗ | ✗ | ✓ | ✗ | ✗ | ✗ |
-| Wallet credit/redeem | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| Admin feature flags | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| Trigger e-RaktKosh export | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Action | superadmin | district_admin | doctor | organizer | citizen |
+|--------|------------|----------------|--------|-----------|---------|
+| View public stock | ✓ | ✓ | ✓ | ✓ | ✓ |
+| View authenticated stock | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Create blood unit | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Record test results | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Register donor / screening | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Barcode pre-allocate / sync | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Create/manage camp (apply) | ✓ | ✗ | ✗ | ✓ | ✗ |
+| Approve/reject camp | ✓ | ✗ | ✓ | ✗ | ✗ |
+| Requisitions | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Wallet | ✓ | ✗ | ✓ | ✗ | ✓ |
+| Admin feature flags | ✓ | ✗ | ✗ | ✗ | ✗ |
 
 ## Implementation
 
 ### Backend
 
 ```python
-# app/core/security.py
-from fastapi import Depends, HTTPException, status
+from app.middleware.rbac import require_roles
+from app.models.enums import UserRoleEnum
 
-def require_roles(allowed: list[str]):
-    async def _check(current_user: User = Depends(get_current_user)):
-        if current_user.role not in allowed:
-            raise HTTPException(status_code=403, detail="Insufficient permissions")
-        return current_user
-    return _check
-
-# Usage in router:
 @router.post("/units")
 async def create_unit(
-    actor: User = Depends(require_roles(["admin","medical_officer","lab_tech","phlebotomist"]))
+    actor: User = Depends(require_roles(
+        UserRoleEnum.SUPERADMIN,
+        UserRoleEnum.DISTRICT_ADMIN,
+        UserRoleEnum.DOCTOR,
+    )),
 ):
     ...
 ```
 
 ### Web Frontend
 
-```typescript
-// web/src/lib/rbac.ts
-export const ROUTE_ROLES: Record<string, UserRole[]> = {
-  "/dashboard": ["admin","medical_officer","lab_tech","phlebotomist","inventory_officer"],
-  "/units":     ["admin","medical_officer","lab_tech"],
-  "/donors":    ["admin","medical_officer","lab_tech","phlebotomist"],
-  "/camps":     ["admin","medical_officer","organizer"],
-  "/wallet":    ["admin","medical_officer","donor"],
-  "/admin":     ["admin"],
-};
-
-// ProtectedRoute component checks user.role against ROUTE_ROLES[location.pathname]
-```
+See [`web/src/lib/rbac.ts`](../../../web/src/lib/rbac.ts) for `ROUTE_ROLES` and `canAccess()`.
 
 ## Token Structure
 
 ```json
 {
   "sub": "user-uuid",
-  "role": "lab_tech",
+  "role": "district_admin",
   "facility_id": "facility-uuid",
-  "exp": 1700000000,
-  "jti": "token-uuid"
+  "exp": 1700000000
 }
 ```
 
 - Access token TTL: **15 minutes**
 - Refresh token TTL: **7 days**
 - Refresh tokens stored as SHA-256 hash in `refresh_tokens` table; rotated on each use
-- 401 response from API automatically clears tokens in the browser and redirects to `/login`

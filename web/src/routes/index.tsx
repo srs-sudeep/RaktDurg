@@ -1,7 +1,12 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
+import { PublicLayout } from "@/components/PublicLayout";
+import { PageLoader } from "@/components/SplashScreen";
 import LoginPage from "./auth/login";
+import HomePage from "./home/index";
+import AboutPage from "./about";
+import ContactPage from "./contact/index";
 import DashboardPage from "./dashboard/index";
 import PublicStockPage from "./public/stock";
 import UnitsPage from "./units/index";
@@ -14,7 +19,6 @@ import CampCouponsPage from "./camps/coupons";
 import RequisitionsPage from "./requisitions/index";
 import WalletPage from "./wallet/index";
 import AdminPage from "./admin/index";
-import AboutPage from "./about";
 
 function Unauthorized() {
   return (
@@ -29,9 +33,16 @@ function Unauthorized() {
 }
 
 export const router = createBrowserRouter([
+  {
+    element: <PublicLayout />,
+    children: [
+      { path: "/", element: <HomePage /> },
+      { path: "/about", element: <AboutPage /> },
+      { path: "/contact", element: <ContactPage /> },
+      { path: "/public/stock", element: <PublicStockPage /> },
+    ],
+  },
   { path: "/login", element: <LoginPage /> },
-  { path: "/about", element: <AboutPage /> },
-  { path: "/public/stock", element: <PublicStockPage /> },
   { path: "/unauthorized", element: <Unauthorized /> },
   {
     element: <ProtectedRoute />,
@@ -55,6 +66,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  { path: "/", element: <Navigate to="/dashboard" replace /> },
-  { path: "*", element: <Navigate to="/dashboard" replace /> },
+  { path: "*", element: <Navigate to="/" replace /> },
 ]);
+
+export { PageLoader };

@@ -23,10 +23,9 @@ from app.services.donors import register_donor, screen_donor
 router = APIRouter(prefix="/donors", tags=["donors"])
 
 _CLINICAL_ROLES = (
-    UserRoleEnum.ADMIN,
-    UserRoleEnum.MEDICAL_OFFICER,
-    UserRoleEnum.PHLEBOTOMIST,
-    UserRoleEnum.LAB_TECH,
+    UserRoleEnum.SUPERADMIN,
+    UserRoleEnum.DOCTOR,
+    UserRoleEnum.DISTRICT_ADMIN,
 )
 
 
@@ -84,7 +83,9 @@ async def get_donor(
 async def update_donor(
     donor_id: uuid.UUID,
     body: DonorUpdateRequest,
-    _actor=Depends(require_roles(UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER, UserRoleEnum.PHLEBOTOMIST)),
+    _actor=Depends(require_roles(
+        UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN,
+    )),
     db: AsyncSession = Depends(get_db),
 ):
     donor = await db.get(Donor, donor_id)

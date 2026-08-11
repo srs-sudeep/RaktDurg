@@ -29,7 +29,7 @@ from app.services.requisitions import (
 
 router = APIRouter(prefix="/requisitions", tags=["requisitions"])
 
-_CLINICAL = (UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER, UserRoleEnum.INVENTORY_OFFICER)
+_CLINICAL = (UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN)
 
 
 @router.post("", response_model=RequisitionOut, status_code=status.HTTP_201_CREATED)
@@ -85,7 +85,7 @@ async def get_requisition(
 @router.post("/{req_id}/reserve", response_model=RequisitionOut)
 async def reserve(
     req_id: uuid.UUID,
-    actor=Depends(require_roles(UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER, UserRoleEnum.INVENTORY_OFFICER)),
+    actor=Depends(require_roles(UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     req = await db.get(Requisition, req_id)
@@ -107,7 +107,7 @@ async def reserve(
 @router.post("/{req_id}/issue", response_model=list[IssueOut], status_code=status.HTTP_201_CREATED)
 async def issue(
     req_id: uuid.UUID,
-    actor=Depends(require_roles(UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER, UserRoleEnum.INVENTORY_OFFICER)),
+    actor=Depends(require_roles(UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     req = await db.get(Requisition, req_id)
@@ -149,7 +149,7 @@ async def cancel(
 async def transfusion(
     issue_id: uuid.UUID,
     body: TransfusionRequest,
-    _actor=Depends(require_roles(UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER)),
+    _actor=Depends(require_roles(UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR)),
     db: AsyncSession = Depends(get_db),
 ):
     issue = await db.get(Issue, issue_id)

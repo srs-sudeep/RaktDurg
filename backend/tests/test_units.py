@@ -68,10 +68,10 @@ async def test_create_unit_requires_auth(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_create_unit_lab_tech(client: AsyncClient, seed_users, facility):
+async def test_create_unit_district_admin(client: AsyncClient, seed_users, facility):
     from tests.conftest import auth_header
 
-    lab = next(u for u in seed_users.values() if u.role.value == "lab_tech")
+    lab = next(u for u in seed_users.values() if u.role.value == "district_admin")
     headers = auth_header(lab)
 
     payload = {
@@ -92,7 +92,7 @@ async def test_create_unit_lab_tech(client: AsyncClient, seed_users, facility):
 async def test_scan_nonexistent_barcode(client: AsyncClient, seed_users):
     from tests.conftest import auth_header
 
-    lab = next(u for u in seed_users.values() if u.role.value == "lab_tech")
+    lab = next(u for u in seed_users.values() if u.role.value == "district_admin")
     headers = auth_header(lab)
 
     resp = await client.get("/units/scan/RDRKDURG999999Z", headers=headers)
@@ -115,10 +115,10 @@ async def test_authenticated_stock_requires_auth(client: AsyncClient, facility):
 
 
 @pytest.mark.asyncio
-async def test_authenticated_stock_lab_tech(client: AsyncClient, seed_users, facility):
+async def test_authenticated_stock_district_admin(client: AsyncClient, seed_users, facility):
     from tests.conftest import auth_header
 
-    lab = next(u for u in seed_users.values() if u.role.value == "lab_tech")
+    lab = next(u for u in seed_users.values() if u.role.value == "district_admin")
     headers = auth_header(lab)
 
     resp = await client.get(f"/stock/{facility.id}", headers=headers)
@@ -129,10 +129,10 @@ async def test_authenticated_stock_lab_tech(client: AsyncClient, seed_users, fac
 
 
 @pytest.mark.asyncio
-async def test_citizen_read_cannot_access_authenticated_stock(client: AsyncClient, seed_users, facility):
+async def test_citizen_cannot_access_authenticated_stock(client: AsyncClient, seed_users, facility):
     from tests.conftest import auth_header
 
-    citizen = next(u for u in seed_users.values() if u.role.value == "citizen_read")
+    citizen = next(u for u in seed_users.values() if u.role.value == "citizen")
     headers = auth_header(citizen)
 
     resp = await client.get(f"/stock/{facility.id}", headers=headers)

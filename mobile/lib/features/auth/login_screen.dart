@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../../widgets/branding_widgets.dart';
 import 'auth_notifier.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -42,16 +44,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Image.asset('assets/logo.png', width: 80, height: 80),
+                SvgPicture.asset('assets/logo.svg', width: 88, height: 88),
                 const SizedBox(height: 16),
                 const Text(
                   'RaktDurg',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-                const Text(
-                  'Blood Bank Field App',
-                  style: TextStyle(color: Colors.grey),
-                ),
+                const Text('Blood Bank Field App', style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 8),
                 const Text(
                   'By IBITF and IIT Bhilai',
@@ -63,6 +62,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: TextStyle(fontSize: 11, color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 16),
+                const PartnerLogos(height: 40),
                 const SizedBox(height: 24),
 
                 Card(

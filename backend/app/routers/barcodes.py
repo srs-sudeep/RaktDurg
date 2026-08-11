@@ -66,11 +66,9 @@ async def pre_allocate(
     body: PreAllocateRequest,
     actor: User = Depends(
         require_roles(
-            UserRoleEnum.ADMIN,
-            UserRoleEnum.MEDICAL_OFFICER,
-            UserRoleEnum.LAB_TECH,
-            UserRoleEnum.PHLEBOTOMIST,
-            UserRoleEnum.INVENTORY_OFFICER,
+            UserRoleEnum.SUPERADMIN,
+            UserRoleEnum.DOCTOR,
+            UserRoleEnum.DISTRICT_ADMIN,
         )
     ),
     db: AsyncSession = Depends(get_db),
@@ -124,10 +122,9 @@ async def list_allocations(
     facility_id: uuid.UUID | None = None,
     _actor: User = Depends(
         require_roles(
-            UserRoleEnum.ADMIN,
-            UserRoleEnum.MEDICAL_OFFICER,
-            UserRoleEnum.LAB_TECH,
-            UserRoleEnum.INVENTORY_OFFICER,
+            UserRoleEnum.SUPERADMIN,
+            UserRoleEnum.DOCTOR,
+            UserRoleEnum.DISTRICT_ADMIN,
         )
     ),
     db: AsyncSession = Depends(get_db),
@@ -147,7 +144,7 @@ async def list_allocations(
 async def reclaim_allocation(
     allocation_id: uuid.UUID,
     _actor: User = Depends(
-        require_roles(UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER, UserRoleEnum.INVENTORY_OFFICER)
+        require_roles(UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN)
     ),
     db: AsyncSession = Depends(get_db),
 ):

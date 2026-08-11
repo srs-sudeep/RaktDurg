@@ -21,7 +21,7 @@ async def test_sync_requires_auth(client: AsyncClient):
 async def test_sync_citizen_forbidden(client: AsyncClient, seed_users):
     from tests.conftest import auth_header
 
-    citizen = next(u for u in seed_users.values() if u.role.value == "citizen_read")
+    citizen = next(u for u in seed_users.values() if u.role.value == "citizen")
     resp = await client.post(
         "/sync",
         json={"items": []},
@@ -34,11 +34,11 @@ async def test_sync_citizen_forbidden(client: AsyncClient, seed_users):
 async def test_sync_empty_items_rejected(client: AsyncClient, seed_users):
     from tests.conftest import auth_header
 
-    phlebotomist = next(u for u in seed_users.values() if u.role.value == "phlebotomist")
+    district_admin = next(u for u in seed_users.values() if u.role.value == "district_admin")
     resp = await client.post(
         "/sync",
         json={"items": []},
-        headers=auth_header(phlebotomist),
+        headers=auth_header(district_admin),
     )
     assert resp.status_code == 422
 
@@ -47,8 +47,8 @@ async def test_sync_empty_items_rejected(client: AsyncClient, seed_users):
 async def test_sync_idempotent_same_sync_id(client: AsyncClient, seed_users):
     from tests.conftest import auth_header
 
-    phlebotomist = next(u for u in seed_users.values() if u.role.value == "phlebotomist")
-    headers = auth_header(phlebotomist)
+    district_admin = next(u for u in seed_users.values() if u.role.value == "district_admin")
+    headers = auth_header(district_admin)
     sync_id = str(uuid.uuid4())
     now = datetime.now(tz=timezone.utc).isoformat()
 

@@ -25,7 +25,7 @@ router = APIRouter(prefix="/camps", tags=["camps"])
 @router.post("", response_model=CampOut, status_code=status.HTTP_201_CREATED)
 async def apply(
     body: CampApplyRequest,
-    actor=Depends(require_roles(UserRoleEnum.ORGANIZER, UserRoleEnum.ADMIN)),
+    actor=Depends(require_roles(UserRoleEnum.ORGANIZER, UserRoleEnum.SUPERADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     try:
@@ -46,8 +46,8 @@ async def list_camps(
     page_size: int = Query(20, ge=1, le=100),
     camp_status: CampStatusEnum | None = None,
     _actor=Depends(require_roles(
-        UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER,
-        UserRoleEnum.ORGANIZER, UserRoleEnum.INVENTORY_OFFICER,
+        UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR,
+        UserRoleEnum.ORGANIZER, UserRoleEnum.DISTRICT_ADMIN,
     )),
     db: AsyncSession = Depends(get_db),
 ):
@@ -73,8 +73,8 @@ async def list_camps(
 async def get_camp(
     camp_id: uuid.UUID,
     _actor=Depends(require_roles(
-        UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER,
-        UserRoleEnum.ORGANIZER, UserRoleEnum.INVENTORY_OFFICER,
+        UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR,
+        UserRoleEnum.ORGANIZER, UserRoleEnum.DISTRICT_ADMIN,
     )),
     db: AsyncSession = Depends(get_db),
 ):
@@ -88,7 +88,7 @@ async def get_camp(
 async def review(
     camp_id: uuid.UUID,
     body: CampReviewRequest,
-    actor=Depends(require_roles(UserRoleEnum.MEDICAL_OFFICER, UserRoleEnum.ADMIN)),
+    actor=Depends(require_roles(UserRoleEnum.DOCTOR, UserRoleEnum.SUPERADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     camp = await db.get(Camp, camp_id)
@@ -108,7 +108,7 @@ async def review(
 @router.post("/{camp_id}/cancel", response_model=CampOut)
 async def cancel(
     camp_id: uuid.UUID,
-    actor=Depends(require_roles(UserRoleEnum.ORGANIZER, UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER)),
+    actor=Depends(require_roles(UserRoleEnum.ORGANIZER, UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR)),
     db: AsyncSession = Depends(get_db),
 ):
     camp = await db.get(Camp, camp_id)
@@ -128,7 +128,7 @@ async def cancel(
 @router.get("/{camp_id}/coupons", response_model=list[CouponOut])
 async def list_coupons(
     camp_id: uuid.UUID,
-    _actor=Depends(require_roles(UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER, UserRoleEnum.ORGANIZER)),
+    _actor=Depends(require_roles(UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.ORGANIZER)),
     db: AsyncSession = Depends(get_db),
 ):
     camp = await db.get(Camp, camp_id)

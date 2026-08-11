@@ -1,12 +1,9 @@
 export const USER_ROLES = [
-  "admin",
-  "medical_officer",
-  "lab_tech",
-  "phlebotomist",
-  "inventory_officer",
+  "superadmin",
+  "district_admin",
+  "doctor",
   "organizer",
-  "donor",
-  "citizen_read",
+  "citizen",
 ] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];
@@ -20,16 +17,16 @@ export interface JWTPayload {
 }
 
 export const ROUTE_ROLES: Record<string, UserRole[]> = {
-  "/dashboard": ["admin", "medical_officer", "lab_tech", "inventory_officer", "phlebotomist"],
-  "/units": ["admin", "medical_officer", "lab_tech", "inventory_officer", "phlebotomist"],
-  "/donors": ["admin", "medical_officer", "lab_tech", "phlebotomist"],
-  "/screenings": ["admin", "medical_officer", "lab_tech", "phlebotomist"],
-  "/camps": ["admin", "medical_officer", "organizer", "inventory_officer"],
-  "/camps/approval": ["admin", "medical_officer"],
-  "/camps/apply": ["organizer", "admin"],
-  "/requisitions": ["admin", "medical_officer", "inventory_officer"],
-  "/wallet": ["admin", "medical_officer", "donor"],
-  "/admin": ["admin"],
+  "/dashboard": ["superadmin", "district_admin", "doctor"],
+  "/units": ["superadmin", "district_admin", "doctor"],
+  "/donors": ["superadmin", "district_admin", "doctor"],
+  "/screenings": ["superadmin", "district_admin", "doctor"],
+  "/camps": ["superadmin", "doctor", "organizer", "district_admin"],
+  "/camps/approval": ["superadmin", "doctor"],
+  "/camps/apply": ["organizer", "superadmin"],
+  "/requisitions": ["superadmin", "doctor", "district_admin"],
+  "/wallet": ["superadmin", "doctor", "citizen"],
+  "/admin": ["superadmin"],
 };
 
 export function canAccess(role: UserRole, path: string): boolean {
@@ -39,12 +36,9 @@ export function canAccess(role: UserRole, path: string): boolean {
 }
 
 export const ROLE_LABELS: Record<UserRole, string> = {
-  admin: "Administrator",
-  medical_officer: "Medical Officer",
-  lab_tech: "Lab Technician",
-  phlebotomist: "Phlebotomist",
-  inventory_officer: "Inventory Officer",
-  organizer: "Camp Organizer",
-  donor: "Donor",
-  citizen_read: "Public Viewer",
+  superadmin: "Superadmin",
+  district_admin: "District Admin",
+  doctor: "Doctor",
+  organizer: "Organiser",
+  citizen: "Citizen",
 };

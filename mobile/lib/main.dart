@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import 'features/auth/auth_notifier.dart';
@@ -15,6 +16,7 @@ import 'features/donor/donor_select_screen.dart';
 import 'features/screening/screening_form_screen.dart';
 import 'features/sync/sync_manager.dart';
 import 'features/sync/sync_screen.dart';
+import 'widgets/branding_widgets.dart';
 
 const _storage = FlutterSecureStorage();
 
@@ -76,7 +78,7 @@ class _RaktDurgAppState extends ConsumerState<RaktDurgApp> {
             future: _deviceId(),
             builder: (context, snap) {
               if (!snap.hasData) {
-                return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                return const Scaffold(body: PageLoader());
               }
               return ScreeningFormScreen(
                 donorId: state.pathParameters['donorId']!,
@@ -123,6 +125,13 @@ class _RaktDurgAppState extends ConsumerState<RaktDurgApp> {
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         ),
       ),
+      builder: (context, child) {
+        final auth = ref.watch(authProvider);
+        if (auth.status == AuthStatus.loading) {
+          return const SplashScreen(message: 'Starting up…');
+        }
+        return child ?? const SizedBox.shrink();
+      },
       routerConfig: _router,
     );
   }
@@ -134,13 +143,15 @@ class _DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
+    const fieldRoles = {'superadmin', 'district_admin', 'doctor', 'organizer'};
+    final canUseFieldApp = auth.role != null && fieldRoles.contains(auth.role);
 
     return Scaffold(
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset('assets/logo.png', width: 28, height: 28),
+            SvgPicture.asset('assets/logo.svg', width: 28, height: 28),
             const SizedBox(width: 8),
             const Text('RaktDurg'),
           ],
@@ -162,14 +173,27 @@ class _DashboardScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _tile(context, Icons.person_add, 'Register Donor', 'Register a new blood donor',
-              () => context.push('/donors/register')),
-          _tile(context, Icons.health_and_safety, 'Screening', 'Select donor / camp then screen',
-              () => context.push('/camps/select')),
-          _tile(context, Icons.qr_code_scanner, 'Scan Barcode', 'Look up a blood unit by barcode',
-              () => context.push('/barcode')),
-          _tile(context, Icons.cloud_upload, 'Sync Offline Data', 'Upload pending records to the server',
-              () => context.push('/sync')),
+          if (canUseFieldApp) ...[
+            _tile(context, Icons.person_add, 'Register Donor', 'Register a new blood donor',
+                () => context.push('/donors/register')),
+            _tile(context, Icons.health_and_safety, 'Screening', 'Select donor / camp then screen',
+                () => context.push('/camps/select')),
+            _tile(context, Icons.qr_code_scanner, 'Scan Barcode', 'Look up a blood unit by barcode',
+                () => context.push('/barcode')),
+            _tile(context, Icons.cloud_upload, 'Sync Offline Data', 'Upload pending records to the server',
+                () => context.push('/sync')),
+          ] else ...[
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Text(
+                  'Citizen accounts use the web app for public stock and wallet. '
+                  'Field features are for district staff only.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           Text(
             'Signed in as: ${auth.role ?? "unknown"}',

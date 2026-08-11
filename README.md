@@ -55,21 +55,20 @@ Barcode lookup uses manual entry on simulator (camera ML Kit is not arm64-ready 
 
 ## Demo logins (dev only)
 
-Seeded by `make demo-seed` ([`backend/seed/demo_seed.py`](backend/seed/demo_seed.py)). All eight roles can **authenticate** on web and mobile; **web RBAC** restricts which pages each role sees. **Mobile** shows the same field-work UI for every logged-in user (API still enforces permissions).
+Seeded by `make demo-seed` ([`backend/seed/demo_seed.py`](backend/seed/demo_seed.py)). Five roles — all can authenticate on web and mobile; web RBAC restricts pages; mobile hides field tiles for `citizen`.
 
 | Username | Password | Role | Web access | Mobile |
 |----------|----------|------|------------|--------|
-| `admin` | `admin123` | admin | Full staff nav + Admin | Login + field UI |
-| `dr_meena` | `meena123` | medical_officer | Dashboard, Units, Donors, Camps, Requisitions, Wallet | Login + field UI |
-| `lab_rahul` | `rahul123` | lab_tech | Dashboard, Units, Donors | Login + field UI |
-| `phlebotomist_seema` | `seema123` | phlebotomist | Dashboard, Units, Donors | Login + field UI (primary mobile user) |
-| `inventory_ravi` | `ravi123` | inventory_officer | Dashboard, Units, Camps, Requisitions | Login + field UI |
-| `organizer_priya` | `priya123` | organizer | Camps (apply) | Login + field UI |
-| `donor_ajay` | `ajay123` | donor | Wallet only (redirect after login) | Login + field UI |
-| `citizen_pooja` | `pooja123` | citizen_read | Public stock (redirect after login) | Login + field UI |
+| `superadmin` | `super123` | superadmin | Full staff nav + Admin | Field app |
+| `district_admin` | `district123` | district_admin | Dashboard, Units, Donors, Camps, Requisitions | Field app (primary) |
+| `dr_meena` | `meena123` | doctor | Clinical routes + camp approval | Field app |
+| `organizer_priya` | `priya123` | organizer | Camps (apply) | Camp flows |
+| `citizen_ajay` | `ajay123` | citizen | Public stock + Wallet | Citizen message only |
 
 Public stock (no login): http://localhost:3000/public/stock?facility=`<facility-uuid>`  
 Facility UUID is printed by `make demo-seed` and stored in `web/.env` as `VITE_DEFAULT_FACILITY_ID`.
+
+Login body example: `{"username":"superadmin","password":"super123"}`.
 
 ## Production deployment
 
@@ -93,7 +92,7 @@ Production stack (`infra/docker-compose.prod.yml`):
 ## API notes
 
 - Routes are mounted at the root (e.g. `/auth/token`, `/units`, `/stock/{id}`) — **no `/api/v1` prefix**.
-- Login body is JSON: `{"username":"admin","password":"admin123"}`.
+- Login body is JSON: `{"username":"superadmin","password":"super123"}`.
 - Barcode pre-allocation: `POST /barcodes/pre-allocate`.
 
 ## Useful Make targets

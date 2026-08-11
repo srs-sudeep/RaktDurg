@@ -27,10 +27,10 @@ async def test_create_requisition_requires_auth(client: AsyncClient, facility):
 
 
 @pytest.mark.asyncio
-async def test_create_requisition_medical_officer(client: AsyncClient, seed_users, facility):
+async def test_create_requisition_doctor(client: AsyncClient, seed_users, facility):
     from tests.conftest import auth_header
 
-    mo = next(u for u in seed_users.values() if u.role.value == "medical_officer")
+    mo = next(u for u in seed_users.values() if u.role.value == "doctor")
     payload = {
         "facility_id": str(facility.id),
         "patient_name": "Ramesh Kumar",
@@ -52,7 +52,7 @@ async def test_create_requisition_medical_officer(client: AsyncClient, seed_user
 async def test_citizen_cannot_create_requisition(client: AsyncClient, seed_users, facility):
     from tests.conftest import auth_header
 
-    citizen = next(u for u in seed_users.values() if u.role.value == "citizen_read")
+    citizen = next(u for u in seed_users.values() if u.role.value == "citizen")
     payload = {
         "facility_id": str(facility.id),
         "patient_name": "Test",
@@ -71,7 +71,7 @@ async def test_citizen_cannot_create_requisition(client: AsyncClient, seed_users
 async def test_list_requisitions(client: AsyncClient, seed_users):
     from tests.conftest import auth_header
 
-    mo = next(u for u in seed_users.values() if u.role.value == "medical_officer")
+    mo = next(u for u in seed_users.values() if u.role.value == "doctor")
     resp = await client.get("/requisitions", headers=auth_header(mo))
     assert resp.status_code == 200
     data = resp.json()
@@ -83,7 +83,7 @@ async def test_list_requisitions(client: AsyncClient, seed_users):
 async def test_reserve_on_nonexistent_fails(client: AsyncClient, seed_users):
     from tests.conftest import auth_header
 
-    mo = next(u for u in seed_users.values() if u.role.value == "medical_officer")
+    mo = next(u for u in seed_users.values() if u.role.value == "doctor")
     resp = await client.post(f"/requisitions/{uuid.uuid4()}/reserve", headers=auth_header(mo))
     assert resp.status_code == 404
 
@@ -92,7 +92,7 @@ async def test_reserve_on_nonexistent_fails(client: AsyncClient, seed_users):
 async def test_cancel_pending_requisition(client: AsyncClient, seed_users, facility):
     from tests.conftest import auth_header
 
-    mo = next(u for u in seed_users.values() if u.role.value == "medical_officer")
+    mo = next(u for u in seed_users.values() if u.role.value == "doctor")
     headers = auth_header(mo)
 
     # Create
@@ -117,26 +117,26 @@ async def test_cancel_pending_requisition(client: AsyncClient, seed_users, facil
 
 
 @pytest.mark.asyncio
-async def test_admin_export_trigger(client: AsyncClient, seed_users):
+async def test_superadmin_export_trigger(client: AsyncClient, seed_users):
     from tests.conftest import auth_header
 
-    admin = next(u for u in seed_users.values() if u.role.value == "admin")
-    resp = await client.post("/admin/erakkosh/export", headers=auth_header(admin))
+    superadmin = next(u for u in seed_users.values() if u.role.value == "superadmin")
+    resp = await client.post("/admin/erakkosh/export", headers=auth_header(superadmin))
     assert resp.status_code == 200
     data = resp.json()
     assert "submission_id" in data
 
 
 @pytest.mark.asyncio
-async def test_feature_flags_admin_only(client: AsyncClient, seed_users):
+async def test_feature_flags_superadmin_only(client: AsyncClient, seed_users):
     from tests.conftest import auth_header
 
-    citizen = next(u for u in seed_users.values() if u.role.value == "citizen_read")
+    citizen = next(u for u in seed_users.values() if u.role.value == "citizen")
     resp = await client.get("/admin/feature-flags", headers=auth_header(citizen))
     assert resp.status_code == 403
 
-    admin = next(u for u in seed_users.values() if u.role.value == "admin")
-    resp = await client.get("/admin/feature-flags", headers=auth_header(admin))
+    superadmin = next(u for u in seed_users.values() if u.role.value == "superadmin")
+    resp = await client.get("/admin/feature-flags", headers=auth_header(superadmin))
     assert resp.status_code == 200
     flags = resp.json()
     wallet_flag = next((f for f in flags if f["name"] == "wallet_enabled"), None)

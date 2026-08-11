@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { BrandingFooter, BrandingLogo } from "@/components/Branding";
+import { PartnerLogos } from "@/components/PublicLayout";
 import { defaultRouteForRole } from "@/lib/auth-redirect";
 import { jwtDecode } from "jwt-decode";
 import type { JWTPayload } from "@/lib/rbac";
@@ -21,7 +22,7 @@ export default function LoginPage() {
     try {
       await login(username, password);
       const token = localStorage.getItem("access_token");
-      const role = token ? jwtDecode<JWTPayload>(token).role : "admin";
+      const role = token ? jwtDecode<JWTPayload>(token).role : "superadmin";
       navigate(defaultRouteForRole(role));
     } catch {
       setError("Invalid username or password");
@@ -78,13 +79,19 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-4 text-center text-xs text-gray-400">
-          Public stock view:{" "}
+          <a href="/" className="text-red-600 underline">
+            ← Back to home
+          </a>
+          {" · "}
           <a href="/public/stock" className="text-red-600 underline">
-            Check availability
+            Check blood stock
           </a>
         </p>
       </div>
-      <BrandingFooter className="mt-8" />
+      <div className="mt-6">
+        <PartnerLogos size="sm" />
+      </div>
+      <BrandingFooter className="mt-4" />
     </div>
   );
 }

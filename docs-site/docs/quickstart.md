@@ -45,21 +45,18 @@ make migrate
 
 ```bash
 make demo-seed
-# Creates 1 facility, 8 users (one per role), 15 donors, 12 blood units, 5 requisitions
+# Creates 1 facility, 5 users (one per role), 15 donors, 12 blood units, 5 requisitions
 ```
 
 ### Demo Credentials
 
 | Role | Username | Password |
 |------|----------|----------|
-| `admin` | `admin` | `admin123` |
-| `medical_officer` | `dr_meena` | `meena123` |
-| `lab_tech` | `lab_rahul` | `rahul123` |
-| `phlebotomist` | `phlebotomist_seema` | `seema123` |
-| `inventory_officer` | `inventory_ravi` | `ravi123` |
+| `superadmin` | `superadmin` | `super123` |
+| `district_admin` | `district_admin` | `district123` |
+| `doctor` | `dr_meena` | `meena123` |
 | `organizer` | `organizer_priya` | `priya123` |
-| `donor` | `donor_ajay` | `ajay123` |
-| `citizen_read` | `citizen_pooja` | `pooja123` |
+| `citizen` | `citizen_ajay` | `ajay123` |
 
 :::warning Dev passwords only
 These passwords are for local development only and are not used in any environment except when `ENVIRONMENT=development`.

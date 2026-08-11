@@ -88,8 +88,7 @@ def upgrade() -> None:
     """)
     op.execute("""
         CREATE TYPE user_role_enum AS ENUM
-          ('admin','medical_officer','lab_tech','phlebotomist',
-           'inventory_officer','organizer','donor','citizen_read')
+          ('superadmin','district_admin','doctor','organizer','citizen')
     """)
 
     # ── 2. Tables (FK dependency order) ───────────────────────────────────────

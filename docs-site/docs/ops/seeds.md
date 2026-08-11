@@ -18,7 +18,7 @@ All donor names, phone numbers, and ABHA references in the seed are synthetic. N
 | Entity | Count | Notes |
 |--------|-------|-------|
 | Facility | 1 | RKDURG — Durg District Hospital |
-| Users | 8 | One per role with dev-only passwords |
+| Users | 5 | One per role with dev-only passwords |
 | Donors | 15 | Synthetic names, fake phone numbers |
 | Camps | 2 | One approved, one completed |
 | Screenings | 12 | Linked to donors |
@@ -46,14 +46,11 @@ This means `make demo-seed` is safe to run multiple times.
 
 | Username | Password | Role |
 |----------|----------|------|
-| `admin` | `admin123` | admin |
-| `dr_meena` | `meena123` | medical_officer |
-| `lab_rahul` | `rahul123` | lab_tech |
-| `phlebotomist_seema` | `seema123` | phlebotomist |
-| `inventory_ravi` | `ravi123` | inventory_officer |
+| `superadmin` | `super123` | superadmin |
+| `district_admin` | `district123` | district_admin |
+| `dr_meena` | `meena123` | doctor |
 | `organizer_priya` | `priya123` | organizer |
-| `donor_ajay` | `ajay123` | donor |
-| `citizen_pooja` | `pooja123` | citizen_read |
+| `citizen_ajay` | `ajay123` | citizen |
 
 Passwords are bcrypt-hashed. These credentials only work when `ENVIRONMENT=development`.
 

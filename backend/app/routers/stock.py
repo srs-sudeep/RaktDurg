@@ -17,7 +17,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.middleware.rbac import require_roles
+from app.middleware.rbac import require_facility_staff, require_roles
 from app.models.enums import UserRoleEnum
 from app.schemas.stock import FacilityStockResponse, StockSummaryRow
 from app.schemas.units import StockEntry, StockResponse
@@ -33,11 +33,7 @@ async def _fetch_stock(db: AsyncSession, facility_id: uuid.UUID) -> list[dict]:
 @router.get("/stock/{facility_id}", response_model=StockResponse)
 async def authenticated_stock(
     facility_id: uuid.UUID,
-    _actor=Depends(require_roles(
-        UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER,
-        UserRoleEnum.LAB_TECH, UserRoleEnum.INVENTORY_OFFICER,
-        UserRoleEnum.PHLEBOTOMIST,
-    )),
+    _actor=Depends(require_facility_staff),
     db: AsyncSession = Depends(get_db),
 ):
     rows = await _fetch_stock(db, facility_id)
@@ -83,8 +79,7 @@ async def stock_sse_stream(
     facility_id: uuid.UUID,
     request: Request,
     _actor=Depends(require_roles(
-        UserRoleEnum.ADMIN, UserRoleEnum.MEDICAL_OFFICER,
-        UserRoleEnum.LAB_TECH, UserRoleEnum.INVENTORY_OFFICER,
+        UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN,
     )),
     db: AsyncSession = Depends(get_db),
 ):
