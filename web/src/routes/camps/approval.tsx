@@ -7,9 +7,16 @@ import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { PageHeader } from "@/components/ui/panel";
 import { showSuccessToast } from "@/lib/toast";
 
+const PENDING = new Set(["submitted", "under_review"]);
+
 export default function CampApprovalPage() {
-  const { data, isLoading } = useCamps("pending");
+  const { data, isLoading } = useCamps();
   const review = useReviewCamp();
+
+  const rows = useMemo(
+    () => (data?.items ?? []).filter((c) => PENDING.has(c.status)),
+    [data]
+  );
 
   const columns = useMemo<DataTableColumn<Camp>[]>(
     () => [
@@ -25,21 +32,33 @@ export default function CampApprovalPage() {
           </div>
         ),
       },
-      { id: "status", header: "Status", cell: (c) => <Badge>{c.status}</Badge> },
+      {
+        id: "status",
+        header: "Status",
+        cell: (c) => (
+          <Badge
+            className={
+              c.status === "under_review"
+                ? "border-amber-300 bg-amber-50 text-amber-900"
+                : "border-sky-300 bg-sky-50 text-sky-900"
+            }
+          >
+            {c.status.replace(/_/g, " ")}
+          </Badge>
+        ),
+      },
       {
         id: "actions",
         header: "Actions",
         cell: (c) => (
-          <div className="flex gap-1">
+          <div className="flex gap-1.5">
             <Button
               size="sm"
               disabled={review.isPending}
               onClick={() =>
                 review.mutate(
                   { id: c.id, action: "approve", coupon_prefix: "RD" },
-                  {
-                    onSuccess: () => showSuccessToast("Camp approved", c.camp_name),
-                  }
+                  { onSuccess: () => showSuccessToast("Camp approved", c.camp_name) }
                 )
               }
             >
@@ -52,9 +71,7 @@ export default function CampApprovalPage() {
               onClick={() =>
                 review.mutate(
                   { id: c.id, action: "reject", rejection_reason: "Capacity" },
-                  {
-                    onSuccess: () => showSuccessToast("Camp rejected", c.camp_name),
-                  }
+                  { onSuccess: () => showSuccessToast("Camp rejected", c.camp_name) }
                 )
               }
             >
@@ -70,20 +87,21 @@ export default function CampApprovalPage() {
   return (
     <div className="space-y-3">
       <PageHeader
-        title="Camp approval queue"
-        description="Pending applications waiting for doctor / admin review."
         actions={
-          <Link to="/camps" className="text-[13px] text-red-700 hover:underline">
-            ← All camps
+          <Link to="/camps">
+            <Button variant="outline" size="sm">
+              All camps
+            </Button>
           </Link>
         }
       />
       <DataTable
         columns={columns}
-        rows={data?.items ?? []}
+        rows={rows}
         rowKey={(c) => c.id}
         isLoading={isLoading}
-        emptyMessage="No pending camps."
+        emptyMessage="No camps awaiting approval."
+        footer={<p className="text-[11px] text-slate-500">{rows.length} in queue</p>}
       />
     </div>
   );

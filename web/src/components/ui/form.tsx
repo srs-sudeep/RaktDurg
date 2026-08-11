@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 
 const controlClass =
-  "flex h-8 w-full rounded border border-slate-300 bg-white px-2.5 text-[13px] text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:border-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-500 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
+  "flex h-8 w-full rounded-md border border-slate-200 bg-white px-2.5 text-[13px] text-slate-900 shadow-sm placeholder:text-slate-400 focus-visible:border-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600/20 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
 
 export const FormInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (

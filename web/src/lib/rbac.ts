@@ -30,8 +30,9 @@ export const ROUTE_ROLES: Record<string, UserRole[]> = {
   "/wallet": ["superadmin", "doctor", "district_admin"],
   "/organizers": ["superadmin", "district_admin", "doctor"],
   "/organizer-directory": ["superadmin", "district_admin", "doctor"],
+  "/citizens/link": ["superadmin", "district_admin", "doctor"],
   "/users": ["superadmin"],
-  "/admin": ["superadmin", "district_admin"],
+  "/admin": ["superadmin"],
 };
 
 export function canAccess(role: UserRole, path: string): boolean {

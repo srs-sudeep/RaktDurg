@@ -22,8 +22,9 @@ const PAGE_META: Record<string, PageMeta> = {
   "/wallet": { title: "Wallet", description: "Blood credit balances" },
   "/organizers": { title: "Organizer accounts", description: "Login-linked organizers" },
   "/organizer-directory": { title: "Outreach directory", description: "Red Cross contact list" },
+  "/citizens/link": { title: "Link citizen", description: "Connect citizen login to a donor profile" },
   "/users": { title: "Users & roles", description: "Staff account administration" },
-  "/admin": { title: "System", description: "Flags, linking, and exports" },
+  "/admin": { title: "System", description: "Feature flags and e-RaktKosh export" },
 };
 
 export function pageMetaForPath(pathname: string): PageMeta {

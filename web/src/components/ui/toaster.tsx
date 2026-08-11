@@ -41,7 +41,7 @@ export function Toaster() {
             }
           }}
           className={cn(
-            "relative w-[340px] rounded border px-3 py-2.5 shadow-md",
+            "relative w-[340px] rounded-lg border px-3.5 py-3 shadow-lg shadow-slate-900/10",
             stylesByVariant[toast.variant]
           )}
         >

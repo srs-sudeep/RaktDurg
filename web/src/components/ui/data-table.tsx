@@ -33,20 +33,25 @@ export function DataTable<T>({
   footer,
 }: DataTableProps<T>) {
   return (
-    <div className={cn("overflow-hidden border border-slate-200 bg-white", className)}>
+    <div
+      className={cn(
+        "overflow-hidden rounded-lg border border-slate-200/90 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]",
+        className
+      )}
+    >
       {toolbar && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/80 px-3 py-2">
           {toolbar}
         </div>
       )}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-left text-[13px]">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-100 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500">
               {columns.map((col) => (
                 <th
                   key={col.id}
-                  className={cn("whitespace-nowrap px-3 py-2 font-semibold", col.headerClassName, col.className)}
+                  className={cn("whitespace-nowrap px-3 py-2.5 font-semibold", col.headerClassName, col.className)}
                 >
                   {col.header}
                 </th>
@@ -56,14 +61,14 @@ export function DataTable<T>({
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={columns.length} className="px-3 py-8 text-center text-slate-500">
+                <td colSpan={columns.length} className="px-3 py-10 text-center text-slate-500">
                   Loading…
                 </td>
               </tr>
             )}
             {!isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={columns.length} className="px-3 py-8 text-center text-slate-500">
+                <td colSpan={columns.length} className="px-3 py-10 text-center text-slate-500">
                   {emptyMessage}
                 </td>
               </tr>
@@ -73,14 +78,14 @@ export function DataTable<T>({
                 <tr
                   key={rowKey(row)}
                   className={cn(
-                    "border-b border-slate-100 last:border-0",
-                    idx % 2 === 1 && "bg-slate-50/70",
-                    onRowClick && "cursor-pointer hover:bg-slate-100"
+                    "border-b border-slate-100/90 last:border-0 transition-colors",
+                    idx % 2 === 1 && "bg-slate-50/40",
+                    onRowClick && "cursor-pointer hover:bg-red-50/40"
                   )}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                 >
                   {columns.map((col) => (
-                    <td key={col.id} className={cn("px-3 py-2 align-middle text-slate-800", col.className)}>
+                    <td key={col.id} className={cn("px-3 py-2.5 align-middle text-slate-800", col.className)}>
                       {col.cell(row)}
                     </td>
                   ))}
@@ -90,7 +95,7 @@ export function DataTable<T>({
         </table>
       </div>
       {footer && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/70 px-3 py-2">
           {footer}
         </div>
       )}
