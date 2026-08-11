@@ -91,10 +91,13 @@ For a real device on the same WiFi:
 flutter run --dart-define=API_BASE_URL=http://192.168.1.x:8000
 ```
 
-Production / emulator against the live API:
+Production / physical device against the live API:
 ```bash
 flutter run --dart-define=API_BASE_URL=http://8.231.102.114
+# Release builds default to this URL when no dart-define is passed.
 ```
+
+CI release builds also inject `--dart-define=API_BASE_URL=http://8.231.102.114`.
 
 ## Roles & access
 

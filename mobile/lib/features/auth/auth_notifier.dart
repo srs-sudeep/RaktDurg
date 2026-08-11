@@ -13,6 +13,7 @@ class AuthState {
   final String? role;
   final String? facilityId;
   final String? error;
+  final bool isLoggingIn;
 
   const AuthState({
     this.status = AuthStatus.loading,
@@ -20,6 +21,7 @@ class AuthState {
     this.role,
     this.facilityId,
     this.error,
+    this.isLoggingIn = false,
   });
 
   AuthState copyWith({
@@ -27,18 +29,22 @@ class AuthState {
     String? userId,
     String? role,
     String? facilityId,
-    String? error,
+    Object? error = _unset,
+    bool? isLoggingIn,
   }) =>
       AuthState(
         status: status ?? this.status,
         userId: userId ?? this.userId,
         role: role ?? this.role,
         facilityId: facilityId ?? this.facilityId,
-        error: error ?? this.error,
+        error: identical(error, _unset) ? this.error : error as String?,
+        isLoggingIn: isLoggingIn ?? this.isLoggingIn,
       );
 
   bool get isAuthenticated => status == AuthStatus.authenticated;
 }
+
+const Object _unset = Object();
 
 class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier() : super(const AuthState()) {
@@ -48,7 +54,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> _rehydrate() async {
     final token = await _storage.read(key: 'access_token');
     if (token == null) {
-      state = state.copyWith(status: AuthStatus.unauthenticated);
+      state = const AuthState(status: AuthStatus.unauthenticated);
       return;
     }
     try {
@@ -63,21 +69,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
     } catch (_) {
       await _storage.deleteAll();
-      state = state.copyWith(status: AuthStatus.unauthenticated);
+      state = const AuthState(status: AuthStatus.unauthenticated);
     }
   }
 
   Future<void> login(String username, String password) async {
-    state = state.copyWith(status: AuthStatus.loading, error: null);
+    // Keep status=unauthenticated so the login screen stays mounted (do not
+    // flip to AuthStatus.loading — that swaps the whole app to the splash).
+    state = const AuthState(status: AuthStatus.unauthenticated, isLoggingIn: true);
     try {
       final data = await ApiClient.instance.login(username, password);
       await _storage.write(key: 'access_token', value: data['access_token'] as String);
       await _storage.write(key: 'refresh_token', value: data['refresh_token'] as String);
       await _rehydrate();
-    } catch (_) {
-      state = state.copyWith(
+    } catch (err) {
+      state = AuthState(
         status: AuthStatus.unauthenticated,
-        error: 'Login failed. Check your credentials.',
+        error: describeApiError(err),
       );
     }
   }

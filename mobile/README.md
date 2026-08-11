@@ -31,9 +31,14 @@ Do **not** use `seed_superadmin` against production.
 ```bash
 cd mobile
 flutter pub get
-flutter run --dart-define=API_BASE_URL=http://8.231.102.114   # production
-# or local API (Android emulator):
+
+# Physical device / release against production (default in release mode):
+flutter run --release --dart-define=API_BASE_URL=http://8.231.102.114
+
+# Android emulator → local API:
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 ```
+
+Release builds from GitHub Actions inject `API_BASE_URL=http://8.231.102.114`. Older APKs without that define pointed at `10.0.2.2` and could not log in on real phones.
 
 See [Mobile setup](https://rakt-durg-docs.vercel.app/mobile/setup) for layout, secure storage, and tests.

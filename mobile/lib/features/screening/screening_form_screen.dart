@@ -149,7 +149,9 @@ class _ScreeningFormState extends ConsumerState<ScreeningFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Donor Screening'),
         backgroundColor: const Color(0xFFDC2626),
@@ -158,7 +160,8 @@ class _ScreeningFormState extends ConsumerState<ScreeningFormScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomInset),
           children: [
             Container(
               margin: const EdgeInsets.only(bottom: 16),

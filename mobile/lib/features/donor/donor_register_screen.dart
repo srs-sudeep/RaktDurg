@@ -57,7 +57,9 @@ class _DonorRegisterScreenState extends State<DonorRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Register Donor'),
         backgroundColor: const Color(0xFFDC2626),
@@ -66,7 +68,8 @@ class _DonorRegisterScreenState extends State<DonorRegisterScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomInset),
           children: [
             TextFormField(
               controller: _name,

@@ -1,7 +1,44 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 const _storage = FlutterSecureStorage();
+
+/// Production API host used by release builds when no `--dart-define=API_BASE_URL` is set.
+const kProductionApiBaseUrl = 'http://8.231.102.114';
+
+String resolveApiBaseUrl() {
+  const fromDefine = String.fromEnvironment('API_BASE_URL');
+  if (fromDefine.trim().isNotEmpty) return fromDefine.trim();
+  // Debug/profile keep the Android emulator loopback; release hits production.
+  if (kReleaseMode) return kProductionApiBaseUrl;
+  return 'http://10.0.2.2:8000';
+}
+
+/// Human-readable message for login / network failures.
+String describeApiError(Object error) {
+  if (error is DioException) {
+    final status = error.response?.statusCode;
+    if (status == 401 || status == 403) {
+      return 'Invalid username or password.';
+    }
+    if (status == 422) {
+      return 'Invalid login request. Check username and password.';
+    }
+    if (error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout) {
+      return 'Server timed out. Check your connection and try again.';
+    }
+    if (error.type == DioExceptionType.connectionError) {
+      return 'Cannot reach API (${ApiClient.instance.baseUrl}). Check network.';
+    }
+    if (status != null) {
+      return 'Request failed ($status). Try again.';
+    }
+  }
+  return 'Login failed. Check your credentials and network.';
+}
 
 class ApiClient {
   ApiClient._();
@@ -9,14 +46,14 @@ class ApiClient {
 
   late final Dio _dio = _buildDio();
 
+  String get baseUrl => _dio.options.baseUrl;
+  Dio get dio => _dio;
+
   Dio _buildDio() {
     final dio = Dio(BaseOptions(
-      baseUrl: const String.fromEnvironment(
-        'API_BASE_URL',
-        defaultValue: 'http://10.0.2.2:8000',
-      ),
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 20),
+      baseUrl: resolveApiBaseUrl(),
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 25),
       headers: {'Content-Type': 'application/json'},
     ));
 
@@ -161,6 +198,4 @@ class ApiClient {
     final resp = await _dio.post('/citizen/bookings/$bookingId/cancel');
     return resp.data as Map<String, dynamic>;
   }
-
-  Dio get dio => _dio;
 }

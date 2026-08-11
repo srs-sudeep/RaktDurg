@@ -99,7 +99,9 @@ jobs:
         run: flutter pub get
 
       - name: Build release APK
-        run: flutter build apk --release
+        run: >
+          flutter build apk --release
+          --dart-define=API_BASE_URL=http://8.231.102.114
 
       - name: Stage Android artifact
         run: |
@@ -168,11 +170,11 @@ jobs:
             PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< "$(security cms -D -i profile.mobileprovision)")
             cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/"$PROFILE_UUID".mobileprovision
 
-            flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+            flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --dart-define=API_BASE_URL=http://8.231.102.114
             cp build/ios/ipa/*.ipa "../release/ios/raktdurg-${TAG}.ipa"
           else
             echo "No iOS signing secrets configured; building unsigned app bundle."
-            flutter build ios --release --no-codesign
+            flutter build ios --release --no-codesign --dart-define=API_BASE_URL=http://8.231.102.114
             (
               cd build/ios/iphoneos
               zip -r "$GITHUB_WORKSPACE/release/ios/raktdurg-${TAG}-ios-unsigned.zip" Runner.app
