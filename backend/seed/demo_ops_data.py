@@ -139,10 +139,15 @@ async def seed_deliberate_inventory(
                                         temperature_celsius, hemoglobin_g_dl, questionnaire,
                                         eligibility_result, captured_offline, created_at, updated_at)
                 VALUES (:id, :did, :by, :dt, 68.0, 118, 78, 74, 36.7, 13.8,
-                        '{"had_recent_illness":false,"had_recent_surgery":false}',
-                        'eligible', false, now(), now())
+                        :questionnaire, 'eligible', false, now(), now())
             """),
-            {"id": str(screening_id), "did": str(donor_id), "by": str(staff_user_id), "dt": donation_date},
+            {
+                "id": str(screening_id),
+                "did": str(donor_id),
+                "by": str(staff_user_id),
+                "dt": donation_date,
+                "questionnaire": '{"had_recent_illness":false,"had_recent_surgery":false}',
+            },
         )
         donation_id = uid()
         await db.execute(
