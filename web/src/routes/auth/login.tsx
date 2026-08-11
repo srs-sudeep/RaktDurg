@@ -5,6 +5,8 @@ import { BrandingFooter } from "@/components/Branding";
 import { LoginHeroPanel } from "@/components/DecorativeGraphics";
 import { PartnerLogos } from "@/components/PublicLayout";
 import { defaultRouteForRole } from "@/lib/auth-redirect";
+import { getErrorMessage } from "@/lib/errors";
+import { showErrorToast } from "@/lib/toast";
 import { jwtDecode } from "jwt-decode";
 import type { JWTPayload } from "@/lib/rbac";
 
@@ -25,8 +27,10 @@ export default function LoginPage() {
       const token = localStorage.getItem("access_token");
       const role = token ? jwtDecode<JWTPayload>(token).role : "superadmin";
       navigate(defaultRouteForRole(role));
-    } catch {
-      setError("Invalid username or password");
+    } catch (error) {
+      const message = getErrorMessage(error, "Invalid username or password");
+      setError(message);
+      showErrorToast("Login failed", message);
     } finally {
       setLoading(false);
     }

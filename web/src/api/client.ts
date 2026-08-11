@@ -1,4 +1,6 @@
 import axios from "axios";
+import { getErrorMessage } from "@/lib/errors";
+import { showErrorToast } from "@/lib/toast";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -51,7 +53,11 @@ apiClient.interceptors.response.use(
       }
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
+      showErrorToast("Session expired", "Please sign in again.");
       window.location.href = "/login";
+    }
+    if (!error.config?._skipErrorToast) {
+      showErrorToast("Request failed", getErrorMessage(error));
     }
     return Promise.reject(error);
   }

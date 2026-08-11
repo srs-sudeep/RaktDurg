@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AuthProvider } from "@/context/AuthContext";
 import { AppRoot } from "@/AppRoot";
+import { Toaster } from "@/components/ui/toaster";
 import "./index.css";
 
 const queryClient = new QueryClient({
@@ -21,6 +22,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <AuthProvider>
         <AppRoot />
       </AuthProvider>
+      <Toaster />
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   </React.StrictMode>

@@ -25,7 +25,9 @@ jobs:
         run: |
           tar czf - backend web infra | \
             ssh -i ~/.ssh/id_ed25519 "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "tar xzf - -C '${{ secrets.DEPLOY_PATH }}'"
+            "rm -rf '${{ secrets.DEPLOY_PATH }}/backend' '${{ secrets.DEPLOY_PATH }}/web' '${{ secrets.DEPLOY_PATH }}/infra' && \
+             mkdir -p '${{ secrets.DEPLOY_PATH }}' && \
+             tar xzf - -C '${{ secrets.DEPLOY_PATH }}'"
       - name: Deploy on GCE host
         run: |
           ssh -i ~/.ssh/id_ed25519 "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" <<'EOF'
