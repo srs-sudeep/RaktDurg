@@ -239,6 +239,8 @@ jobs:
           name: RaktDurg ${{ needs.prepare.outputs.tag }}
           body: |
             Website: http://8.231.102.114
+            Docs: https://rakt-durg-docs.vercel.app/
+            Monitoring: http://8.231.102.114/grafana/
 
             Assets:
             - Android APK attached below

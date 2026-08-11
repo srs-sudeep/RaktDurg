@@ -34,6 +34,8 @@ make up
 
 The API will be available at `http://localhost:8000`. Swagger UI at `http://localhost:8000/docs`.
 
+Published docs (always online): https://rakt-durg-docs.vercel.app/
+
 ## 3 — Run Migrations
 
 ```bash

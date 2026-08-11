@@ -9,6 +9,13 @@ slug: /intro
 
 RAKT Durg is a district-level digital blood bank management platform built for Durg District Hospital and the Chhattisgarh Red Cross Blood Bank. It **complements** (does not replace) the national e-RaktKosh system.
 
+| | URL |
+|--|--|
+| Documentation (this site) | https://rakt-durg-docs.vercel.app/ |
+| Live web app | http://8.231.102.114 |
+| Monitoring (Grafana) | http://8.231.102.114/grafana/ |
+| Mobile releases | https://github.com/srs-sudeep/RaktDurg/releases |
+
 ## What Problem Does It Solve?
 
 The national e-RaktKosh portal is optimised for state-level aggregation and reporting. District blood banks need:

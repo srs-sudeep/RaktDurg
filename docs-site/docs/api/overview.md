@@ -10,16 +10,20 @@ title: API Overview
 | Environment | URL |
 |-------------|-----|
 | Local development | `http://localhost:8000` |
-| Staging | `https://staging.rakt.durg.gov.in` |
-| Production | `https://rakt.durg.gov.in` |
+| Production app | `http://8.231.102.114` |
+| Documentation | https://rakt-durg-docs.vercel.app/ |
 
 ## Interactive Documentation
 
-The FastAPI app serves interactive Swagger UI and ReDoc:
+Published platform docs (architecture, ops, API guides): https://rakt-durg-docs.vercel.app/
+
+Local FastAPI interactive docs (development only — disabled in production):
 
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 - OpenAPI JSON: `http://localhost:8000/openapi.json`
+
+Production health check: `http://8.231.102.114/health`
 
 ## Authentication
 

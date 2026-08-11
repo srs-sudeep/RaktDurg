@@ -23,11 +23,11 @@ function HeroBanner() {
           </Link>
           <a
             className="button button--outline button--lg"
-            href="http://localhost:8000/docs"
+            href="http://8.231.102.114"
             target="_blank"
             rel="noopener noreferrer"
           >
-            API (Swagger)
+            Live app
           </a>
         </div>
       </div>
@@ -119,7 +119,7 @@ export default function Home(): JSX.Element {
                 <tr><td>Mobile</td><td>Flutter 3 · Riverpod · sqflite · go_router · Dio</td></tr>
                 <tr><td>Auth</td><td>JWT (15 min access · 7 day refresh) · bcrypt · SHA-256 token hash</td></tr>
                 <tr><td>Real-time</td><td>SSE via FastAPI + Redis pub/sub</td></tr>
-                <tr><td>CI / CD</td><td>GitHub Actions · GHCR Docker images</td></tr>
+                <tr><td>CI / CD</td><td>GitHub Actions (VM deploy) · Vercel (docs)</td></tr>
               </tbody>
             </table>
           </div>

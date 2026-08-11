@@ -21,6 +21,22 @@ export default function AboutPage() {
             A district-level digital blood bank platform built for Durg District Hospital and Chhattisgarh
             Red Cross.
           </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="https://rakt-durg-docs.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
+            >
+              Developer docs
+            </a>
+            <Link
+              to="/public/stock"
+              className="rounded-xl border border-red-200 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-50"
+            >
+              Public blood stock
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -37,6 +53,49 @@ export default function AboutPage() {
             Developed as a collaboration between IBITF and IIT Bhilai, with technical implementation
             powered by Recogx Init.
           </p>
+        </section>
+
+        <section className="mt-10 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">Resources</h2>
+          <ul className="mt-4 space-y-3 text-sm text-gray-700">
+            <li>
+              <span className="font-medium text-gray-900">Documentation: </span>
+              <a
+                href="https://rakt-durg-docs.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-red-600 underline hover:text-red-800"
+              >
+                rakt-durg-docs.vercel.app
+              </a>
+            </li>
+            <li>
+              <span className="font-medium text-gray-900">Live app: </span>
+              <a href="/" className="text-red-600 underline hover:text-red-800">
+                District web portal
+              </a>
+            </li>
+            <li>
+              <span className="font-medium text-gray-900">Monitoring: </span>
+              <a
+                href="/grafana/"
+                className="text-red-600 underline hover:text-red-800"
+              >
+                Grafana dashboards
+              </a>
+            </li>
+            <li>
+              <span className="font-medium text-gray-900">Mobile releases: </span>
+              <a
+                href="https://github.com/srs-sudeep/RaktDurg/releases"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-red-600 underline hover:text-red-800"
+              >
+                GitHub Releases (APK + iOS artifacts)
+              </a>
+            </li>
+          </ul>
         </section>
 
         <section className="mt-10">

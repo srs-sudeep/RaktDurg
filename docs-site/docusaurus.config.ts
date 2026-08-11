@@ -7,14 +7,9 @@ const config: Config = {
   tagline: "District-Level Digital Blood Bank Platform — Durg, Chhattisgarh",
   favicon: "img/favicon.svg",
 
-  // Vercel hosts docs-site as its own project at the domain root.
-  // Local / self-hosted deploys can still serve under /docs/.
-  url: process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "https://rakt.durg.gov.in",
-  baseUrl: process.env.VERCEL ? "/" : "/docs/",
+  // Canonical public docs URL (Vercel).
+  url: "https://rakt-durg-docs.vercel.app",
+  baseUrl: "/",
 
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
@@ -58,8 +53,13 @@ const config: Config = {
         { to: "/api/overview", label: "API Reference", position: "left" },
         { to: "/ops/docker", label: "Ops", position: "left" },
         {
-          href: "http://localhost:8000/docs",
-          label: "Live API (Swagger)",
+          href: "http://8.231.102.114/health",
+          label: "Live API",
+          position: "right",
+        },
+        {
+          href: "http://8.231.102.114",
+          label: "App",
           position: "right",
         },
       ],
@@ -90,6 +90,14 @@ const config: Config = {
             { label: "Docker & Compose", to: "/ops/docker" },
             { label: "CI / CD", to: "/ops/ci-cd" },
             { label: "Makefile Commands", to: "/ops/makefile" },
+          ],
+        },
+        {
+          title: "Links",
+          items: [
+            { label: "Documentation", href: "https://rakt-durg-docs.vercel.app/" },
+            { label: "Web app", href: "http://8.231.102.114" },
+            { label: "GitHub", href: "https://github.com/srs-sudeep/RaktDurg" },
           ],
         },
       ],

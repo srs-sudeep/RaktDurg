@@ -4,6 +4,13 @@ District-level digital blood bank platform for Durg District Hospital / Chhattis
 
 **By IBITF and IIT Bhilai · Powered by Recogx Init**
 
+| | URL |
+|--|--|
+| Web app | http://8.231.102.114 |
+| Docs | https://rakt-durg-docs.vercel.app/ |
+| Monitoring | http://8.231.102.114/grafana/ |
+| GitHub Releases | https://github.com/srs-sudeep/RaktDurg/releases |
+
 ## Stack
 
 | Layer | Tech |
@@ -11,8 +18,9 @@ District-level digital blood bank platform for Durg District Hospital / Chhattis
 | API | FastAPI, SQLAlchemy async, Alembic, Celery, Postgres 16, Redis 7 |
 | Web | React 18, Vite, TanStack Query, Tailwind (Bun) |
 | Mobile | Flutter 3, Riverpod, sqflite, Dio |
-| Docs | Docusaurus |
-| Infra | Docker Compose + root `Makefile` |
+| Docs | Docusaurus on [Vercel](https://rakt-durg-docs.vercel.app/) |
+| Infra | Docker Compose + root `Makefile` · Prometheus / Grafana |
+| CI / CD | GitHub Actions (VM deploy + mobile release) · Vercel (docs) |
 
 ## Prerequisites
 
@@ -31,10 +39,13 @@ make setup          # docker up → migrate → demo-seed → web install
 make web-dev        # http://localhost:3000
 ```
 
-API docs: http://localhost:8000/docs  
-Health: http://localhost:8000/health
+API (local Swagger): http://localhost:8000/docs  
+Health: http://localhost:8000/health  
+Published docs: https://rakt-durg-docs.vercel.app/
 
 ### Docs site
+
+Published continuously from `docs-site/` to Vercel: https://rakt-durg-docs.vercel.app/
 
 ```bash
 make docs-install
@@ -122,13 +133,15 @@ GitHub Actions expects these repository/environment secrets:
 - `DEPLOY_PATH` (example: `/opt/raktdurg`)
 - `PROD_ENV_FILE` (full contents of `infra/.env.production.example`, filled with real values)
 
-Deploy flow:
+Deploy flow (manual, cost-saving):
 
-1. Push to `main`
-2. The deploy job copies `backend/`, `web/`, and `infra/` to the VM
-3. The VM writes `.env`, builds the images locally, runs migrations, and brings the stack up
+1. Trigger **Actions → CI / CD → Run workflow** (not on every push)
+2. The job syncs `backend/`, `web/`, and `infra/` to the VM
+3. The VM builds with Docker layer cache, migrates only when Alembic revisions change, seeds only if the DB has no users, and brings the stack up (including Prometheus + Grafana)
 
-### Android APK releases
+Docs deploy separately via Vercel from `docs-site/` → https://rakt-durg-docs.vercel.app/
+
+### Android + iOS releases
 
 Create these GitHub secrets to publish a signed APK to GitHub Releases:
 
@@ -137,6 +150,11 @@ Create these GitHub secrets to publish a signed APK to GitHub Releases:
 - `ANDROID_KEY_ALIAS`
 - `ANDROID_KEY_PASSWORD`
 
+Optional iOS signing secrets (omit to attach an unsigned `*-ios-unsigned.zip` instead of IPA):
+
+- `IOS_DISTRIBUTION_CERT_BASE64`, `IOS_DISTRIBUTION_CERT_PASSWORD`
+- `IOS_PROVISIONING_PROFILE_BASE64`, `IOS_KEYCHAIN_PASSWORD`
+
 Then push a tag such as:
 
 ```bash
@@ -144,7 +162,7 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The `Release Mobile APK` workflow will build a signed release APK and upload it to the GitHub release for that tag. For local signing setup, copy `mobile/android/key.properties.example` to `mobile/android/key.properties` and point `storeFile` at your keystore path.
+Or run **Actions → Release Mobile** with a tag input. The workflow builds Android on Ubuntu and iOS on `macos-latest`.
 
 ## API notes
 
@@ -172,6 +190,6 @@ backend/     FastAPI application
 web/         Staff + public React app
 mobile/      Flutter camp/offline app
 docs/        Product BRD / TRD / plans
-docs-site/   Developer documentation (Docusaurus)
-infra/       docker-compose + env examples
+docs-site/   Developer documentation (Docusaurus → Vercel)
+infra/       docker-compose + monitoring + env examples
 ```

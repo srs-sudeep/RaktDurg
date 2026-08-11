@@ -13,6 +13,14 @@ export function BrandingFooter({ className = "", showAboutLink = true }: Brandin
           <a href="/about" className="text-red-600 underline hover:text-red-800">
             About
           </a>
+          <a
+            href="https://rakt-durg-docs.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-red-600 underline hover:text-red-800"
+          >
+            Docs
+          </a>
           <a href="/contact" className="text-red-600 underline hover:text-red-800">
             Contact
           </a>
