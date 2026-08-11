@@ -189,7 +189,7 @@ export default function CampsPage() {
                     <div className="text-xs text-gray-500">{c.location}</div>
                   </td>
                   <td className="px-4 py-3">{c.requested_date}</td>
-                  <td className="px-4 py-3 text-xs text-gray-600">{c.venue_mode?.replaceAll("_", " ") || "—"}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600">{(c.venue_mode || "—").replace(/_/g, " ")}</td>
                   <td className="px-4 py-3"><Badge>{c.status}</Badge></td>
                   <td className="px-4 py-3">
                     {canApprove && (c.status === "submitted" || c.status === "under_review") && (
