@@ -51,18 +51,33 @@ Production and local **`make demo-seed` / `seed.demo_seed`** share the same name
 
 **Use these on the live app.** Do **not** use `seed_superadmin` / other `seed_*` usernames — those exist only after the minimal local `make seed` path and are **not** on production.
 
+### Who can sign in where?
+
+Yes — **any demo role can sign in on both web and mobile** (same `POST /auth/token`). What they can **do** afterward depends on role:
+
+| Role | Web app | Mobile app |
+|------|---------|------------|
+| `superadmin` | Full staff shell (all menus) + admin | Field dashboard (donor register, screening, barcode, sync) |
+| `district_admin` | Ops: units, donors, stock, camps, requisitions, directory | Field dashboard (same clinical tools) |
+| `doctor` | Clinical staff + camp approvals / bookings | Field dashboard (same clinical tools) |
+| `organizer` | Camps list + **Apply** (`/camps/apply`); no units/donors/admin | Can sign in; field home is shown, but donor/screening/**sync APIs are clinical-only** (403) — use **web** for camp applications |
+| `citizen` | Citizen portal `/my-account` + public stock/camps | Citizen home (stock, wallet, camps, bookings, history) |
+
+Public pages (`/public/stock`, `/public/camps`, `/about`) need **no login**.
+
 ### Named accounts
 
-| Username | Password | Role |
-|----------|----------|------|
-| `superadmin` | `super123` | superadmin |
-| `district_admin` | `district123` | district_admin |
-| `dr_meena` | `meena123` | doctor |
-| `organizer_priya` | `priya123` | organizer |
-| `citizen_ajay` | `ajay123` | citizen |
-| `org_<serial>` | `org123` | organizer (directory) |
+| Username | Password | Role | Best client |
+|----------|----------|------|-------------|
+| `superadmin` | `super123` | superadmin | Web or mobile |
+| `district_admin` | `district123` | district_admin | Web or mobile |
+| `dr_meena` | `meena123` | doctor | Web or mobile |
+| `organizer_priya` | `priya123` | organizer | **Web** (camp apply) |
+| `citizen_ajay` | `ajay123` | citizen | Web or mobile |
+| `org_<serial>` | `org123` | organizer (directory) | **Web** (camp apply) |
 
-Try it: [http://8.231.102.114/login](http://8.231.102.114/login)
+Try web: [http://8.231.102.114/login](http://8.231.102.114/login)  
+Mobile APK/IPA: [GitHub Releases](https://github.com/srs-sudeep/RaktDurg/releases)
 
 ```http
 POST /auth/token
@@ -74,7 +89,7 @@ Content-Type: application/json
 Citizen entry points: `/my-account`, `/public/camps`, `/public/stock`  
 Staff: `/dashboard` with searchable tables on donors / units / camps / etc.
 
-Full account tables (including local-only `seed_*`): [Demo docs](https://rakt-durg-docs.vercel.app/demo) · [Seeds](https://rakt-durg-docs.vercel.app/ops/seeds)
+Full account tables (including local-only `seed_*`) and route matrices: [Demo docs](https://rakt-durg-docs.vercel.app/demo) · [Web RBAC](https://rakt-durg-docs.vercel.app/web/rbac) · [Architecture RBAC](https://rakt-durg-docs.vercel.app/architecture/rbac)
 
 > Wallet screens are gated by the `wallet_enabled` feature flag.  
 > App deploy is **manual** (`Actions → CI / CD`). Docs deploy via Vercel from `docs-site/`.

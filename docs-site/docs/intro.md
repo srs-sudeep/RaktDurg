@@ -36,13 +36,15 @@ RAKT Durg is a district-level digital blood bank management platform built for D
 
 Want credentials? → **[Demo & Live Links](./demo.md)**
 
-| Username | Password | Role |
-|----------|----------|------|
-| `superadmin` | `super123` | superadmin |
-| `district_admin` | `district123` | district_admin |
-| `dr_meena` | `meena123` | doctor |
-| `organizer_priya` | `priya123` | organizer |
-| `citizen_ajay` | `ajay123` | citizen |
+| Username | Password | Role | Web | Mobile |
+|----------|----------|------|:---:|:------:|
+| `superadmin` | `super123` | superadmin | staff | field |
+| `district_admin` | `district123` | district_admin | staff | field |
+| `dr_meena` | `meena123` | doctor | staff | field |
+| `organizer_priya` | `priya123` | organizer | camps / apply | sign-in (use web for apply) |
+| `citizen_ajay` | `ajay123` | citizen | `/my-account` | citizen home |
+
+**Any role can authenticate on both clients**; menus and APIs still enforce RBAC. See [Who can sign in where](./demo.md#who-can-sign-in-where).
 
 :::warning Not on production
 `seed_superadmin` / other `seed_*` usernames are from local `make seed` only. Use the table above on the live app.

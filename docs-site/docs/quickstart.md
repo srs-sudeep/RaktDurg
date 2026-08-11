@@ -53,16 +53,17 @@ make demo-seed
 
 ### Demo Credentials
 
-These are the **same accounts on production** after `demo_seed` (live login: http://8.231.102.114/login).
+These are the **same accounts on production** after `demo_seed` (live login: http://8.231.102.114/login).  
+**Any role can sign in on web and mobile**; what they can do differs — see [Who can sign in where](./demo.md#who-can-sign-in-where).
 
-| Role | Username | Password |
-|------|----------|----------|
-| `superadmin` | `superadmin` | `super123` |
-| `district_admin` | `district_admin` | `district123` |
-| `doctor` | `dr_meena` | `meena123` |
-| `organizer` | `organizer_priya` | `priya123` |
-| `citizen` | `citizen_ajay` | `ajay123` |
-| `organizer` (directory) | `org_1` (etc.) | `org123` |
+| Role | Username | Password | Best for |
+|------|----------|----------|----------|
+| `superadmin` | `superadmin` | `super123` | Web staff or mobile field |
+| `district_admin` | `district_admin` | `district123` | Web staff or mobile field |
+| `doctor` | `dr_meena` | `meena123` | Web staff or mobile field |
+| `organizer` | `organizer_priya` | `priya123` | **Web** camp apply |
+| `citizen` | `citizen_ajay` | `ajay123` | Web or mobile citizen portal |
+| `organizer` (directory) | `org_1` (etc.) | `org123` | **Web** camp apply |
 
 ```http
 POST /auth/token

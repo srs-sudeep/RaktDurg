@@ -34,6 +34,40 @@ sidebar_label: Demo & Live Links
 
 <p align="center"><em>By IBITF and IIT Bhilai · Powered by Recogx Init</em></p>
 
+## Who can sign in where?
+
+**Any seeded role can authenticate on both web and mobile** — one login API (`POST /auth/token`). Clients then route by JWT `role`.
+
+| Role | Web | Mobile |
+|------|-----|--------|
+| `superadmin` | Full staff UI (all sidebar items) + `/admin`, `/users` | Field dashboard: register donor, screening, barcode, offline sync |
+| `district_admin` | Units, donors, camps, requisitions, organizers, wallet | Field dashboard (clinical tools) |
+| `doctor` | Clinical + camp **approvals** / booking queue | Field dashboard (clinical tools) |
+| `organizer` | `/camps`, `/camps/apply` (primary) | Sign-in allowed; field tiles visible but **donor / screening / sync APIs reject organizer** — use web for camp apply |
+| `citizen` | `/my-account/*` citizen portal | Citizen home: stock, wallet, camps, bookings, history, profile |
+
+No login needed for: `/public/stock`, `/public/camps`, `/about`, `/contact`.
+
+### Web — staff sidebar by role
+
+| Area | Paths | Roles |
+|------|-------|-------|
+| Operations | `/dashboard`, `/units`, `/donors`, `/requisitions`, `/wallet` | see [Web RBAC](./web/rbac.md) |
+| Camps | `/camps`, `/camps/apply`, `/camps/approval`, `/camps/bookings` | apply: organizer + superadmin; approval: doctor + superadmin |
+| Directory | `/organizers`, `/organizer-directory`, `/citizens/link` | superadmin, district_admin, doctor |
+| Admin | `/users`, `/admin` | superadmin only |
+| Citizen portal | `/my-account`, … | `citizen` only (`CitizenShell`) |
+
+### Mobile — home screen by role
+
+| JWT role | Home | Features |
+|----------|------|----------|
+| `superadmin`, `district_admin`, `doctor` | Field dashboard | Register donor, screening (+ camp select), barcode scan, sync |
+| `organizer` | Field dashboard UI | Prefer **web** for camp applications; clinical API calls return 403 |
+| `citizen` | Citizen home | Stock, wallet, public camps / bookings, donation history, profile |
+
+Demo accounts below work on both clients. Mobile builds: [GitHub Releases](https://github.com/srs-sudeep/RaktDurg/releases).
+
 ## Production / demo accounts
 
 :::tip Use these on the live login page
@@ -44,13 +78,13 @@ Do **not** use `seed_superadmin` (or any `seed_*` username) on production — th
 
 ### Named staff / citizen
 
-| Username | Password | Role |
-|----------|----------|------|
-| `superadmin` | `super123` | superadmin — full staff + admin |
-| `district_admin` | `district123` | district_admin — ops dashboards |
-| `dr_meena` | `meena123` | doctor — clinical + camp review |
-| `organizer_priya` | `priya123` | organizer — camp apply |
-| `citizen_ajay` | `ajay123` | citizen — my account / stock / camps |
+| Username | Password | Role | Suggested client |
+|----------|----------|------|------------------|
+| `superadmin` | `super123` | superadmin — full staff + admin | Web or mobile |
+| `district_admin` | `district123` | district_admin — ops dashboards | Web or mobile |
+| `dr_meena` | `meena123` | doctor — clinical + camp review | Web or mobile |
+| `organizer_priya` | `priya123` | organizer — camp apply | **Web** |
+| `citizen_ajay` | `ajay123` | citizen — my account / stock / camps | Web or mobile |
 
 ### Directory organizer logins
 
@@ -95,6 +129,8 @@ These **`seed_*` accounts are not present on production.** See [Demo Seeds](./op
 
 ## What to click after login
 
+### Web
+
 | Role | Start here |
 |------|------------|
 | Staff (superadmin / doctor / district_admin) | `/dashboard` — KPI strip + live stock matrix |
@@ -104,6 +140,14 @@ These **`seed_*` accounts are not present on production.** See [Demo Seeds](./op
 | Superadmin only | `/users`, `/admin` (flags + e-RaktKosh) |
 | Organizer | `/camps/apply`, `/camps` |
 | Citizen | `/my-account`, `/public/stock`, `/public/camps` |
+
+### Mobile
+
+| Role | Start here |
+|------|------------|
+| Clinical staff | Field dashboard → Register donor / Screening / Sync |
+| Organizer | Prefer web Apply; mobile clinical sync will 403 |
+| Citizen | Citizen home → stock, camps, bookings |
 
 ## Grafana
 

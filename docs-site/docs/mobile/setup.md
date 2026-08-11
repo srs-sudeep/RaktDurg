@@ -96,16 +96,29 @@ Production / emulator against the live API:
 flutter run --dart-define=API_BASE_URL=http://8.231.102.114
 ```
 
+## Roles & access
+
+Any demo account can **sign in** on mobile (same JSON login as web). The home screen depends on JWT `role`:
+
+| Role | Mobile home | Notes |
+|------|-------------|-------|
+| `superadmin`, `district_admin`, `doctor` | Field dashboard | Register donor, screening, barcode, offline sync |
+| `organizer` | Field dashboard UI | Prefer **web** for `/camps/apply` — donor/screening/sync APIs return 403 for organizers |
+| `citizen` | Citizen home | Stock, wallet, camps, bookings, history, profile |
+
+Full matrix: [Demo — who can sign in where](../demo.md#who-can-sign-in-where) · [Architecture RBAC](../architecture/rbac.md).
+
 ## Demo login
 
 Same accounts as the web app after `demo_seed` (JSON `POST /auth/token`):
 
-| Username | Password |
-|----------|----------|
-| `superadmin` | `super123` |
-| `dr_meena` | `meena123` |
-| `organizer_priya` | `priya123` |
-| `citizen_ajay` | `ajay123` |
+| Username | Password | Role | Use on mobile for |
+|----------|----------|------|-------------------|
+| `superadmin` | `super123` | superadmin | Field tools |
+| `district_admin` | `district123` | district_admin | Field tools |
+| `dr_meena` | `meena123` | doctor | Field tools |
+| `organizer_priya` | `priya123` | organizer | Sign-in OK; camp apply on **web** |
+| `citizen_ajay` | `ajay123` | citizen | Citizen home |
 
 Do not use `seed_superadmin` against production. Full table: [Demo & Live Links](../demo.md).
 

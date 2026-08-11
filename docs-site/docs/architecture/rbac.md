@@ -5,7 +5,19 @@ title: RBAC — Roles & Permissions
 
 # RBAC — Roles & Permissions
 
-RAKT Durg uses **five roles**. Every API endpoint declares which roles may access it via a `require_roles()` FastAPI dependency.
+RAKT Durg uses **five roles**. Every API endpoint declares which roles may access it via a `require_roles()` FastAPI dependency. Web and mobile both authenticate with the same JWT; **clients then show different homes / menus by role**.
+
+## Client access (web vs mobile)
+
+| Role | Can log in (web) | Can log in (mobile) | Primary experience |
+|------|:----------------:|:-------------------:|--------------------|
+| `superadmin` | ✓ | ✓ | Staff web + mobile field tools |
+| `district_admin` | ✓ | ✓ | Staff web + mobile field tools |
+| `doctor` | ✓ | ✓ | Staff web + mobile field tools |
+| `organizer` | ✓ | ✓ | **Web** camp apply; mobile UI exists but clinical APIs (donor/screening/sync) are **not** for organizers |
+| `citizen` | ✓ | ✓ | Citizen web portal + mobile citizen home |
+
+Details and demo usernames: [Demo & Live Links](../demo.md#who-can-sign-in-where).
 
 ## Role Definitions
 
@@ -32,7 +44,7 @@ Former roles merged: `lab_tech`, `phlebotomist`, and `inventory_officer` → **`
 | Create/manage camp (apply) | ✓ | ✗ | ✗ | ✓ | ✗ |
 | Approve/reject camp | ✓ | ✗ | ✓ | ✗ | ✗ |
 | Requisitions | ✓ | ✓ | ✓ | ✗ | ✗ |
-| Wallet | ✓ | ✗ | ✓ | ✗ | ✓ |
+| Wallet | ✓ | ✓ | ✓ | ✗ | ✓ |
 | Admin feature flags | ✓ | ✗ | ✗ | ✗ | ✗ |
 
 ## Implementation
@@ -56,7 +68,16 @@ async def create_unit(
 
 ### Web Frontend
 
-See [`web/src/lib/rbac.ts`](../../../web/src/lib/rbac.ts) for `ROUTE_ROLES` and `canAccess()`.
+See [`web/src/lib/rbac.ts`](../../../web/src/lib/rbac.ts) for `ROUTE_ROLES` and `canAccess()`, and [Web RBAC](../web/rbac.md).
+
+### Mobile
+
+`mobile/lib/main.dart` routes:
+
+- Field roles `{superadmin, district_admin, doctor, organizer}` → field dashboard
+- Everyone else (citizen) → citizen home
+
+Clinical endpoints used by field tools still enforce API RBAC (organizer gets 403 on donor/sync).
 
 ## Token Structure
 

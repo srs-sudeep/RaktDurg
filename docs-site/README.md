@@ -19,14 +19,16 @@ Docusaurus documentation for the RaktDurg platform.
 
 ## Demo login (production + local demo seed)
 
-| Username | Password |
-|----------|----------|
-| `superadmin` | `super123` |
-| `district_admin` | `district123` |
-| `dr_meena` | `meena123` |
-| `organizer_priya` | `priya123` |
-| `citizen_ajay` | `ajay123` |
-| `org_<serial>` | `org123` |
+Any role can **authenticate** on web and mobile. Feature access still follows RBAC — [who can sign in where](https://rakt-durg-docs.vercel.app/demo#who-can-sign-in-where).
+
+| Username | Password | Web | Mobile |
+|----------|----------|-----|--------|
+| `superadmin` | `super123` | staff | field |
+| `district_admin` | `district123` | staff | field |
+| `dr_meena` | `meena123` | staff | field |
+| `organizer_priya` | `priya123` | camps / apply | prefer web |
+| `citizen_ajay` | `ajay123` | citizen portal | citizen home |
+| `org_<serial>` | `org123` | camps / apply | prefer web |
 
 Do **not** use `seed_superadmin` on the live app — see [Demo](https://rakt-durg-docs.vercel.app/demo) and [Seeds](https://rakt-durg-docs.vercel.app/ops/seeds).
 
