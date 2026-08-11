@@ -47,21 +47,9 @@
 
 ## Demo logins (production + local)
 
-Production currently has the **base seed** accounts (created once on an empty DB). Local `make demo-seed` adds richer named personas.
+Production and local **demo seed** share the same named personas (and directory organizer logins).
 
-### Production / base seed
-
-| Username | Password | Role |
-|----------|----------|------|
-| `seed_superadmin` | `super123` | superadmin |
-| `seed_district_admin` | `district123` | district_admin |
-| `seed_doctor` | `doctor123` | doctor |
-| `seed_organizer` | `organizer123` | organizer |
-| `seed_citizen` | `citizen123` | citizen |
-
-Try it: [http://8.231.102.114/login](http://8.231.102.114/login)
-
-### Local demo seed (`make demo-seed`)
+### Named accounts
 
 | Username | Password | Role |
 |----------|----------|------|
@@ -70,13 +58,17 @@ Try it: [http://8.231.102.114/login](http://8.231.102.114/login)
 | `dr_meena` | `meena123` | doctor |
 | `organizer_priya` | `priya123` | organizer |
 | `citizen_ajay` | `ajay123` | citizen |
+| `org_<serial>` | `org123` | organizer (directory) |
 
-Login body: `{"username":"seed_superadmin","password":"super123"}`
+Try it: [http://8.231.102.114/login](http://8.231.102.114/login)
+
+Login body: `{"username":"superadmin","password":"super123"}`
 
 Citizen entry points: `/my-account`, `/public/camps`, `/public/stock`  
-Staff dashboards open after login based on role.
+Staff: `/dashboard` with searchable tables on donors / units / camps / etc.
 
-> Wallet screens are gated by the `wallet_enabled` feature flag.
+> Wallet screens are gated by the `wallet_enabled` feature flag.  
+> App deploy is **manual** (`Actions → CI / CD`). Docs deploy via Vercel from `docs-site/`.
 
 ## Stack
 
@@ -145,7 +137,7 @@ bash infra/gce/bootstrap-vm.sh
 
 Secrets: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_PATH`, `PROD_ENV_FILE`
 
-Deploy is **manual** (`Actions → CI / CD → Run workflow`) to save Actions minutes. Docs deploy automatically via Vercel from `docs-site/`.
+Deploy is **manual** (`Actions → CI / CD → Run workflow`) to save Actions minutes. Optional **Force reseed** wipes the DB and runs `demo_seed`. Docs deploy automatically via Vercel from `docs-site/`.
 
 ### Mobile releases
 
@@ -160,7 +152,7 @@ git tag v0.1.0 && git push origin v0.1.0
 ## API notes
 
 - Routes at root (`/auth/token`, `/units`, `/stock/{id}`) — **no `/api/v1` prefix**
-- Login JSON: `{"username":"seed_superadmin","password":"super123"}`
+- Login JSON: `{"username":"superadmin","password":"super123"}`
 - Barcode pre-allocation: `POST /barcodes/pre-allocate`
 - `/metrics` is Docker-internal only (Prometheus scrape)
 

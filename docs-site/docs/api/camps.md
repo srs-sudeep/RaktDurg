@@ -30,12 +30,34 @@ Apply for a donation camp.
 
 ## GET /camps
 
-Paginated camp list.
+Paginated camp list with search and sort.
 
 ```
-GET /camps?status=submitted&page=1&size=20
+GET /camps?camp_status=submitted&page=1&page_size=50&q=rotary&order_by=requested_date&order=desc
 ```
 
+| Param | Notes |
+|-------|-------|
+| `camp_status` | Filter by status |
+| `q` | ILIKE on camp_name, location |
+| `order_by` | `requested_date` \| `camp_name` \| `status` \| `created_at` |
+| `order` | `asc` \| `desc` |
+
+---
+
+## GET /camps/bookings/list
+
+Staff booking queue (array, not paginated).
+
+```
+GET /camps/bookings/list?status=requested&q=ajay&order_by=created_at&order=desc
+```
+
+| Param | Notes |
+|-------|-------|
+| `status` | Booking status |
+| `q` | Camp name, donor name, phone |
+| `order_by` | `created_at` \| `status` \| `camp_name` \| `donor_name` |
 ---
 
 ## GET /camps/\{id\}

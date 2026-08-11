@@ -9,11 +9,10 @@ title: Web Setup
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| Bun | 1.1.34 | Package manager + runtime |
+| Bun | 1.1+ | Package manager + runtime |
 | React | 18 | UI framework |
 | Vite | 5 | Build tool + dev server |
 | TanStack Query | v5 | Server state management |
-| shadcn/ui | latest | Accessible component library |
 | Tailwind CSS | v3 | Utility-first styling |
 | React Router | v6 | Client-side routing |
 | Axios | latest | HTTP client |
@@ -24,32 +23,23 @@ title: Web Setup
 ```
 web/
 ├── src/
-│   ├── api/
-│   │   ├── client.ts        # axios instance + interceptors
-│   │   └── stock.ts         # TanStack Query hooks for stock
+│   ├── api/                 # Axios + TanStack Query hooks
 │   ├── components/
+│   │   ├── AppLayout.tsx    # Staff shell
+│   │   ├── ui/              # DataTable, toolbar, panel, form, button
 │   │   └── ProtectedRoute.tsx
-│   ├── context/
-│   │   └── AuthContext.tsx
+│   ├── context/AuthContext.tsx
 │   ├── lib/
-│   │   ├── rbac.ts          # roles + ROUTE_ROLES + canAccess()
-│   │   └── utils.ts         # cn(), formatDate(), bloodGroupColor()
-│   ├── routes/
-│   │   ├── auth/login.tsx
-│   │   ├── dashboard/index.tsx   # SSE stock dashboard
-│   │   ├── public/stock.tsx      # unauthenticated stock view
-│   │   └── index.tsx             # router config
-│   ├── __tests__/
-│   │   ├── setup.ts
-│   │   └── App.test.tsx
+│   │   ├── rbac.ts
+│   │   ├── page-meta.ts
+│   │   ├── table-query.ts   # useTableQuery / applyClientTable
+│   │   ├── toast.ts
+│   │   └── utils.ts
+│   ├── routes/              # dashboard, donors, units, camps, …
 │   └── main.tsx
-├── package.json              # packageManager: bun@1.1.34
+├── package.json
 ├── vite.config.ts
-├── vitest.config.ts
-├── tsconfig.json
-├── tailwind.config.ts
-├── postcss.config.js
-└── eslint.config.js
+└── tailwind.config.ts
 ```
 
 ## Getting Started
@@ -61,6 +51,7 @@ bun run dev        # http://localhost:3000
 ```
 
 Or via Make:
+
 ```bash
 make web-install
 make web-dev
@@ -68,10 +59,13 @@ make web-dev
 
 ## Environment Variables
 
-Create `web/.env`:
+Create `web/.env` for local API:
+
 ```bash
 VITE_API_URL=http://localhost:8000
 ```
+
+Production builds use an empty `VITE_API_URL` so the browser calls same-origin nginx (`/auth`, `/donors`, …).
 
 ## Build
 
@@ -80,17 +74,16 @@ bun run build
 # Output: web/dist/
 ```
 
-## Testing
+## Testing / quality
 
 ```bash
-bun run test           # vitest run
-bun run test:watch     # vitest watch mode
-bun run test:coverage  # v8 coverage report
+bun run test
+bun run type-check
+bun run lint
 ```
 
-## Linting & Type Check
+## Docs to read next
 
-```bash
-bun run lint           # eslint
-bun run type-check     # tsc --noEmit
-```
+- [Staff UI & Tables](./staff-ui.md) — ERP shell, search/sort/pagination
+- [Stock Dashboard](./stock-dashboard.md) — KPI + SSE matrix
+- [Web RBAC](./rbac.md) — route gates

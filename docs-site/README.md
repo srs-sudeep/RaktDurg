@@ -13,6 +13,7 @@ Docusaurus documentation for the RaktDurg platform.
 | App | http://8.231.102.114 |
 | Login / demo | http://8.231.102.114/login |
 | Demo accounts | https://rakt-durg-docs.vercel.app/demo |
+| Staff UI guide | https://rakt-durg-docs.vercel.app/web/staff-ui |
 | Grafana | http://8.231.102.114/grafana/ |
 | Releases | https://github.com/srs-sudeep/RaktDurg/releases |
 

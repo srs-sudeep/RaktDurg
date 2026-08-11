@@ -19,10 +19,10 @@ title: Architecture Overview
           │         └──────────┬──────────┘         │
           │                    │                    │
    ┌──────▼──────┐    ┌────────▼────────┐   ┌──────▼──────┐
-   │ Web Dashboard│    │  PostgreSQL 16  │   │  Mobile App  │
-   │ React / Vite │    │  (primary data) │   │  Flutter 3   │
-   │  :5173       │    └────────┬────────┘   │  offline-cap │
-   └─────────────┘             │             └─────────────┘
+│ Web Dashboard│    │  PostgreSQL 16  │   │  Mobile App  │
+│ React / Vite │    │  (primary data) │   │  Flutter 3   │
+│  :3000       │    └────────┬────────┘   │  offline-cap │
+└─────────────┘             │             └─────────────┘
                                │
                     ┌──────────▼──────────┐
                     │    Redis 7           │

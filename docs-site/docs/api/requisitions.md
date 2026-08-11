@@ -27,11 +27,17 @@ Create a blood component request.
 
 ## GET /requisitions
 
-List requisitions with optional filters.
+List requisitions with search, filters, and sort.
 
 ```
-GET /requisitions?status=pending&blood_group=B%2B&page=1
+GET /requisitions?facility_id=…&status=pending&blood_group=B%2B&priority=urgent&q=Sunita&page=1&page_size=50&order_by=requested_at&order=desc
 ```
+
+| Param | Notes |
+|-------|-------|
+| `q` | patient_name, patient_hospital_id |
+| `status` / `blood_group` / `priority` | Filters |
+| `order_by` | `requested_at` \| `status` \| `priority` \| `patient_name` \| `blood_group` |
 
 ---
 

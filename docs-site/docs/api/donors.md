@@ -9,17 +9,17 @@ title: Donors API
 
 Register a new donor.
 
-**Roles:** admin, medical_officer, lab_tech, phlebotomist
+**Roles:** `superadmin`, `doctor`, `district_admin` (clinical staff roles as configured)
 
 ```json
 {
-  "full_name": "Ramesh Kumar",
-  "phone": "9876543210",
+  "name": "Ramesh Kumar",
+  "contact_phone": "9876543210",
   "date_of_birth": "1990-05-15",
+  "sex": "male",
   "blood_group": "O+",
-  "abha_reference": "ABHA-XXXX-XXXX-5678",
-  "consent_given": true,
-  "consent_date": "2024-01-15"
+  "address": "Durg",
+  "consent_given": true
 }
 ```
 
@@ -27,11 +27,21 @@ Register a new donor.
 
 ## GET /donors
 
-Paginated donor list with optional search.
+Paginated donor list with search, filters, and sort.
 
 ```
-GET /donors?page=1&size=20&search=Ramesh&blood_group=O%2B
+GET /donors?page=1&page_size=20&q=Ramesh&blood_group=O%2B&status=active&order_by=created_at&order=desc
 ```
+
+| Param | Notes |
+|-------|-------|
+| `q` | ILIKE on name, contact_phone |
+| `blood_group` | Exact match |
+| `status` | Exact match |
+| `order_by` | `name` \| `created_at` \| `blood_group` \| `status` |
+| `order` | `asc` \| `desc` |
+
+Response: `{ items, total, page, page_size }`.
 
 ---
 
@@ -51,33 +61,21 @@ Update donor profile fields.
 
 Create a pre-donation screening.
 
-**Roles:** admin, medical_officer, lab_tech, phlebotomist
-
 ```json
 {
-  "vitals": {
-    "weight_kg": 68,
-    "haemoglobin_gdl": 14.2,
-    "systolic_bp": 120,
-    "diastolic_bp": 80,
-    "pulse_bpm": 72,
-    "temperature_c": 36.8
-  },
-  "questionnaire": {
-    "is_pregnant": false,
-    "recent_illness": false,
-    "recent_surgery": false,
-    "tattoo_last_12m": false,
-    "sti_history": false
-  },
+  "donor_id": "uuid",
+  "vitals": { "weight_kg": 68, "haemoglobin_gdl": 14.2 },
+  "questionnaire": { "recent_illness": false },
   "sync_id": "optional-uuid"
 }
 ```
-
-**Response** includes `eligible: bool` and `defer_reason`.
 
 ---
 
 ## GET /donors/\{id\}/screenings
 
-List all screenings for a donor, newest first.
+List screenings for a donor, newest first.
+
+## Related UI
+
+Staff donors table: `/donors` — see [Staff UI & Tables](../web/staff-ui.md).

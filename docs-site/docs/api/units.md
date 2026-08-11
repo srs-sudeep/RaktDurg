@@ -23,6 +23,23 @@ Create a new blood unit (assigns barcode).
 
 ---
 
+## GET /units
+
+Paginated inventory list.
+
+```
+GET /units?facility_id=…&page=1&page_size=50&q=RD&blood_group=O%2B&lifecycle_state=stored&order_by=created_at&order=desc
+```
+
+| Param | Notes |
+|-------|-------|
+| `facility_id` | Scope to facility |
+| `q` | ILIKE on barcode |
+| `blood_group` / `lifecycle_state` | Filters |
+| `order_by` | `barcode` \| `created_at` \| `expiry_datetime` \| `blood_group` \| `lifecycle_state` |
+
+---
+
 ## GET /units/scan/\{barcode\}
 
 Look up a unit by its 15-character barcode.

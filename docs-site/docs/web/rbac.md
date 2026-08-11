@@ -20,67 +20,51 @@ export const USER_ROLES = [
 export type UserRole = (typeof USER_ROLES)[number];
 ```
 
+`superadmin` always passes `canAccess()` for staff paths.
+
 ## Route Permissions
 
 ```typescript
 export const ROUTE_ROLES: Record<string, UserRole[]> = {
-  "/dashboard":    ["superadmin", "district_admin", "doctor"],
-  "/units":        ["superadmin", "district_admin", "doctor"],
-  "/donors":       ["superadmin", "district_admin", "doctor"],
-  "/camps":        ["superadmin", "doctor", "organizer", "district_admin"],
+  "/dashboard": ["superadmin", "district_admin", "doctor", "organizer"],
+  "/profile": ["superadmin", "district_admin", "doctor", "organizer"],
+  "/units": ["superadmin", "district_admin", "doctor"],
+  "/donors": ["superadmin", "district_admin", "doctor"],
+  "/camps": ["superadmin", "doctor", "organizer", "district_admin"],
   "/camps/approval": ["superadmin", "doctor"],
-  "/camps/apply":  ["organizer", "superadmin"],
+  "/camps/bookings": ["superadmin", "doctor", "district_admin"],
+  "/camps/apply": ["organizer", "superadmin"],
   "/requisitions": ["superadmin", "doctor", "district_admin"],
-  "/wallet":       ["superadmin", "doctor", "citizen"],
-  "/admin":        ["superadmin"],
+  "/wallet": ["superadmin", "doctor", "district_admin"],
+  "/organizers": ["superadmin", "district_admin", "doctor"],
+  "/organizer-directory": ["superadmin", "district_admin", "doctor"],
+  "/citizens/link": ["superadmin", "district_admin", "doctor"],
+  "/users": ["superadmin"],
+  "/admin": ["superadmin"],
 };
-
-export function canAccess(role: UserRole, path: string): boolean {
-  const allowed = ROUTE_ROLES[path];
-  if (!allowed) return true; // public route
-  return allowed.includes(role);
-}
 ```
+
+Citizen portal routes (`/my-account`, `/public/*`) are outside this map and use the citizen shell.
 
 ## Post-login redirects
 
 | Role | Default route |
 |------|---------------|
 | `superadmin`, `district_admin`, `doctor` | `/dashboard` |
-| `organizer` | `/camps/apply` |
-| `citizen` | `/public/stock` |
+| `organizer` | `/camps` / apply flow |
+| `citizen` | `/my-account` or public stock |
 
-## ProtectedRoute Component
+## ProtectedRoute
 
 ```typescript
 // web/src/components/ProtectedRoute.tsx
-interface ProtectedRouteProps {
-  roles?: UserRole[];
-  children: React.ReactNode;
-}
-
-export function ProtectedRoute({ roles, children }: ProtectedRouteProps) {
-  const { user } = useAuth();
-  const location = useLocation();
-
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  if (roles && !roles.includes(user.role)) {
-    return <Navigate to="/unauthorized" replace />;
-  }
-
-  return <>{children}</>;
-}
+// Redirects unauthenticated users to /login
+// Redirects wrong-role users away from gated paths
 ```
 
-## Role-Based UI Elements
+Sidebar sections in `AppLayout` filter items with `canAccess(role, path)`.
 
-```typescript
-const { user } = useAuth();
+## Related
 
-{user?.role === "superadmin" && <Link to="/admin">Admin Panel</Link>}
-
-{canAccess(user?.role, "/wallet") && <WalletTab />}
-```
+- [Staff UI & Tables](./staff-ui.md)
+- [Architecture RBAC](../architecture/rbac.md)

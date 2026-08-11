@@ -7,42 +7,37 @@ title: Demo Seeds
 
 ## Overview
 
-`backend/seed/demo_seed.py` creates synthetic data for development and testing. It is **idempotent** — running it twice does not create duplicates.
+Two seed paths exist:
+
+| Module | When | What |
+|--------|------|------|
+| `seed.demo_seed` | `make demo-seed` / deploy with empty DB or `FORCE_RESEED` | Rich ops demo: named users, inventory, camps, directory organizers |
+| `seed.seed` | Minimal bootstrap | Base `seed_*` users + flags |
+| `seed.ensure_organizers` | Deploy when DB already has users | Upserts directory contacts + `org_*` logins without wipe |
 
 :::warning No Real PII
 All donor names, phone numbers, and ABHA references in the seed are synthetic. Never use real patient data in development.
 :::
 
-## What Gets Created
+## Full demo seed (`demo_seed`)
 
-| Entity | Count | Notes |
-|--------|-------|-------|
-| Facility | 1 | RKDURG — Durg District Hospital |
-| Users | 5 | One per role with dev-only passwords |
-| Donors | 15 | Synthetic names, fake phone numbers |
-| Camps | 2 | One approved, one completed |
-| Screenings | 12 | Linked to donors |
-| Donations | 12 | Each linked to a screening (screening_id NOT NULL) |
-| Blood Units | 12 | Varied lifecycle states |
-| Components | ~36 | 3 per unit (packed_rbc, plasma, platelets) |
-| Requisitions | 5 | Various statuses |
-| Feature Flags | 1 | `wallet_enabled = false` |
+Idempotent upserts where possible. A **force reseed** on the VM wipes tables first, then runs `demo_seed` clean.
 
-## Idempotency
+### What gets created
 
-Every insert uses `ON CONFLICT DO NOTHING`:
+| Entity | Notes |
+|--------|-------|
+| Facility | RKDURG — Durg District Hospital |
+| Named users | `superadmin`, `district_admin`, `dr_meena`, `organizer_priya`, `citizen_ajay` |
+| Organizer directory | Outreach list rows |
+| Organizer logins | `org_<serial>` / `org123` for each directory contact |
+| Donors + screenings + donations | Synthetic clinical chain |
+| Blood units / components | Varied groups and lifecycle states (AVAILABLE PRBC mix for demos) |
+| Camps + bookings | Mix of statuses for approval / booking queues |
+| Requisitions | Pending / reserved / issued samples |
+| Feature flags | `wallet_enabled = false` |
 
-```python
-await db.execute(
-    insert(Facility)
-    .values(id=FACILITY_ID, name="Durg District Hospital", ...)
-    .on_conflict_do_nothing()
-)
-```
-
-This means `make demo-seed` is safe to run multiple times.
-
-## Demo Users
+### Demo users
 
 | Username | Password | Role |
 |----------|----------|------|
@@ -51,20 +46,34 @@ This means `make demo-seed` is safe to run multiple times.
 | `dr_meena` | `meena123` | doctor |
 | `organizer_priya` | `priya123` | organizer |
 | `citizen_ajay` | `ajay123` | citizen |
+| `org_<serial>` | `org123` | organizer (directory) |
 
-Passwords are bcrypt-hashed. These credentials only work when `ENVIRONMENT=development`.
-
-## Running
+## Running locally
 
 ```bash
 make demo-seed
-# or
-docker compose --profile demo up
+# or inside the API container:
+# python -m seed.demo_seed
 ```
 
-## Key Constraints Respected
+## Production reseed
+
+Deploy workflow input **Force reseed** sets `FORCE_RESEED=1` on the VM:
+
+1. Truncates application tables
+2. Runs `python -m seed.demo_seed`
+
+Without force reseed:
+
+- Empty `users` table → full `demo_seed`
+- Existing users → `ensure_organizers` only (directory + `org_*` accounts)
+
+See [CI / CD](./ci-cd.md).
+
+## Key constraints respected
 
 - `organizers.contact_name` used (not `contact_person_name`)
-- Screenings are created before donations (screening_id NOT NULL)
+- Screenings are created before donations (`screening_id` NOT NULL)
 - Uses `LedgerReasonEnum.COLLECTION` (not `DONATION_IN`)
 - Uses `RequisitionStatusEnum.ISSUED` (not `FULFILLED`)
+- Screening questionnaire JSON is bound as a named parameter (avoids `:false` bind errors)

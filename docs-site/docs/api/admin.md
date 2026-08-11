@@ -5,70 +5,84 @@ title: Admin API
 
 # Admin API
 
-All endpoints in this section require the `admin` role.
+Most endpoints require `superadmin`. Citizen link also allows `district_admin`.
 
 ## POST /admin/erakkosh/export
 
-Manually trigger the daily e-RaktKosh export for a specific date.
+Manually trigger the daily e-RaktKosh export (defaults to today).
 
-```json
-{"export_date": "2024-01-15"}
-```
-
-**Response:**
-```json
-{
-  "task_id": "celery-task-uuid",
-  "export_date": "2024-01-15",
-  "status": "queued"
-}
-```
-
-The export runs asynchronously via Celery. In development, writes JSON to `/tmp/erakkosh_exports/`.
+**Response:** `{ submission_id, export_date }`
 
 ---
 
 ## GET /admin/feature-flags
 
-List all feature flags and their current values.
+List feature flags.
 
-**Response:**
 ```json
-[
-  {
-    "name": "wallet_enabled",
-    "value": false,
-    "description": "Enable blood credit wallet",
-    "updated_at": "2024-01-01T00:00:00Z"
-  }
-]
+[{ "name": "wallet_enabled", "is_enabled": false, "description": "…" }]
 ```
 
 ---
 
 ## PATCH /admin/feature-flags/\{name\}
 
-Update a feature flag value.
-
-```json
-{"value": true}
-```
-
-**Example — enable wallet:**
-
-```http
-PATCH /admin/feature-flags/wallet_enabled
-Authorization: Bearer <admin-token>
-
-{"value": true}
-```
-
-After this call, all wallet endpoints become functional.
+Toggle a flag (`is_enabled` query/body as implemented by the router).
 
 ---
 
-## Current Feature Flags
+## POST /admin/citizens/link
+
+Link a citizen login to an existing donor profile.
+
+```json
+{ "username": "citizen_ajay", "donor_id": "uuid" }
+```
+
+**Roles:** `superadmin`, `district_admin`  
+UI: `/citizens/link`
+
+---
+
+## GET /admin/users
+
+Paginated user directory.
+
+```
+GET /admin/users?page=1&page_size=50&q=meena&role=doctor&order_by=username&order=asc
+```
+
+| Param | Notes |
+|-------|-------|
+| `q` | username, display_name, email |
+| `role` | Role enum |
+| `order_by` | `username` \| `role` \| `created_at` \| `last_login_at` \| `display_name` |
+
+---
+
+## PATCH /admin/users/\{id\}
+
+Update `role`, `is_active`, and/or `display_name`.
+
+UI: `/users`
+
+---
+
+## Organizers
+
+Mounted under admin paths (see organizers router):
+
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/admin/organizers` | Login-linked organizers — `q`, `org_category`, `is_verified`, sort |
+| GET | `/admin/organizer-directory` | Outreach directory — `q`, `category`, sort |
+
+UI: `/organizers`, `/organizer-directory`
+
+---
+
+## Feature flags
 
 | Name | Default | Description |
 |------|---------|-------------|
-| `wallet_enabled` | `false` | Enable blood credit wallet endpoints |
+| `wallet_enabled` | `false` | Enable blood credit wallet endpoints / UI |

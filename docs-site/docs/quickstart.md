@@ -47,7 +47,8 @@ make migrate
 
 ```bash
 make demo-seed
-# Creates 1 facility, 5 users (one per role), 15 donors, 12 blood units, 5 requisitions
+# Named personas + directory organizer logins (org_<serial> / org123)
+# plus inventory, camps, requisitions
 ```
 
 ### Demo Credentials
@@ -59,9 +60,10 @@ make demo-seed
 | `doctor` | `dr_meena` | `meena123` |
 | `organizer` | `organizer_priya` | `priya123` |
 | `citizen` | `citizen_ajay` | `ajay123` |
+| `organizer` (directory) | `org_1` (etc.) | `org123` |
 
 :::warning Dev passwords only
-These passwords are for local development only and are not used in any environment except when `ENVIRONMENT=development`.
+These passwords are for local / demo environments only.
 :::
 
 ## 5 — Start the Web Dashboard

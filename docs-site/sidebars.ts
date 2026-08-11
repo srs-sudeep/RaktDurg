@@ -80,6 +80,7 @@ const sidebars: SidebarsConfig = {
       label: "Web (React)",
       items: [
         "web/setup",
+        "web/staff-ui",
         "web/auth-context",
         "web/rbac",
         "web/stock-dashboard",

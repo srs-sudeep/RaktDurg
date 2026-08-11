@@ -82,7 +82,12 @@ RAKT Durg provides all of this as a self-hosted, auditable system that also expo
 
 - Try the live demo → [Demo & Live Links](./demo.md)
 - New here? → [Quick Start](./quickstart.md)
+- Staff UI (tables / ERP shell) → [Staff UI & Tables](./web/staff-ui.md)
 - Want the big picture? → [Architecture Overview](./architecture/overview.md)
 - Setting up locally? → [Backend Setup](./backend/setup.md)
 - API endpoints? → [API Reference Overview](./api/overview.md)
 - Deploying? → [CI / CD](./ops/ci-cd.md) · [Docker & Compose](./ops/docker.md)
+
+:::tip Deploy reminder
+Pushing code to `main` updates this docs site (Vercel) but **not** the app VM. Run **Actions → CI / CD → Run workflow** to ship API/web.
+:::

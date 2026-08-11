@@ -7,85 +7,58 @@ title: Stock Dashboard
 
 ## Overview
 
-The dashboard at `/dashboard` shows real-time blood component availability. It uses two data sources:
+`/dashboard` is role-aware:
 
-1. **SSE stream** — primary, updates within ~1 second of any stock change
-2. **TanStack Query** — fallback, polls every 30 seconds if SSE disconnects
+| Role | Content |
+|------|---------|
+| Staff (`superadmin`, `district_admin`, `doctor`) | KPI strip + live stock matrix for the user’s facility |
+| Organizer | Camp status counts + recent applications table |
+| Citizen | Link through to `/my-account` |
 
-## SSE Integration
+Staff stock uses two sources:
 
-```typescript
-// web/src/routes/dashboard/index.tsx
-useEffect(() => {
-  const token = localStorage.getItem("access_token");
-  const url = `${import.meta.env.VITE_API_URL}/stream/stock/${facilityId}`;
-  const es = new EventSource(`${url}?token=${token}`);
+1. **REST** — `useAuthenticatedStock(facilityId)` snapshot
+2. **SSE** — `EventSource` on `/stream/stock/{facilityId}?token=…` when connected
 
-  es.onmessage = (event) => {
-    const update = JSON.parse(event.data);
-    setLiveData((prev) => mergeStockUpdate(prev, update));
-  };
+## KPI strip
 
-  es.onerror = () => {
-    // SSE disconnected — TanStack Query fallback kicks in
-    es.close();
-  };
+Flat 4-cell strip (not floating SaaS cards), each cell links into the matching queue:
 
-  return () => es.close();
-}, [facilityId]);
-```
+- Blood units → `/units`
+- Open requisitions → `/requisitions`
+- Camps to review → `/camps/approval`
+- Organizer accounts / booking queue → `/organizers` or `/camps/bookings`
 
-## TanStack Query Fallback
+## Stock matrix
 
-```typescript
-const { data: queryData } = useAuthenticatedStock(facilityId);
-// refetchInterval: 30_000
+One table per loaded component type set:
 
-// Merge: SSE data takes precedence when available
-const stockData = liveData ?? queryData;
-```
+- **Rows** = component types (PRBC, Platelets, FFP, …)
+- **Columns** = blood groups (A+ … O-)
+- **Cells** = available count (red = 0, amber = low)
 
-## Grid Display
+Implementation: `web/src/routes/dashboard/index.tsx`.
 
-The dashboard renders a grid:
-- **Rows** = component types (Whole Blood, Packed RBC, Plasma, Platelets, Cryo)
-- **Columns** = blood groups (A+, A-, B+, B-, AB+, AB-, O+, O-)
-- **Cells** = available count, colour-coded by `bloodGroupColor()`
+## SSE wiring
 
 ```typescript
-// web/src/lib/utils.ts
-export function bloodGroupColor(group: string): string {
-  const map: Record<string, string> = {
-    "A+": "bg-blue-100 text-blue-800",
-    "A-": "bg-blue-200 text-blue-900",
-    "B+": "bg-green-100 text-green-800",
-    "B-": "bg-green-200 text-green-900",
-    "AB+": "bg-purple-100 text-purple-800",
-    "AB-": "bg-purple-200 text-purple-900",
-    "O+": "bg-red-100 text-red-800",
-    "O-": "bg-red-200 text-red-900",
-  };
-  return map[group] ?? "bg-gray-100 text-gray-800";
-}
+const token = localStorage.getItem("access_token");
+const apiBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || "";
+const url = `${apiBase}/stream/stock/${facilityId}?token=${encodeURIComponent(token)}`;
+const es = new EventSource(url);
+es.onmessage = (ev) => {
+  const parsed = JSON.parse(ev.data);
+  if (Array.isArray(parsed.entries)) setSseEntries(parsed.entries);
+};
 ```
 
-## Public Stock Page
+Panel subtitle shows “live” when SSE has delivered at least one payload; otherwise the REST snapshot time.
 
-`/public/stock` — no authentication required. Used by the public-facing hospital portal.
+## Public stock page
 
-```typescript
-// Uses usePublicStock() hook
-// refetchInterval: 60_000
-// Shows totals by blood group (no component breakdown)
-```
+`/public/stock` — no authentication. Uses `usePublicStock()` with a slower poll. Totals by blood group for the public hospital portal.
 
-## Connection Status Indicator
+## Related
 
-The dashboard shows a status chip:
-- Green pulsing dot — SSE connected
-- Yellow dot — using polling fallback
-- Red dot — no data
-
-```typescript
-const connectionStatus = sseConnected ? "live" : "polling";
-```
+- [Staff UI & Tables](./staff-ui.md)
+- [Stock API](../api/stock.md)
