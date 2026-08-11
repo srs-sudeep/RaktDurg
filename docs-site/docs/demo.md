@@ -34,9 +34,13 @@ sidebar_label: Demo & Live Links
 
 <p align="center"><em>By IBITF and IIT Bhilai · Powered by Recogx Init</em></p>
 
-## Production demo accounts
+## Production / demo accounts
 
-Production is reseeded with the **full demo seed** (`python -m seed.demo_seed`) when deploy runs with **Force reseed**, or on first boot of an empty DB.
+:::tip Use these on the live login page
+Production runs the **full demo seed** (`python -m seed.demo_seed`) on first empty DB, or when deploy runs with **Force reseed**.
+
+Do **not** use `seed_superadmin` (or any `seed_*` username) on production — those accounts are from the minimal local `make seed` path only and return **401** on the live app.
+:::
 
 ### Named staff / citizen
 
@@ -71,9 +75,23 @@ Content-Type: application/json
 make demo-seed
 ```
 
-Same named personas and `org_*` accounts as production demo seed.
+Same named personas and `org_*` accounts as production (table above). Prefer this for local work.
 
-Legacy **base seed** usernames (`seed_superadmin`, …) only appear if you run `python -m seed.seed` without the full demo seed.
+## Local-only minimal seed (`make seed`)
+
+```bash
+make seed   # python -m seed.seed — roles/flags only, no rich demo data
+```
+
+| Username | Password | Role |
+|----------|----------|------|
+| `seed_superadmin` | `super123` | superadmin |
+| `seed_district_admin` | `district123` | district_admin |
+| `seed_doctor` | `doctor123` | doctor |
+| `seed_organizer` | `organizer123` | organizer |
+| `seed_citizen` | `citizen123` | citizen |
+
+These **`seed_*` accounts are not present on production.** See [Demo Seeds](./ops/seeds.md).
 
 ## What to click after login
 

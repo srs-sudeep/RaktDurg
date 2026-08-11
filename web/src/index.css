@@ -21,13 +21,13 @@
     --border: 214 14% 84%;
     --input: 214 14% 82%;
     --ring: 0 72% 42%;
-    --radius: 0.25rem;
+    --radius: 0.65rem;
     --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   }
 
   * { @apply border-border; }
   body {
-    @apply bg-[#f0f2f5] text-foreground antialiased;
+    @apply bg-[#eef1f4] text-foreground antialiased;
     font-family: var(--font-sans);
     font-feature-settings: "tnum" 1;
     min-height: 100vh;
@@ -36,6 +36,6 @@
 
 @layer utilities {
   .surface-card {
-    @apply overflow-hidden rounded border border-slate-300 bg-white;
+    @apply overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm shadow-slate-900/[0.03];
   }
 }

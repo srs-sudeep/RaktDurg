@@ -36,6 +36,18 @@ RAKT Durg is a district-level digital blood bank management platform built for D
 
 Want credentials? → **[Demo & Live Links](./demo.md)**
 
+| Username | Password | Role |
+|----------|----------|------|
+| `superadmin` | `super123` | superadmin |
+| `district_admin` | `district123` | district_admin |
+| `dr_meena` | `meena123` | doctor |
+| `organizer_priya` | `priya123` | organizer |
+| `citizen_ajay` | `ajay123` | citizen |
+
+:::warning Not on production
+`seed_superadmin` / other `seed_*` usernames are from local `make seed` only. Use the table above on the live app.
+:::
+
 ## What Problem Does It Solve?
 
 The national e-RaktKosh portal is optimised for state-level aggregation and reporting. District blood banks need:

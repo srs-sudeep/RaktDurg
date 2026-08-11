@@ -52,15 +52,15 @@ export function Panel({
   return (
     <section className={cn("surface-card", className)}>
       {(title || actions) && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/90 bg-[#fafbfc] px-4 py-3">
           <div className="min-w-0">
-            {title ? <h2 className="text-[13px] font-semibold text-slate-800">{title}</h2> : null}
-            {description ? <p className="text-[11px] text-slate-500">{description}</p> : null}
+            {title ? <h2 className="text-[14px] font-semibold tracking-tight text-slate-900">{title}</h2> : null}
+            {description ? <p className="mt-0.5 text-[12px] text-slate-500">{description}</p> : null}
           </div>
           {actions}
         </div>
       )}
-      <div className={cn("p-3", bodyClassName)}>{children}</div>
+      <div className={cn("p-4", bodyClassName)}>{children}</div>
     </section>
   );
 }

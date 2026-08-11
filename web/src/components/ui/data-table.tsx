@@ -49,18 +49,18 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   return (
     <div className={cn("surface-card", className)}>
-      {toolbar ? <div className="border-b border-slate-200 px-3 py-2">{toolbar}</div> : null}
+      {toolbar ? <div className="border-b border-slate-200/90 bg-[#fafbfc] px-4 py-3">{toolbar}</div> : null}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-left text-[13px]">
           <thead>
-            <tr className="border-b border-slate-300 bg-slate-100 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+            <tr className="border-b border-slate-200 bg-[#fafbfc] text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
               {columns.map((col) => {
                 const sortKey = col.sortKey ?? col.id;
                 const active = !!onSort && !!col.sortable && orderBy === sortKey;
                 return (
                   <th
                     key={col.id}
-                    className={cn("whitespace-nowrap px-3 py-2 font-semibold", col.headerClassName, col.className)}
+                    className={cn("whitespace-nowrap px-4 py-2.5 font-semibold", col.headerClassName, col.className)}
                   >
                     {col.sortable && onSort ? (
                       <button
@@ -86,14 +86,14 @@ export function DataTable<T>({
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={columns.length} className="px-3 py-8 text-center text-slate-500">
+                <td colSpan={columns.length} className="px-4 py-10 text-center text-slate-500">
                   Loading…
                 </td>
               </tr>
             )}
             {!isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={columns.length} className="px-3 py-8 text-center text-slate-500">
+                <td colSpan={columns.length} className="px-4 py-10 text-center text-slate-500">
                   {emptyMessage}
                 </td>
               </tr>
@@ -103,14 +103,14 @@ export function DataTable<T>({
                 <tr
                   key={rowKey(row)}
                   className={cn(
-                    "border-b border-slate-200 last:border-0",
-                    idx % 2 === 1 && "bg-slate-50/80",
-                    onRowClick && "cursor-pointer hover:bg-red-50/70"
+                    "border-b border-slate-100 last:border-0 transition-colors",
+                    idx % 2 === 1 && "bg-slate-50/60",
+                    onRowClick && "cursor-pointer hover:bg-red-50/50"
                   )}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                 >
                   {columns.map((col) => (
-                    <td key={col.id} className={cn("px-3 py-1.5 align-middle text-slate-800", col.className)}>
+                    <td key={col.id} className={cn("px-4 py-2.5 align-middle text-slate-800", col.className)}>
                       {col.cell(row)}
                     </td>
                   ))}
@@ -119,7 +119,7 @@ export function DataTable<T>({
           </tbody>
         </table>
       </div>
-      {footer ? <div className="border-t border-slate-200 bg-slate-50 px-3 py-2">{footer}</div> : null}
+      {footer ? <div className="border-t border-slate-200/90 bg-[#fafbfc] px-4 py-2.5">{footer}</div> : null}
     </div>
   );
 }

@@ -1,17 +1,28 @@
 # rakt_durg_mobile
 
-A new Flutter project.
+Flutter client for RaktDurg (offline screening, sync, staff login).
 
-## Getting Started
+## Demo login
 
-This project is a starting point for a Flutter application.
+Same accounts as the web app after `demo_seed`:
 
-A few resources to get you started if this is your first Flutter project:
+| Username | Password |
+|----------|----------|
+| `superadmin` | `super123` |
+| `dr_meena` | `meena123` |
+| `organizer_priya` | `priya123` |
+| `citizen_ajay` | `ajay123` |
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Do **not** use `seed_superadmin` against production. Full list: https://rakt-durg-docs.vercel.app/demo
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Run
+
+```bash
+cd mobile
+flutter pub get
+flutter run --dart-define=API_BASE_URL=http://8.231.102.114   # production
+# or local API (Android emulator):
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
+```
+
+See [Mobile setup](https://rakt-durg-docs.vercel.app/mobile/setup) for layout, secure storage, and tests.

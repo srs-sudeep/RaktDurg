@@ -67,8 +67,11 @@ The `.env` file is in `.gitignore`. Never commit real credentials.
 ```bash
 make up        # start postgres, redis, api, celery
 make migrate   # alembic upgrade head
-make demo-seed # load demo data
+make demo-seed # named personas (superadmin / super123, …) + inventory
 ```
+
+Login after demo seed: `superadmin` / `super123` (JSON `POST /auth/token`).  
+See [Demo](../demo.md) · [Seeds](../ops/seeds.md). Local-only `make seed` creates `seed_*` users instead — prefer `demo-seed`.
 
 ### Option B: Local Python
 

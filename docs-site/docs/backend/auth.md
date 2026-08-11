@@ -8,11 +8,11 @@ title: Authentication
 ## Token Flow
 
 ```
-POST /auth/token (login)
+POST /auth/token (login, JSON body)
      ↓
-Returns: { access_token, refresh_token, token_type: "bearer" }
+Returns: { access_token, refresh_token, token_type: "bearer", expires_in }
      ↓
-Store both in secure storage
+Store both in secure storage / localStorage
      ↓
 Include access_token in Authorization: Bearer <token> header
      ↓
@@ -29,16 +29,18 @@ Old refresh_token is invalidated
 
 ```http
 POST /auth/token
-Content-Type: application/x-www-form-urlencoded
+Content-Type: application/json
 
-username=admin%40rkdurg.in&password=Admin%401234
+{"username":"superadmin","password":"super123"}
 ```
+
+Demo credentials (production + `make demo-seed`): see [Demo & Live Links](../demo.md).
 
 Response:
 ```json
 {
   "access_token": "eyJhbGc...",
-  "refresh_token": "eyJhbGc...",
+  "refresh_token": "…",
   "token_type": "bearer",
   "expires_in": 900
 }
@@ -49,12 +51,15 @@ Response:
 ```json
 {
   "sub": "user-uuid",
-  "role": "lab_tech",
+  "role": "superadmin",
   "facility_id": "facility-uuid",
+  "type": "access",
   "exp": 1700000900,
-  "jti": "unique-token-id"
+  "iat": 1700000000
 }
 ```
+
+Roles: `superadmin`, `district_admin`, `doctor`, `organizer`, `citizen`.
 
 ## Refresh Token Rotation
 
@@ -69,7 +74,7 @@ This means if a refresh token is stolen and used, the legitimate user's next ref
 POST /auth/refresh
 Content-Type: application/json
 
-{"refresh_token": "eyJhbGc..."}
+{"refresh_token": "…"}
 ```
 
 ## Logout
@@ -79,7 +84,7 @@ POST /auth/logout
 Authorization: Bearer <access_token>
 Content-Type: application/json
 
-{"refresh_token": "eyJhbGc..."}
+{"refresh_token": "…"}
 ```
 
 Deletes the refresh token from the database. The access token continues to work until it expires (15 minutes max).
@@ -113,12 +118,12 @@ def require_roles(allowed: list[str]):
 // web/src/context/AuthContext.tsx
 
 interface AuthContextType {
-  user: JWTPayload | null;
-  login: (email: string, password: string) => Promise<void>;
+  user: AuthUser | null;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
-// login() sends form-urlencoded POST to /auth/token
+// login() POSTs JSON { username, password } to /auth/token
 // Stores tokens in localStorage
 // Decodes JWT with jwt-decode for role/facility_id
 // logout() calls POST /auth/logout and clears localStorage
@@ -126,13 +131,13 @@ interface AuthContextType {
 
 The axios interceptor in `web/src/api/client.ts` automatically:
 - Attaches `Authorization: Bearer <token>` to all requests
-- Clears tokens and redirects to `/login` on 401 responses
+- Clears tokens and redirects to `/login` on session-expiry 401s (not on failed login)
 
 ## Flutter Auth
 
 ```dart
 // mobile/lib/features/auth/auth_notifier.dart
 // Tokens stored in flutter_secure_storage (OS keychain/keystore)
-// JWT payload decoded with base64url pure Dart (no package needed)
+// JSON login body: { username, password } → POST /auth/token
 // Rehydrated on app launch via _rehydrate()
 ```

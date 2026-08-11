@@ -17,6 +17,19 @@ Docusaurus documentation for the RaktDurg platform.
 | Grafana | http://8.231.102.114/grafana/ |
 | Releases | https://github.com/srs-sudeep/RaktDurg/releases |
 
+## Demo login (production + local demo seed)
+
+| Username | Password |
+|----------|----------|
+| `superadmin` | `super123` |
+| `district_admin` | `district123` |
+| `dr_meena` | `meena123` |
+| `organizer_priya` | `priya123` |
+| `citizen_ajay` | `ajay123` |
+| `org_<serial>` | `org123` |
+
+Do **not** use `seed_superadmin` on the live app — see [Demo](https://rakt-durg-docs.vercel.app/demo) and [Seeds](https://rakt-durg-docs.vercel.app/ops/seeds).
+
 ## Local
 
 ```bash

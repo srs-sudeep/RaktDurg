@@ -9,10 +9,13 @@ title: Auth API
 
 Login. Returns access and refresh tokens.
 
-**Request** (JSON):
+**Request** (JSON — not form-urlencoded):
 ```json
 {"username": "superadmin", "password": "super123"}
 ```
+
+Demo accounts (production + `make demo-seed`): [Demo & Live Links](../demo.md).  
+Do not use `seed_superadmin` on production.
 
 **Response:**
 ```json

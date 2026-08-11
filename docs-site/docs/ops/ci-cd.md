@@ -23,10 +23,12 @@ Defined in [`.github/workflows/ci.yml`](https://github.com/srs-sudeep/RaktDurg/b
 - Builds with Docker layer cache
 - Runs Alembic only when `backend/alembic/versions` changes
 - Seeds:
-  - `FORCE_RESEED` → wipe + `python -m seed.demo_seed`
-  - empty `users` → `demo_seed`
+  - `FORCE_RESEED` → wipe + `python -m seed.demo_seed` (named personas: `superadmin` / `super123`, …)
+  - empty `users` → `demo_seed` (same accounts — **not** `seed_*`)
   - otherwise → `ensure_organizers` (directory + `org_*` logins)
 - Starts `api`, `web`, `nginx`, workers, **Prometheus**, and **Grafana**
+
+After deploy, log in at http://8.231.102.114/login with demo accounts — see [Demo & Live Links](../demo.md).
 
 ### How to deploy
 

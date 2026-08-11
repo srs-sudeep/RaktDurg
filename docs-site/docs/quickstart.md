@@ -53,6 +53,8 @@ make demo-seed
 
 ### Demo Credentials
 
+These are the **same accounts on production** after `demo_seed` (live login: http://8.231.102.114/login).
+
 | Role | Username | Password |
 |------|----------|----------|
 | `superadmin` | `superadmin` | `super123` |
@@ -62,8 +64,16 @@ make demo-seed
 | `citizen` | `citizen_ajay` | `ajay123` |
 | `organizer` (directory) | `org_1` (etc.) | `org123` |
 
+```http
+POST /auth/token
+Content-Type: application/json
+
+{"username":"superadmin","password":"super123"}
+```
+
 :::warning Dev passwords only
-These passwords are for local / demo environments only.
+These passwords are for local / demo environments only.  
+Do **not** use `seed_superadmin` on production — that username only exists after local `make seed` (see [Seeds](./ops/seeds.md)).
 :::
 
 ## 5 — Start the Web Dashboard

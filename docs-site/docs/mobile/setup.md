@@ -91,6 +91,24 @@ For a real device on the same WiFi:
 flutter run --dart-define=API_BASE_URL=http://192.168.1.x:8000
 ```
 
+Production / emulator against the live API:
+```bash
+flutter run --dart-define=API_BASE_URL=http://8.231.102.114
+```
+
+## Demo login
+
+Same accounts as the web app after `demo_seed` (JSON `POST /auth/token`):
+
+| Username | Password |
+|----------|----------|
+| `superadmin` | `super123` |
+| `dr_meena` | `meena123` |
+| `organizer_priya` | `priya123` |
+| `citizen_ajay` | `ajay123` |
+
+Do not use `seed_superadmin` against production. Full table: [Demo & Live Links](../demo.md).
+
 ## Secure Storage
 
 Auth tokens are stored in the device's secure storage:

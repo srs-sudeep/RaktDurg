@@ -35,6 +35,17 @@ Authorization: Bearer <access_token>
 
 Obtain a token via `POST /auth/token` with JSON `{"username","password"}`.
 
+Example (demo seed / production):
+
+```http
+POST /auth/token
+Content-Type: application/json
+
+{"username":"superadmin","password":"super123"}
+```
+
+Full credential tables: [Demo & Live Links](../demo.md).
+
 ## List query conventions
 
 Most paginated staff lists accept:

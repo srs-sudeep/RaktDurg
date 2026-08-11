@@ -61,6 +61,11 @@ fi
 # Bring app stack up with cached images (rebuild only if sources changed since last build).
 compose up -d api worker beat web nginx prometheus grafana
 
+# Nginx caches upstream IPs at process start unless config uses Docker DNS
+# resolver + variable proxy_pass. Force a reload/restart after API recreate so
+# a mid-deploy API IP change cannot leave /auth and /health returning 502.
+compose up -d --force-recreate --no-deps nginx
+
 FORCE_RESEED="${FORCE_RESEED:-0}"
 
 if [[ "$FORCE_RESEED" == "1" || "$FORCE_RESEED" == "true" ]]; then
@@ -97,6 +102,9 @@ else
     compose run --rm --entrypoint python api -m seed.ensure_organizers
   fi
 fi
+
+# Final nginx refresh after any API stop/start during seed (FORCE_RESEED path).
+compose up -d --force-recreate --no-deps nginx
 
 docker image prune -f
 

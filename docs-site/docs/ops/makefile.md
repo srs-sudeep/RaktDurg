@@ -20,8 +20,8 @@ All commands are run from the repository root.
 | Target | Description |
 |--------|-------------|
 | `make migrate` | Run `alembic upgrade head` inside the migrate container |
-| `make seed` | Load minimal seed (roles, feature flags) |
-| `make demo-seed` | Load full demo data (users, donors, units, requisitions) |
+| `make seed` | Minimal local seed — `seed_*` users only (not production accounts) |
+| `make demo-seed` | Full demo seed — `superadmin` / `super123`, inventory, camps (matches production) |
 
 ## Backend
 
@@ -56,23 +56,23 @@ All commands are run from the repository root.
 
 | Target | Description |
 |--------|-------------|
-| `make docs-dev` | Start Docusaurus dev server (port 3000) |
+| `make docs-dev` | Start Docusaurus dev server (port 3001) |
 | `make docs-build` | Build static docs site |
 
 ## Lifecycle
 
 | Target | Description |
 |--------|-------------|
-| `make setup` | Full first-time setup (up + migrate + seed) |
-| `make setup-fresh` | Fresh setup with demo data (up + migrate + demo-seed) |
+| `make setup` | Full first-time setup (up + migrate + **demo-seed**) |
+| `make setup-fresh` | Destroy volumes, then clean setup (up + migrate + demo-seed) |
 | `make clean` | Remove `__pycache__`, `.pyc`, build artefacts |
+
+Prefer `make demo-seed` / `make setup` so local logins match production (`superadmin` / `super123`).  
+`make seed` alone creates `seed_superadmin` etc. — see [Seeds](./seeds.md).
 
 ## Example: Full Fresh Start
 
 ```bash
 make setup-fresh
-# Equivalent to:
-# docker compose up -d
-# docker compose --profile migrate up
-# docker compose --profile demo up
+# Then open http://localhost:3000/login → superadmin / super123
 ```

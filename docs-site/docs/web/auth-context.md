@@ -11,42 +11,43 @@ title: Auth Context
 
 ```typescript
 interface AuthContextType {
-  user: JWTPayload | null;  // decoded token payload
-  login: (email: string, password: string) => Promise<void>;
+  user: AuthUser | null;
+  isLoading: boolean;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
-interface JWTPayload {
-  sub: string;          // user UUID
+interface AuthUser {
+  sub: string;                 // user UUID
   role: UserRole;
   facility_id: string | null;
-  exp: number;
 }
 ```
+
+Demo logins: `superadmin` / `super123` (and other named personas) — see [Demo & Live Links](../demo.md).
 
 ## Login Flow
 
 ```typescript
-const login = async (email: string, password: string) => {
-  const params = new URLSearchParams({ username: email, password });
-  const { data } = await apiClient.post("/auth/token", params, {
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
+const login = async (username: string, password: string) => {
+  const { data } = await apiClient.post("/auth/token", { username, password });
   localStorage.setItem("access_token", data.access_token);
   localStorage.setItem("refresh_token", data.refresh_token);
   const payload = jwtDecode<JWTPayload>(data.access_token);
-  setUser(payload);
+  setUser({ sub: payload.sub, role: payload.role, facility_id: payload.facility_id });
 };
 ```
 
-Note: The API expects `username` (not `email`) in the form body — this is the OAuth2 password flow convention that FastAPI uses.
+The API expects JSON `{"username","password"}` (not form-urlencoded, not email).
 
 ## Logout Flow
 
 ```typescript
 const logout = async () => {
   const refreshToken = localStorage.getItem("refresh_token");
-  await apiClient.post("/auth/logout", { refresh_token: refreshToken });
+  if (refreshToken) {
+    await apiClient.post("/auth/logout", { refresh_token: refreshToken });
+  }
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
   setUser(null);
@@ -64,7 +65,7 @@ useEffect(() => {
     try {
       const payload = jwtDecode<JWTPayload>(token);
       if (payload.exp * 1000 > Date.now()) {
-        setUser(payload);
+        setUser({ sub: payload.sub, role: payload.role, facility_id: payload.facility_id });
       } else {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
@@ -78,7 +79,7 @@ useEffect(() => {
 
 ## Axios Interceptors
 
-`web/src/api/client.ts` attaches the token automatically:
+`web/src/api/client.ts` attaches the token automatically and treats failed login/refresh separately from session expiry (so a bad password does not hard-reload `/login`).
 
 ```typescript
 // Request interceptor — attach Bearer token
@@ -87,19 +88,6 @@ apiClient.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
-
-// Response interceptor — handle 401
-apiClient.interceptors.response.use(
-  (res) => res,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
 ```
 
 ## Usage

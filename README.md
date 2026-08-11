@@ -47,7 +47,9 @@
 
 ## Demo logins (production + local)
 
-Production and local **demo seed** share the same named personas (and directory organizer logins).
+Production and local **`make demo-seed` / `seed.demo_seed`** share the same named personas (and directory organizer logins).
+
+**Use these on the live app.** Do **not** use `seed_superadmin` / other `seed_*` usernames — those exist only after the minimal local `make seed` path and are **not** on production.
 
 ### Named accounts
 
@@ -62,10 +64,17 @@ Production and local **demo seed** share the same named personas (and directory 
 
 Try it: [http://8.231.102.114/login](http://8.231.102.114/login)
 
-Login body: `{"username":"superadmin","password":"super123"}`
+```http
+POST /auth/token
+Content-Type: application/json
+
+{"username":"superadmin","password":"super123"}
+```
 
 Citizen entry points: `/my-account`, `/public/camps`, `/public/stock`  
 Staff: `/dashboard` with searchable tables on donors / units / camps / etc.
+
+Full account tables (including local-only `seed_*`): [Demo docs](https://rakt-durg-docs.vercel.app/demo) · [Seeds](https://rakt-durg-docs.vercel.app/ops/seeds)
 
 > Wallet screens are gated by the `wallet_enabled` feature flag.  
 > App deploy is **manual** (`Actions → CI / CD`). Docs deploy via Vercel from `docs-site/`.
@@ -125,7 +134,7 @@ cp infra/.env.production.example infra/.env
 
 make prod-build && make prod-up
 make prod-migrate          # first deploy
-# base seed runs automatically on empty DB via deploy.sh
+# empty DB → demo_seed (named personas above); Force reseed wipes + re-runs demo_seed
 ```
 
 ### GCE + GitHub Actions
