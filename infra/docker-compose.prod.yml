@@ -1,0 +1,160 @@
+# Production stack — build images, no dev bind mounts, internal DB/Redis.
+# Usage:
+#   cp infra/.env.production.example infra/.env
+#   make prod-build && make prod-up
+#   make prod-migrate && make prod-demo-seed   # first deploy only
+
+services:
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://rakt:${POSTGRES_PASSWORD}@db:5432/rakt_durg
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - internal
+
+  migrate:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://rakt:${POSTGRES_PASSWORD}@db:5432/rakt_durg
+    depends_on:
+      db:
+        condition: service_healthy
+    command: alembic upgrade head
+    profiles:
+      - init
+    networks:
+      - internal
+
+  demo-seed:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://rakt:${POSTGRES_PASSWORD}@db:5432/rakt_durg
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: production
+    depends_on:
+      api:
+        condition: service_healthy
+    command: python -m seed.demo_seed
+    profiles:
+      - seed
+    networks:
+      - internal
+
+  worker:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://rakt:${POSTGRES_PASSWORD}@db:5432/rakt_durg
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.tasks.celery_app worker --loglevel=info -Q default
+    restart: unless-stopped
+    networks:
+      - internal
+
+  beat:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://rakt:${POSTGRES_PASSWORD}@db:5432/rakt_durg
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: production
+    depends_on:
+      - worker
+    command: celery -A app.tasks.celery_app beat --loglevel=info --schedule /tmp/celerybeat-schedule
+    restart: unless-stopped
+    networks:
+      - internal
+
+  web:
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
+    restart: unless-stopped
+    networks:
+      - internal
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - internal
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: rakt
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: rakt_durg
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rakt -d rakt_durg"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="RaktDurg logo">
+  <defs>
+    <linearGradient id="dropGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#b91c1c"/>
+    </linearGradient>
+  </defs>
+  <!-- Shield background -->
+  <path d="M256 24 L448 96 V240 C448 360 360 448 256 488 C152 448 64 360 64 240 V96 Z" fill="#1f2937"/>
+  <!-- Inner shield -->
+  <path d="M256 56 L416 116 V236 C416 336 344 408 256 440 C168 408 96 336 96 236 V116 Z" fill="#374151"/>
+  <!-- Blood drop -->
+  <path d="M256 120 C256 120 176 220 176 276 C176 320 212 356 256 356 C300 356 336 320 336 276 C336 220 256 120 256 120 Z" fill="url(#dropGrad)"/>
+  <!-- Cross accent -->
+  <rect x="244" y="248" width="24" height="64" rx="4" fill="white" opacity="0.95"/>
+  <rect x="224" y="268" width="64" height="24" rx="4" fill="white" opacity="0.95"/>
+</svg>

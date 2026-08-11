@@ -1,0 +1,87 @@
+.heroBanner {
+  padding: 4rem 0 3rem;
+  text-align: center;
+  background: linear-gradient(135deg, #fef2f2 0%, #fff 60%);
+  border-bottom: 1px solid #fee2e2;
+}
+
+[data-theme="dark"] .heroBanner {
+  background: linear-gradient(135deg, #1c0a0a 0%, #18181b 60%);
+  border-bottom-color: #3f0d0d;
+}
+
+.heroLogo {
+  display: inline-flex;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #dc2626;
+  color: white;
+  font-weight: 800;
+  font-size: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.heroTitle {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #111;
+  margin-bottom: 0.5rem;
+}
+
+[data-theme="dark"] .heroTitle {
+  color: #f9fafb;
+}
+
+.heroSubtitle {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin-bottom: 2rem;
+  line-height: 1.7;
+}
+
+.heroCtas {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.features {
+  padding: 3rem 0;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.featureCard {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.featureCard:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.featureEmoji {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.stack {
+  background: var(--ifm-background-surface-color);
+  padding: 3rem 0;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.stack h2 {
+  margin-bottom: 1.5rem;
+}

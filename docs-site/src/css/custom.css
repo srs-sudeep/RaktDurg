@@ -1,0 +1,49 @@
+/**
+ * RAKT Durg documentation theme — red accent matching the blood bank brand.
+ */
+
+:root {
+  --ifm-color-primary: #dc2626;
+  --ifm-color-primary-dark: #c41f1f;
+  --ifm-color-primary-darker: #b91c1c;
+  --ifm-color-primary-darkest: #991b1b;
+  --ifm-color-primary-light: #e63535;
+  --ifm-color-primary-lighter: #e84444;
+  --ifm-color-primary-lightest: #f06060;
+  --ifm-code-font-size: 90%;
+  --ifm-font-family-base: "Inter", system-ui, -apple-system, sans-serif;
+  --docusaurus-highlighted-code-line-bg: rgba(220, 38, 38, 0.08);
+}
+
+[data-theme="dark"] {
+  --ifm-color-primary: #f87171;
+  --ifm-color-primary-dark: #f65050;
+  --ifm-color-primary-darker: #f54040;
+  --ifm-color-primary-darkest: #f01010;
+  --ifm-color-primary-light: #fa9090;
+  --ifm-color-primary-lighter: #fb9f9f;
+  --ifm-color-primary-lightest: #fdcece;
+  --docusaurus-highlighted-code-line-bg: rgba(248, 113, 113, 0.12);
+}
+
+.navbar {
+  border-bottom: 2px solid var(--ifm-color-primary);
+}
+
+.navbar__brand {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Blood group badges used in tables */
+.badge--blood {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.admonition-icon svg {
+  fill: var(--ifm-color-primary);
+}
