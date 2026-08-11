@@ -1,66 +1,248 @@
-name: Release Mobile APK
+# Build RaktDurg Mobile and publish APK / iOS assets to GitHub Releases.
+#
+# Triggers:
+#   - Push a version tag: git tag v0.1.1 && git push origin v0.1.1
+#   - Manual run: Actions → Release Mobile → Run workflow
+#
+# Optional Android signing secrets:
+#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+#   ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#
+# Optional iOS signing secrets (omit to attach an unsigned .app zip instead of IPA):
+#   IOS_DISTRIBUTION_CERT_BASE64 — base64-encoded .p12
+#   IOS_DISTRIBUTION_CERT_PASSWORD
+#   IOS_PROVISIONING_PROFILE_BASE64 — base64-encoded .mobileprovision
+#   IOS_KEYCHAIN_PASSWORD — any strong random string
+
+name: Release Mobile
 
 on:
   push:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.1.1)"
+        required: true
+        type: string
 
 permissions:
   contents: write
 
+env:
+  FLUTTER_VERSION: "3.44.0"
+
 jobs:
-  android-release:
-    name: Android · Signed APK
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Resolve release tag
+        id: meta
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          if [[ ! "$TAG" =~ ^v ]]; then
+            echo "Tag must start with v (got: $TAG)"
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+  build-android:
+    name: Android · APK
+    runs-on: ubuntu-latest
+    needs: prepare
     defaults:
       run:
         working-directory: mobile
-
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.44.0"
-          channel: stable
-          cache: true
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
+          cache: gradle
 
-      - name: Restore Android signing files
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Configure Android release signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           mkdir -p android/app
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
-          cat > android/key.properties <<'EOF'
-          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
-          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "No Android keystore configured; using debug signing."
+            exit 0
+          fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
           storeFile=app/upload-keystore.jks
           EOF
 
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build signed release APK
+      - name: Build release APK
         run: flutter build apk --release
 
-      - name: Rename APK asset
+      - name: Stage Android artifact
         run: |
+          mkdir -p ../release/android
           cp build/app/outputs/flutter-apk/app-release.apk \
-            build/app/outputs/flutter-apk/raktdurg-${GITHUB_REF_NAME}.apk
+            "../release/android/raktdurg-${{ needs.prepare.outputs.tag }}.apk"
 
-      - name: Upload GitHub Release asset
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: release/android/
+          if-no-files-found: error
+
+  build-ios:
+    name: iOS · IPA or unsigned zip
+    runs-on: macos-latest
+    needs: prepare
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            mobile/ios/Pods
+            ~/.cocoapods
+          key: pods-${{ runner.os }}-${{ hashFiles('mobile/pubspec.lock', 'mobile/ios/Podfile') }}
+          restore-keys: |
+            pods-${{ runner.os }}-
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build iOS release
+        env:
+          IOS_DISTRIBUTION_CERT_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERT_BASE64 }}
+          IOS_DISTRIBUTION_CERT_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          IOS_KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          mkdir -p ../release/ios
+          TAG="${{ needs.prepare.outputs.tag }}"
+
+          if [ -n "${IOS_DISTRIBUTION_CERT_BASE64:-}" ] && [ -n "${IOS_PROVISIONING_PROFILE_BASE64:-}" ]; then
+            echo "$IOS_DISTRIBUTION_CERT_BASE64" | base64 --decode > signing-cert.p12
+            security create-keychain -p "$IOS_KEYCHAIN_PASSWORD" build.keychain
+            security default-keychain -s build.keychain
+            security unlock-keychain -p "$IOS_KEYCHAIN_PASSWORD" build.keychain
+            security import signing-cert.p12 -k build.keychain -P "$IOS_DISTRIBUTION_CERT_PASSWORD" \
+              -T /usr/bin/codesign -T /usr/bin/security
+            security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$IOS_KEYCHAIN_PASSWORD" build.keychain
+
+            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+            echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 --decode > profile.mobileprovision
+            PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< "$(security cms -D -i profile.mobileprovision)")
+            cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/"$PROFILE_UUID".mobileprovision
+
+            flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+            cp build/ios/ipa/*.ipa "../release/ios/raktdurg-${TAG}.ipa"
+          else
+            echo "No iOS signing secrets configured; building unsigned app bundle."
+            flutter build ios --release --no-codesign
+            (
+              cd build/ios/iphoneos
+              zip -r "$GITHUB_WORKSPACE/release/ios/raktdurg-${TAG}-ios-unsigned.zip" Runner.app
+            )
+          fi
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-release
+          path: release/ios/
+          if-no-files-found: error
+
+  publish:
+    name: Publish · GitHub Release
+    runs-on: ubuntu-latest
+    needs: [prepare, build-android, build-ios]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create release tag
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "${{ needs.prepare.outputs.tag }}" >/dev/null 2>&1; then
+            echo "Tag ${{ needs.prepare.outputs.tag }} already exists"
+          else
+            git tag -a "${{ needs.prepare.outputs.tag }}" -m "Release ${{ needs.prepare.outputs.tag }}"
+            git push origin "${{ needs.prepare.outputs.tag }}"
+          fi
+
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-release
+          path: release/android
+
+      - name: Download iOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-release
+          path: release/ios
+
+      - name: Stage release assets
+        run: |
+          set -euo pipefail
+          mkdir -p release/assets
+          cp release/android/*.apk release/assets/
+          if compgen -G "release/ios/*.ipa" > /dev/null; then
+            cp release/ios/*.ipa release/assets/
+          fi
+          if compgen -G "release/ios/*-ios-unsigned.zip" > /dev/null; then
+            cp release/ios/*-ios-unsigned.zip release/assets/
+          fi
+          ls -la release/assets/
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: RaktDurg ${{ needs.prepare.outputs.tag }}
           body: |
             Website: http://8.231.102.114
 
             Assets:
             - Android APK attached below
-            - iPhone/iOS app not attached because Apple signing/certificates are not configured in this repository
-          files: mobile/build/app/outputs/flutter-apk/raktdurg-${{ github.ref_name }}.apk
+            - iOS: signed IPA if Apple signing secrets are configured; otherwise an unsigned `*-ios-unsigned.zip` (needs Mac/Xcode to install — not tap-installable)
+          files: release/assets/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
