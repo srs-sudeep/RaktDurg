@@ -1,8 +1,6 @@
 name: CI / CD
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -17,27 +15,25 @@ jobs:
       name: production
     steps:
       - uses: actions/checkout@v4
-      - name: Copy application source to VM
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "backend,web,infra"
-          target: ${{ secrets.DEPLOY_PATH }}
-          strip_components: 0
+      - name: Prepare SSH access
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+      - name: Sync application source to VM
+        run: |
+          tar czf - backend web infra | \
+            ssh -i ~/.ssh/id_ed25519 "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "tar xzf - -C '${{ secrets.DEPLOY_PATH }}'"
       - name: Deploy on GCE host
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            mkdir -p "${{ secrets.DEPLOY_PATH }}/infra/nginx" "${{ secrets.DEPLOY_PATH }}/infra/gce"
-            cat > "${{ secrets.DEPLOY_PATH }}/infra/.env" <<'EOF'
-            ${{ secrets.PROD_ENV_FILE }}
-            EOF
-            chmod +x "${{ secrets.DEPLOY_PATH }}/infra/gce/deploy.sh"
-            APP_DIR="${{ secrets.DEPLOY_PATH }}" \
-            "${{ secrets.DEPLOY_PATH }}/infra/gce/deploy.sh"
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" <<'EOF'
+          set -euo pipefail
+          mkdir -p "${{ secrets.DEPLOY_PATH }}/infra/nginx" "${{ secrets.DEPLOY_PATH }}/infra/gce"
+          cat > "${{ secrets.DEPLOY_PATH }}/infra/.env" <<'ENVEOF'
+          ${{ secrets.PROD_ENV_FILE }}
+          ENVEOF
+          chmod +x "${{ secrets.DEPLOY_PATH }}/infra/gce/deploy.sh"
+          APP_DIR="${{ secrets.DEPLOY_PATH }}" "${{ secrets.DEPLOY_PATH }}/infra/gce/deploy.sh"
+          EOF
