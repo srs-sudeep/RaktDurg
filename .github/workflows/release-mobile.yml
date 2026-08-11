@@ -1,0 +1,60 @@
+name: Release Mobile APK
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android-release:
+    name: Android · Signed APK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.x"
+          channel: stable
+          cache: true
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Restore Android signing files
+        run: |
+          mkdir -p android/app
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          cat > android/key.properties <<'EOF'
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          storeFile=app/upload-keystore.jks
+          EOF
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build signed release APK
+        run: flutter build apk --release
+
+      - name: Rename APK asset
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk \
+            build/app/outputs/flutter-apk/raktdurg-${GITHUB_REF_NAME}.apk
+
+      - name: Upload GitHub Release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: mobile/build/app/outputs/flutter-apk/raktdurg-${{ github.ref_name }}.apk

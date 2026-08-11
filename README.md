@@ -80,7 +80,7 @@ Login body example: `{"username":"superadmin","password":"super123"}`.
 
 ```bash
 cp infra/.env.production.example infra/.env
-# Edit infra/.env: POSTGRES_PASSWORD, SECRET_KEY, ALLOWED_ORIGINS, HTTP_PORT
+# Edit infra/.env: POSTGRES_PASSWORD, SECRET_KEY, ALLOWED_ORIGINS, HTTP_PORT, GHCR_OWNER
 
 make prod-build
 make prod-up
@@ -94,6 +94,52 @@ Production stack (`infra/docker-compose.prod.yml`):
 - **api**, **worker**, **beat** — no host ports; Postgres/Redis internal only
 - Set `VITE_API_URL=` (empty) so the web app calls the API on the same origin via nginx
 - Set `ALLOWED_ORIGINS` to your public URL(s) for CORS
+- Set `GHCR_OWNER` and `IMAGE_TAG` when deploying prebuilt images from GitHub Container Registry
+
+### GCE + GitHub Actions
+
+For the GCE production path used by CI/CD:
+
+```bash
+# On the VM, once:
+bash infra/gce/bootstrap-vm.sh
+```
+
+GitHub Actions expects these repository/environment secrets:
+
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_SSH_KEY`
+- `DEPLOY_PATH` (example: `/opt/raktdurg`)
+- `PROD_ENV_FILE` (full contents of `infra/.env.production.example`, filled with real values)
+- `GHCR_USERNAME`
+- `GHCR_READ_TOKEN`
+
+Deploy flow:
+
+1. Push to `main`
+2. CI runs backend/web/flutter checks
+3. API and web images are pushed to GHCR
+4. The production job copies `infra/docker-compose.prod.yml`, `infra/nginx/nginx.conf`, and `infra/gce/deploy.sh` to the VM
+5. The VM writes `.env`, pulls the exact image SHA, runs migrations, and brings the stack up
+
+### Android APK releases
+
+Create these GitHub secrets to publish a signed APK to GitHub Releases:
+
+- `ANDROID_KEYSTORE_BASE64`
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
+
+Then push a tag such as:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The `Release Mobile APK` workflow will build a signed release APK and upload it to the GitHub release for that tag. For local signing setup, copy `mobile/android/key.properties.example` to `mobile/android/key.properties` and point `storeFile` at your keystore path.
 
 ## API notes
 
@@ -111,6 +157,7 @@ make demo-seed      # reload demo data
 make down / down-v  # stop dev / wipe volumes
 make prod-down      # stop production stack
 make test           # backend pytest
+make flutter-build-release
 ```
 
 ## Repo layout

@@ -1,14 +1,11 @@
 name: CI / CD
 
-# PAUSED — re-enable push/PR triggers when ready for CI/CD
 on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
   workflow_dispatch:
-
-# on:
-#   push:
-#     branches: [main, develop]
-#   pull_request:
-#     branches: [main, develop]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,9 +13,9 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/api
+  API_IMAGE: ghcr.io/${{ github.repository_owner }}/raktdurg-api
+  WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/raktdurg-web
 
-# ─────────────────────────────────────────────────────────────────────────────
 jobs:
   backend-lint:
     name: Backend · Lint & Type-check
@@ -26,24 +23,18 @@ jobs:
     defaults:
       run:
         working-directory: backend
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-
       - name: Install dependencies
         run: pip install -e ".[dev]"
-
       - name: Ruff lint
         run: ruff check .
-
       - name: Ruff format check
         run: ruff format --check .
-
       - name: Mypy type-check
         run: mypy app --ignore-missing-imports
 
@@ -54,7 +45,6 @@ jobs:
     defaults:
       run:
         working-directory: backend
-
     services:
       postgres:
         image: postgres:16-alpine
@@ -69,7 +59,6 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-
       redis:
         image: redis:7-alpine
         ports:
@@ -79,38 +68,30 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
-
     env:
       TEST_DATABASE_URL: postgresql+asyncpg://rakt:rakt@localhost:5432/rakt_durg_test
       DATABASE_URL: postgresql+asyncpg://rakt:rakt@localhost:5432/rakt_durg_test
       REDIS_URL: redis://localhost:6379/0
       SECRET_KEY: ci-test-secret-key-not-used-in-prod
       ENVIRONMENT: testing
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-
       - name: Install dependencies
         run: pip install -e ".[dev]"
-
       - name: Run migrations against test DB
         run: |
           export DATABASE_URL=postgresql+psycopg2://rakt:rakt@localhost:5432/rakt_durg_test
           alembic upgrade head
-
       - name: Verify no pending model changes
         run: |
           export DATABASE_URL=postgresql+psycopg2://rakt:rakt@localhost:5432/rakt_durg_test
           alembic check
-
       - name: Pytest with coverage
         run: pytest --cov=app --cov-report=xml --cov-report=term-missing -q
-
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         if: always()
@@ -125,20 +106,15 @@ jobs:
     defaults:
       run:
         working-directory: web
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
       - name: TypeScript type-check
         run: bun run type-check
-
       - name: ESLint
         run: bun run lint
 
@@ -149,20 +125,15 @@ jobs:
     defaults:
       run:
         working-directory: web
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
       - name: Vitest
         run: bun run test:coverage
-
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         if: always()
@@ -178,117 +149,150 @@ jobs:
     defaults:
       run:
         working-directory: web
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
       - name: Production build
         run: bun run build
 
-      - name: Upload dist artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-dist
-          path: web/dist/
-          retention-days: 7
-
-  flutter-analyze:
-    name: Flutter · Analyze
+  flutter-verify:
+    name: Flutter · Analyze & Test
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: mobile
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.24.x"
           channel: stable
           cache: true
-
       - name: Flutter pub get
         run: flutter pub get
-
       - name: Flutter analyze
         run: flutter analyze
-
       - name: Flutter test
         run: flutter test
 
-  docker-build:
-    name: Docker · Build API image
+  docker-publish-api:
+    name: Docker · Publish API image
     runs-on: ubuntu-latest
-    needs: [backend-test, web-build]
+    needs: [backend-test, web-build, flutter-verify]
     if: github.event_name == 'push'
     permissions:
       contents: read
       packages: write
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix=sha-
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
+      - name: Compute API image tags
+        id: api-tags
+        run: |
+          {
+            echo "tags<<EOF"
+            echo "${{ env.API_IMAGE }}:${GITHUB_SHA}"
+            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+              echo "${{ env.API_IMAGE }}:latest"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
         with:
           context: ./backend
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.api-tags.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy-staging:
-    name: Deploy · Staging
+  docker-publish-web:
+    name: Docker · Publish Web image
     runs-on: ubuntu-latest
-    needs: docker-build
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-    environment:
-      name: staging
-      url: https://rakt-staging.example.com
-
+    needs: [backend-test, web-build, flutter-verify]
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Deploy to staging
-        run: echo "Deploy to staging — replace with your actual deploy command"
-        # e.g. ssh + docker pull + docker compose up, or kubectl rollout restart
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compute Web image tags
+        id: web-tags
+        run: |
+          {
+            echo "tags<<EOF"
+            echo "${{ env.WEB_IMAGE }}:${GITHUB_SHA}"
+            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+              echo "${{ env.WEB_IMAGE }}:latest"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - name: Build and push Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          push: true
+          build-args: |
+            VITE_API_URL=
+          tags: ${{ steps.web-tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy-production:
     name: Deploy · Production
     runs-on: ubuntu-latest
-    needs: docker-build
+    needs: [docker-publish-api, docker-publish-web]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
-      url: https://rakt.durg.gov.in
-
     steps:
-      - name: Deploy to production
-        run: echo "Deploy to production — replace with your actual deploy command"
+      - uses: actions/checkout@v4
+      - name: Copy deployment files to GCE host
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "infra/docker-compose.prod.yml,infra/nginx/nginx.conf,infra/gce/deploy.sh"
+          target: ${{ secrets.DEPLOY_PATH }}
+          strip_components: 0
+      - name: Deploy on GCE host
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            mkdir -p "${{ secrets.DEPLOY_PATH }}/infra/nginx" "${{ secrets.DEPLOY_PATH }}/infra/gce"
+            cat > "${{ secrets.DEPLOY_PATH }}/infra/.env" <<'EOF'
+            ${{ secrets.PROD_ENV_FILE }}
+            EOF
+            {
+              echo "GHCR_OWNER=${{ github.repository_owner }}"
+              echo "IMAGE_TAG=${{ github.sha }}"
+            } >> "${{ secrets.DEPLOY_PATH }}/infra/.env"
+            chmod +x "${{ secrets.DEPLOY_PATH }}/infra/gce/deploy.sh"
+            GHCR_USERNAME="${{ secrets.GHCR_USERNAME }}" \
+            GHCR_TOKEN="${{ secrets.GHCR_READ_TOKEN }}" \
+            APP_DIR="${{ secrets.DEPLOY_PATH }}" \
+            "${{ secrets.DEPLOY_PATH }}/infra/gce/deploy.sh"

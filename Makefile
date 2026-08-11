@@ -4,7 +4,7 @@
         prod-build prod-up prod-down prod-logs prod-migrate prod-demo-seed \
         test test-cov lint type-check \
         web-install web-dev web-build web-test web-lint \
-        flutter-get flutter-build flutter-run-android flutter-run-ios \
+        flutter-get flutter-build flutter-build-release flutter-run-android flutter-run-ios \
         docs-install docs-dev docs-build \
         setup clean
 
@@ -141,6 +141,9 @@ flutter-run-ios: ## Run on iOS simulator (API via localhost)
 
 flutter-build: ## Build Flutter app (Android APK debug)
 	cd mobile && flutter build apk --debug
+
+flutter-build-release: ## Build Flutter app (Android APK release)
+	cd mobile && flutter build apk --release
 
 flutter-test: ## Run Flutter tests
 	cd mobile && flutter test
