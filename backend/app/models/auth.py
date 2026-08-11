@@ -33,7 +33,10 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"
     )
     donor_profile: Mapped["Donor | None"] = relationship(  # type: ignore[name-defined]
-        "Donor", back_populates="user_account", uselist=False
+        "Donor",
+        back_populates="user_account",
+        uselist=False,
+        foreign_keys="Donor.user_id",
     )
 
     __table_args__ = (sa.Index("idx_users_username", "username"),)

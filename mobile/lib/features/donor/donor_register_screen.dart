@@ -81,7 +81,7 @@ class _DonorRegisterScreenState extends State<DonorRegisterScreen> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _sex,
+              initialValue: _sex,
               decoration: const InputDecoration(labelText: 'Sex'),
               items: const [
                 DropdownMenuItem(value: 'M', child: Text('Male')),
@@ -104,7 +104,7 @@ class _DonorRegisterScreenState extends State<DonorRegisterScreen> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _bg,
+              initialValue: _bg,
               decoration: const InputDecoration(labelText: 'Blood group'),
               items: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
                   .map((g) => DropdownMenuItem(value: g, child: Text(g)))

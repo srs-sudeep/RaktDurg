@@ -56,7 +56,11 @@ class Donor(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         PgUUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=True
     )
 
-    user_account: Mapped["User | None"] = relationship("User", back_populates="donor_profile")  # type: ignore[name-defined]
+    user_account: Mapped["User | None"] = relationship(  # type: ignore[name-defined]
+        "User",
+        back_populates="donor_profile",
+        foreign_keys=[user_id],
+    )
     screenings: Mapped[list["Screening"]] = relationship("Screening", back_populates="donor")
     donations: Mapped[list["Donation"]] = relationship("Donation", back_populates="donor")
     wallet_account: Mapped["WalletAccount | None"] = relationship(  # type: ignore[name-defined]

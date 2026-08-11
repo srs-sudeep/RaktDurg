@@ -254,9 +254,10 @@ class _CitizenCampsScreenState extends State<CitizenCampsScreen> {
                     const SizedBox(height: 12),
                     ElevatedButton(
                       onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
                         await ApiClient.instance.createCitizenBooking(campId: '${item['id']}');
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        messenger.showSnackBar(
                           const SnackBar(content: Text('Booking requested')),
                         );
                       },

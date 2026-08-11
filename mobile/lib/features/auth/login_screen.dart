@@ -187,9 +187,9 @@ class _LoginHeroHeader extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: const [
+                children: [
                   _HeroStat(value: '4', label: 'Field tools'),
                   _HeroStat(value: '24/7', label: 'Offline sync'),
                   _HeroStat(value: 'NBTC', label: 'Aligned'),

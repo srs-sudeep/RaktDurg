@@ -137,6 +137,80 @@ async def run(db: AsyncSession) -> None:
 
     print(f"  Users: {list(role_creds.keys())}")
 
+    # ── Clean prior demo transactional data so reseeding is repeatable ────────
+    await db.execute(
+        text(
+            """
+            DELETE FROM camp_bookings
+            WHERE camp_id IN (SELECT id FROM camps WHERE host_facility_id = :fid)
+               OR donor_id IN (SELECT id FROM donors WHERE registered_at_facility_id = :fid)
+            """
+        ),
+        {"fid": str(facility_id)},
+    )
+    await db.execute(
+        text(
+            """
+            DELETE FROM wallet_transactions
+            WHERE wallet_id IN (
+                SELECT id FROM wallet_accounts
+                WHERE donor_id IN (SELECT id FROM donors WHERE registered_at_facility_id = :fid)
+            )
+            """
+        ),
+        {"fid": str(facility_id)},
+    )
+    await db.execute(
+        text(
+            """
+            DELETE FROM wallet_accounts
+            WHERE donor_id IN (SELECT id FROM donors WHERE registered_at_facility_id = :fid)
+            """
+        ),
+        {"fid": str(facility_id)},
+    )
+    await db.execute(
+        text("DELETE FROM stock_ledger WHERE facility_id = :fid"),
+        {"fid": str(facility_id)},
+    )
+    await db.execute(
+        text("DELETE FROM components WHERE facility_id = :fid"),
+        {"fid": str(facility_id)},
+    )
+    await db.execute(
+        text("DELETE FROM blood_units WHERE facility_id = :fid"),
+        {"fid": str(facility_id)},
+    )
+    await db.execute(
+        text("DELETE FROM donations WHERE facility_id = :fid"),
+        {"fid": str(facility_id)},
+    )
+    await db.execute(
+        text(
+            """
+            DELETE FROM screenings
+            WHERE donor_id IN (SELECT id FROM donors WHERE registered_at_facility_id = :fid)
+            """
+        ),
+        {"fid": str(facility_id)},
+    )
+    await db.execute(
+        text("DELETE FROM requisitions WHERE facility_id = :fid"),
+        {"fid": str(facility_id)},
+    )
+    await db.execute(
+        text("DELETE FROM camps WHERE host_facility_id = :fid"),
+        {"fid": str(facility_id)},
+    )
+    await db.execute(
+        text("DELETE FROM organizers WHERE user_id = :uid"),
+        {"uid": str(users[UserRoleEnum.ORGANIZER.value])},
+    )
+    await db.execute(
+        text("DELETE FROM donors WHERE registered_at_facility_id = :fid"),
+        {"fid": str(facility_id)},
+    )
+
     # ── Alert thresholds ──────────────────────────────────────────────────────
     for bg in BloodGroupEnum:
         for ct in ComponentTypeEnum:
@@ -192,6 +266,21 @@ async def run(db: AsyncSession) -> None:
             },
         )
         donor_ids.append(donor_id)
+
+    donor_rows = await db.execute(
+        text(
+            "SELECT id, user_id FROM donors WHERE registered_at_facility_id = :fid ORDER BY created_at ASC LIMIT 15"
+        ),
+        {"fid": str(facility_id)},
+    )
+    donor_ids = []
+    citizen_donor_id = None
+    for donor_id, user_id in donor_rows.all():
+        donor_ids.append(donor_id)
+        if user_id == citizen_user_id:
+            citizen_donor_id = donor_id
+    if citizen_donor_id is None:
+        raise RuntimeError("Citizen-linked donor was not found after donor seeding")
 
     print(f"  Donors: {len(donor_ids)}")
 
@@ -255,10 +344,21 @@ async def run(db: AsyncSession) -> None:
             },
         )
 
+    approved_camp_result = await db.execute(
+        text(
+            "SELECT id FROM camps WHERE organizer_id = :oid AND camp_name = :name AND status = :status LIMIT 1"
+        ),
+        {
+            "oid": str(organizer_id),
+            "name": "Lions Club Blood Drive",
+            "status": CampStatusEnum.APPROVED.value,
+        },
+    )
+    camp_approved_id = approved_camp_result.scalar_one()
+
     print("  Camps: approved + completed")
 
     # ── Camp booking (citizen demo) ───────────────────────────────────────────
-    citizen_donor_id = donor_ids[0]
     booking_id = uid()
     await db.execute(
         text("""

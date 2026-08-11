@@ -201,8 +201,8 @@ async def create_camp_booking(
     else:
         booking = CampBooking(camp_id=body.camp_id, donor_id=donor.id, notes=body.notes, status="requested")
         db.add(booking)
-        await db.flush()
 
+    await db.flush()
     await db.refresh(booking)
     return CampBookingOut(
         id=booking.id,
@@ -256,6 +256,7 @@ async def cancel_citizen_booking(
         raise ValueError("Booking not found")
     booking.status = "cancelled"
     await db.flush()
+    await db.refresh(booking)
     return CampBookingOut(
         id=booking.id,
         camp_id=booking.camp_id,

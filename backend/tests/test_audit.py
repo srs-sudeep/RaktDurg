@@ -25,7 +25,7 @@ async def test_login_write_produces_audit_entry(
         "/auth/token", json={"username": "test_superadmin", "password": "testpass123"}
     )
 
-    await db.expire_all()
+    db.expire_all()
     after_count_result = await db.execute(select(AuditLog))
     after_count = len(after_count_result.scalars().all())
 
@@ -40,6 +40,7 @@ async def test_audit_entry_has_actor_after_authenticated_post(
 ):
     """An authenticated POST should record the actor_id in the audit log."""
     admin = seed_users[UserRoleEnum.SUPERADMIN]
+    admin_id = admin.id
 
     # Login to get a refresh token (POST with valid auth)
     await client.post(
@@ -48,13 +49,13 @@ async def test_audit_entry_has_actor_after_authenticated_post(
         headers=auth_header(admin),
     )
 
-    await db.expire_all()
+    db.expire_all()
     result = await db.execute(
         select(AuditLog).order_by(AuditLog.timestamp.desc()).limit(5)
     )
     entries = result.scalars().all()
 
-    actor_entries = [e for e in entries if e.actor_id == admin.id]
+    actor_entries = [e for e in entries if e.actor_id == admin_id]
     assert len(actor_entries) >= 1, "Expected at least one audit entry with admin's actor_id"
 
 
@@ -97,7 +98,7 @@ async def test_audit_entry_fields_populated(
     await client.post(
         "/auth/token", json={"username": "test_superadmin", "password": "testpass123"}
     )
-    await db.expire_all()
+    db.expire_all()
 
     result = await db.execute(select(AuditLog).order_by(AuditLog.timestamp.desc()).limit(1))
     entry = result.scalar_one_or_none()
