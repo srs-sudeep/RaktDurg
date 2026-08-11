@@ -80,7 +80,7 @@ Login body example: `{"username":"superadmin","password":"super123"}`.
 
 ```bash
 cp infra/.env.production.example infra/.env
-# Edit infra/.env: POSTGRES_PASSWORD, SECRET_KEY, ALLOWED_ORIGINS, HTTP_PORT, GHCR_OWNER
+# Edit infra/.env: POSTGRES_PASSWORD, SECRET_KEY, ALLOWED_ORIGINS, HTTP_PORT
 
 make prod-build
 make prod-up
@@ -94,7 +94,16 @@ Production stack (`infra/docker-compose.prod.yml`):
 - **api**, **worker**, **beat** — no host ports; Postgres/Redis internal only
 - Set `VITE_API_URL=` (empty) so the web app calls the API on the same origin via nginx
 - Set `ALLOWED_ORIGINS` to your public URL(s) for CORS
-- Set `GHCR_OWNER` and `IMAGE_TAG` when deploying prebuilt images from GitHub Container Registry
+
+### VM-only deploys
+
+Production deploys can run entirely from the VM:
+
+- Copy `backend/`, `web/`, and `infra/` to the server
+- Run `infra/gce/deploy.sh`
+- Docker Compose builds on the VM and brings the stack up there
+
+This avoids GitHub Container Registry completely. If you prefer, run tests locally before pushing and use GitHub Actions only for deployment and tagged APK releases.
 
 ### GCE + GitHub Actions
 
@@ -112,16 +121,12 @@ GitHub Actions expects these repository/environment secrets:
 - `DEPLOY_SSH_KEY`
 - `DEPLOY_PATH` (example: `/opt/raktdurg`)
 - `PROD_ENV_FILE` (full contents of `infra/.env.production.example`, filled with real values)
-- `GHCR_USERNAME`
-- `GHCR_READ_TOKEN`
 
 Deploy flow:
 
 1. Push to `main`
-2. CI runs backend/web/flutter checks
-3. API and web images are pushed to GHCR
-4. The production job copies `infra/docker-compose.prod.yml`, `infra/nginx/nginx.conf`, and `infra/gce/deploy.sh` to the VM
-5. The VM writes `.env`, pulls the exact image SHA, runs migrations, and brings the stack up
+2. The deploy job copies `backend/`, `web/`, and `infra/` to the VM
+3. The VM writes `.env`, builds the images locally, runs migrations, and brings the stack up
 
 ### Android APK releases
 

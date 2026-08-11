@@ -22,7 +22,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.x"
+          flutter-version: "3.44.0"
           channel: stable
           cache: true
 
@@ -57,4 +57,10 @@ jobs:
       - name: Upload GitHub Release asset
         uses: softprops/action-gh-release@v2
         with:
+          body: |
+            Website: http://8.231.102.114
+
+            Assets:
+            - Android APK attached below
+            - iPhone/iOS app not attached because Apple signing/certificates are not configured in this repository
           files: mobile/build/app/outputs/flutter-apk/raktdurg-${{ github.ref_name }}.apk

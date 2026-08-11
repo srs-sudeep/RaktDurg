@@ -6,11 +6,9 @@
 
 services:
   api:
-    image: ghcr.io/${GHCR_OWNER}/raktdurg-api:${IMAGE_TAG}
     build:
       context: ../backend
       dockerfile: Dockerfile
-    pull_policy: always
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://rakt:${POSTGRES_PASSWORD}@db:5432/rakt_durg
@@ -33,11 +31,9 @@ services:
       - internal
 
   migrate:
-    image: ghcr.io/${GHCR_OWNER}/raktdurg-api:${IMAGE_TAG}
     build:
       context: ../backend
       dockerfile: Dockerfile
-    pull_policy: always
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://rakt:${POSTGRES_PASSWORD}@db:5432/rakt_durg
@@ -51,11 +47,9 @@ services:
       - internal
 
   demo-seed:
-    image: ghcr.io/${GHCR_OWNER}/raktdurg-api:${IMAGE_TAG}
     build:
       context: ../backend
       dockerfile: Dockerfile
-    pull_policy: always
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://rakt:${POSTGRES_PASSWORD}@db:5432/rakt_durg
@@ -71,11 +65,9 @@ services:
       - internal
 
   worker:
-    image: ghcr.io/${GHCR_OWNER}/raktdurg-api:${IMAGE_TAG}
     build:
       context: ../backend
       dockerfile: Dockerfile
-    pull_policy: always
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://rakt:${POSTGRES_PASSWORD}@db:5432/rakt_durg
@@ -92,11 +84,9 @@ services:
       - internal
 
   beat:
-    image: ghcr.io/${GHCR_OWNER}/raktdurg-api:${IMAGE_TAG}
     build:
       context: ../backend
       dockerfile: Dockerfile
-    pull_policy: always
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://rakt:${POSTGRES_PASSWORD}@db:5432/rakt_durg
@@ -110,13 +100,11 @@ services:
       - internal
 
   web:
-    image: ghcr.io/${GHCR_OWNER}/raktdurg-web:${IMAGE_TAG}
     build:
       context: ../web
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL:-}
-    pull_policy: always
     restart: unless-stopped
     networks:
       - internal
