@@ -31,6 +31,7 @@ import AdminPage from "./admin/index";
 import UsersPage from "./users/index";
 import OrganizersPage from "./organizers/index";
 import OrganizerDirectoryPage from "./organizer-directory/index";
+import ProfilePage from "./profile/index";
 
 function Unauthorized() {
   return (
@@ -69,6 +70,7 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: "/dashboard", element: <DashboardPage /> },
+          { path: "/profile", element: <ProfilePage /> },
           { path: "/units", element: <UnitsPage /> },
           { path: "/units/:id", element: <UnitDetailPage /> },
           { path: "/donors", element: <DonorsPage /> },

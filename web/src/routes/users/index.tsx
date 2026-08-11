@@ -3,8 +3,11 @@ import { useAdminUsers, useUpdateAdminUser, type AdminUser } from "@/api/admin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { FormSelect } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/panel";
 import { ROLE_LABELS, USER_ROLES, type UserRole } from "@/lib/rbac";
+import { showSuccessToast } from "@/lib/toast";
 import { formatDateTime } from "@/lib/utils";
 
 export default function UsersPage() {
@@ -20,8 +23,8 @@ export default function UsersPage() {
         header: "User",
         cell: (u) => (
           <div>
-            <div className="font-medium text-gray-900">{u.display_name || u.username}</div>
-            <div className="text-xs text-gray-500">@{u.username}</div>
+            <div className="font-medium text-slate-900">{u.display_name || u.username}</div>
+            <div className="text-[11px] text-slate-500">@{u.username}</div>
           </div>
         ),
       },
@@ -29,12 +32,17 @@ export default function UsersPage() {
         id: "role",
         header: "Role",
         cell: (u) => (
-          <select
-            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs"
+          <FormSelect
+            className="h-7 w-[150px] text-[12px]"
             value={u.role}
             disabled={update.isPending}
             onChange={(e) =>
-              update.mutate({ id: u.id, role: e.target.value })
+              update.mutate(
+                { id: u.id, role: e.target.value },
+                {
+                  onSuccess: () => showSuccessToast("Role updated"),
+                }
+              )
             }
           >
             {USER_ROLES.map((r) => (
@@ -42,14 +50,14 @@ export default function UsersPage() {
                 {ROLE_LABELS[r as UserRole]}
               </option>
             ))}
-          </select>
+          </FormSelect>
         ),
       },
       {
         id: "contact",
         header: "Contact",
         cell: (u) => (
-          <div className="text-xs text-gray-600">
+          <div className="text-[12px] text-slate-600">
             <div>{u.email || "—"}</div>
             <div>{u.phone || "—"}</div>
           </div>
@@ -59,7 +67,7 @@ export default function UsersPage() {
         id: "status",
         header: "Status",
         cell: (u) => (
-          <Badge className={u.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}>
+          <Badge className={u.is_active ? "border-emerald-300 bg-emerald-50 text-emerald-800" : ""}>
             {u.is_active ? "active" : "inactive"}
           </Badge>
         ),
@@ -68,7 +76,7 @@ export default function UsersPage() {
         id: "login",
         header: "Last login",
         cell: (u) => (
-          <span className="text-xs text-gray-500">
+          <span className="text-[12px] text-slate-500">
             {u.last_login_at ? formatDateTime(u.last_login_at) : "Never"}
           </span>
         ),
@@ -81,7 +89,15 @@ export default function UsersPage() {
             size="sm"
             variant="outline"
             disabled={update.isPending}
-            onClick={() => update.mutate({ id: u.id, is_active: !u.is_active })}
+            onClick={() =>
+              update.mutate(
+                { id: u.id, is_active: !u.is_active },
+                {
+                  onSuccess: () =>
+                    showSuccessToast(u.is_active ? "User deactivated" : "User activated"),
+                }
+              )
+            }
           >
             {u.is_active ? "Deactivate" : "Activate"}
           </Button>
@@ -92,13 +108,11 @@ export default function UsersPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Users & roles</h1>
-        <p className="text-sm text-gray-500">
-          Superadmin directory of every login account, role assignment, and activation state.
-        </p>
-      </div>
+    <div className="space-y-3">
+      <PageHeader
+        title="Users & roles"
+        description="Account directory, role assignment, and activation."
+      />
 
       <DataTable
         columns={columns}
@@ -112,10 +126,10 @@ export default function UsersPage() {
               placeholder="Search username, name, email…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              className="max-w-xs bg-white"
+              className="max-w-xs"
             />
-            <select
-              className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm"
+            <FormSelect
+              className="w-44"
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
@@ -125,11 +139,11 @@ export default function UsersPage() {
                   {ROLE_LABELS[r]}
                 </option>
               ))}
-            </select>
+            </FormSelect>
           </>
         }
         footer={
-          <p className="text-xs text-gray-500">
+          <p className="text-[11px] text-slate-500">
             {data?.total ?? 0} user{(data?.total ?? 0) === 1 ? "" : "s"}
           </p>
         }

@@ -61,6 +61,9 @@ DIRECTORY_ROWS: list[tuple[int, OrgCategoryEnum, str, str | None, str | None, st
 ]
 
 
+ORGANIZER_ACCOUNT_PASSWORD = "org123"
+
+
 async def seed_organizer_directory(db) -> int:
     """Upsert directory rows by (source_serial, org_name). Returns inserted count."""
     from sqlalchemy import text
@@ -94,6 +97,102 @@ async def seed_organizer_directory(db) -> int:
         )
         inserted += 1
     return inserted
+
+
+async def seed_organizer_accounts(db, *, password: str = ORGANIZER_ACCOUNT_PASSWORD) -> int:
+    """Create User(role=organizer) + Organizer profile for each directory contact.
+
+    Usernames: org_<source_serial>  (e.g. org_1, org_99, org_201)
+    Password: org123 (shared demo password)
+    Returns number of newly created accounts.
+    """
+    from sqlalchemy import text
+
+    from app.services.auth import hash_password
+
+    hashed = hash_password(password)
+    created = 0
+
+    for serial, category, org_name, role, location, mobile in DIRECTORY_ROWS:
+        username = f"org_{serial}"
+        existing = await db.execute(
+            text("SELECT id FROM users WHERE username = :u LIMIT 1"),
+            {"u": username},
+        )
+        user_id = existing.scalar_one_or_none()
+        if user_id is None:
+            row = await db.execute(
+                text("""
+                    INSERT INTO users (id, facility_id, role, username, email, phone, hashed_password,
+                                       display_name, is_active, created_at, updated_at)
+                    VALUES (gen_random_uuid(), NULL, 'organizer', :username, :email, :phone, :hashed,
+                            :display, true, now(), now())
+                    RETURNING id
+                """),
+                {
+                    "username": username,
+                    "email": f"{username}@rakt.local",
+                    "phone": mobile or f"90000{serial:05d}"[:20],
+                    "hashed": hashed,
+                    "display": org_name[:100],
+                },
+            )
+            user_id = row.scalar_one()
+            created += 1
+        else:
+            # Ensure role stays organizer for directory-backed accounts
+            await db.execute(
+                text("UPDATE users SET role = 'organizer', display_name = :d, phone = COALESCE(phone, :p) WHERE id = :id"),
+                {"d": org_name[:100], "p": mobile, "id": str(user_id)},
+            )
+
+        org_existing = await db.execute(
+            text("SELECT id FROM organizers WHERE user_id = :uid LIMIT 1"),
+            {"uid": str(user_id)},
+        )
+        if org_existing.scalar_one_or_none() is None:
+            await db.execute(
+                text("""
+                    INSERT INTO organizers (id, user_id, org_name, org_type, org_category, contact_name,
+                                            contact_role, contact_phone, contact_email, contact_address,
+                                            address, is_verified, created_at, updated_at)
+                    VALUES (gen_random_uuid(), :uid, :oname, :otype, :ocat, :contact, :role, :phone, :email,
+                            :caddr, :addr, true, now(), now())
+                """),
+                {
+                    "uid": str(user_id),
+                    "oname": org_name,
+                    "otype": "ngo",
+                    "ocat": category.value,
+                    "contact": role or org_name,
+                    "role": role,
+                    "phone": mobile,
+                    "email": f"{username}@rakt.local",
+                    "caddr": location,
+                    "addr": location,
+                },
+            )
+        else:
+            await db.execute(
+                text("""
+                    UPDATE organizers
+                    SET org_name = :oname, org_category = :ocat, contact_role = :role,
+                        contact_phone = :phone, contact_address = :caddr, address = :addr,
+                        is_verified = true, updated_at = now()
+                    WHERE user_id = :uid
+                """),
+                {
+                    "uid": str(user_id),
+                    "oname": org_name,
+                    "ocat": category.value,
+                    "role": role,
+                    "phone": mobile,
+                    "caddr": location,
+                    "addr": location,
+                },
+            )
+
+    return created
 
 
 async def main() -> None:

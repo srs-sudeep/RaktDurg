@@ -1,53 +1,68 @@
-import { useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useWallet } from "@/api/admin";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { FormField, FormInput } from "@/components/ui/form";
+import { PageHeader, Panel } from "@/components/ui/panel";
+import { showSuccessToast } from "@/lib/toast";
 
 export default function WalletPage() {
   const [donorId, setDonorId] = useState("");
   const [lookup, setLookup] = useState("");
-  const { data, error, isFetching, refetch } = useWallet(lookup);
+  const { data, error, isFetching, isSuccess } = useWallet(lookup);
+  const toasted = useRef("");
 
   const disabled = (error as { response?: { status?: number } })?.response?.status === 503;
 
+  useEffect(() => {
+    if (!lookup || isFetching || !isSuccess || !data) return;
+    const key = `${lookup}:${data.balance}`;
+    if (toasted.current === key) return;
+    toasted.current = key;
+    showSuccessToast("Wallet loaded", `Balance ${data.balance}`);
+  }, [lookup, isFetching, isSuccess, data]);
+
+  function onLookup(e: FormEvent) {
+    e.preventDefault();
+    const id = donorId.trim();
+    if (!id) return;
+    toasted.current = "";
+    setLookup(id);
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Blood Credit Wallet</h1>
-        <p className="text-sm text-gray-500">Look up donor wallet balance (feature-flagged).</p>
-      </div>
+    <div className="space-y-3">
+      <PageHeader
+        title="Blood credit wallet"
+        description="Look up donor wallet balance (feature-flagged)."
+      />
 
       {disabled && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Wallet is currently disabled. Enable <code>wallet_enabled</code> in Admin to use this feature.
-        </div>
+        <p className="border border-amber-300 bg-amber-50 px-3 py-2 text-[13px] text-amber-900">
+          Wallet is disabled. Enable <code className="font-mono text-[12px]">wallet_enabled</code> in System.
+        </p>
       )}
 
-      <div className="flex flex-wrap items-end gap-2 rounded-xl border bg-white p-4">
-        <div className="min-w-[280px] flex-1">
-          <Label>Donor ID</Label>
-          <Input value={donorId} onChange={(e) => setDonorId(e.target.value)} placeholder="UUID" />
-        </div>
-        <Button
-          onClick={() => {
-            setLookup(donorId.trim());
-            void refetch();
-          }}
-          disabled={!donorId.trim() || isFetching}
-        >
-          Lookup
-        </Button>
-      </div>
+      <Panel title="Lookup">
+        <form className="flex flex-wrap items-end gap-3" onSubmit={onLookup}>
+          <FormField label="Donor ID" htmlFor="donor_id" className="min-w-[280px] flex-1">
+            <FormInput
+              id="donor_id"
+              value={donorId}
+              onChange={(e) => setDonorId(e.target.value)}
+              placeholder="UUID"
+            />
+          </FormField>
+          <Button type="submit" disabled={!donorId.trim() || isFetching}>
+            {isFetching ? "Looking up…" : "Lookup"}
+          </Button>
+        </form>
+      </Panel>
 
       {lookup && data && (
-        <div className="rounded-xl border bg-white p-4">
-          <div className="text-sm text-gray-500">Balance</div>
-          <div className="text-3xl font-bold text-red-700">{data.balance}</div>
-        </div>
-      )}
-      {lookup && error && !disabled && (
-        <p className="text-sm text-red-600">Could not load wallet for this donor.</p>
+        <Panel title="Balance">
+          <div className="text-3xl font-semibold tabular-nums text-red-700">{data.balance}</div>
+          <p className="mt-1 text-[12px] text-slate-500">Donor {lookup}</p>
+        </Panel>
       )}
     </div>
   );

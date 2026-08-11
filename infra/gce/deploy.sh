@@ -61,18 +61,41 @@ fi
 # Bring app stack up with cached images (rebuild only if sources changed since last build).
 compose up -d api worker beat web nginx prometheus grafana
 
-# Seed base login accounts only when the users table is empty / missing.
-USER_COUNT="$(
-  compose exec -T db \
-    psql -U rakt -d rakt_durg -tAc "SELECT COUNT(*) FROM users;" 2>/dev/null \
-    || echo "0"
-)"
-USER_COUNT="$(echo "$USER_COUNT" | tr -d '[:space:]')"
-if [[ -z "$USER_COUNT" || "$USER_COUNT" == "0" ]]; then
-  echo "No users found — running base seed once."
-  compose run --rm --entrypoint python api -m seed.seed
+FORCE_RESEED="${FORCE_RESEED:-0}"
+
+if [[ "$FORCE_RESEED" == "1" || "$FORCE_RESEED" == "true" ]]; then
+  echo "FORCE_RESEED=1 — wiping database and reseeding from scratch."
+  compose stop api worker beat
+  compose exec -T db psql -U rakt -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = 'rakt_durg' AND pid <> pg_backend_pid();
+DROP DATABASE IF EXISTS rakt_durg;
+CREATE DATABASE rakt_durg OWNER rakt;
+SQL
+  compose --profile init run --rm migrate
+  compose up -d api worker beat
+  for _ in $(seq 1 30); do
+    if compose exec -T api python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" >/dev/null 2>&1; then
+      break
+    fi
+    sleep 2
+  done
+  compose run --rm --entrypoint python api -m seed.demo_seed
 else
-  echo "Users already present ($USER_COUNT) — skipping seed."
+  USER_COUNT="$(
+    compose exec -T db \
+      psql -U rakt -d rakt_durg -tAc "SELECT COUNT(*) FROM users;" 2>/dev/null \
+      || echo "0"
+  )"
+  USER_COUNT="$(echo "$USER_COUNT" | tr -d '[:space:]')"
+  if [[ -z "$USER_COUNT" || "$USER_COUNT" == "0" ]]; then
+    echo "No users found — running demo seed (roles, organizers, stock, camps)."
+    compose run --rm --entrypoint python api -m seed.demo_seed
+  else
+    echo "Users already present ($USER_COUNT) — ensuring organizer login accounts exist."
+    compose run --rm --entrypoint python api -m seed.ensure_organizers
+  fi
 fi
 
 docker image prune -f

@@ -4,8 +4,9 @@ import { useCreateDonor, useDonors } from "@/api/donors";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormActions, FormField, FormGrid, FormInput, FormSelect } from "@/components/ui/form";
+import { PageHeader, Panel } from "@/components/ui/panel";
+import { showSuccessToast } from "@/lib/toast";
 import { bloodGroupColor, cn } from "@/lib/utils";
 
 const GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -24,11 +25,9 @@ export default function DonorsPage() {
   const { data, isLoading } = useDonors(page);
   const create = useCreateDonor();
   const navigate = useNavigate();
-  const [error, setError] = useState("");
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError("");
     const fd = new FormData(e.currentTarget);
     try {
       await create.mutateAsync({
@@ -40,10 +39,11 @@ export default function DonorsPage() {
         blood_group: fd.get("blood_group"),
         consent_given: true,
       });
+      showSuccessToast("Donor registered");
       setShowForm(false);
       e.currentTarget.reset();
-    } catch (err: unknown) {
-      setError((err as { response?: { data?: { detail?: string } } })?.response?.data?.detail?.toString() ?? "Failed to register donor");
+    } catch {
+      /* errors toasted by api client */
     }
   }
 
@@ -62,7 +62,7 @@ export default function DonorsPage() {
         id: "group",
         header: "Group",
         cell: (d) => (
-          <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", bloodGroupColor(d.blood_group ?? ""))}>
+          <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-semibold", bloodGroupColor(d.blood_group ?? ""))}>
             {d.blood_group ?? "—"}
           </span>
         ),
@@ -74,38 +74,58 @@ export default function DonorsPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Donors</h1>
-          <p className="text-sm text-gray-500">Register and look up donor records.</p>
-        </div>
-        <Button onClick={() => setShowForm((v) => !v)}>{showForm ? "Cancel" : "Register donor"}</Button>
-      </div>
+    <div className="space-y-3">
+      <PageHeader
+        title="Donors"
+        description="Register and look up donor master records."
+        actions={
+          <Button onClick={() => setShowForm((v) => !v)}>
+            {showForm ? "Close form" : "Register donor"}
+          </Button>
+        }
+      />
 
       {showForm && (
-        <form onSubmit={onSubmit} className="grid gap-3 rounded-xl border bg-white p-4 sm:grid-cols-2">
-          <div><Label>Name</Label><Input name="name" required /></div>
-          <div><Label>Date of birth</Label><Input name="date_of_birth" type="date" required /></div>
-          <div>
-            <Label>Sex</Label>
-            <select name="sex" className="mt-1 flex h-9 w-full rounded-md border px-3 text-sm" required>
-              <option value="M">Male</option>
-              <option value="F">Female</option>
-              <option value="O">Other</option>
-            </select>
-          </div>
-          <div><Label>Phone</Label><Input name="contact_phone" required minLength={10} /></div>
-          <div className="sm:col-span-2"><Label>Address</Label><Input name="address" required /></div>
-          <div>
-            <Label>Blood group</Label>
-            <select name="blood_group" className="mt-1 flex h-9 w-full rounded-md border px-3 text-sm" required>
-              {GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </div>
-          <div className="flex items-end"><Button type="submit" disabled={create.isPending}>Save</Button></div>
-          {error && <p className="sm:col-span-2 text-sm text-red-600">{error}</p>}
-        </form>
+        <Panel title="New donor" description="Mandatory fields marked with *">
+          <form onSubmit={onSubmit} className="space-y-3">
+            <FormGrid>
+              <FormField label="Name" htmlFor="name" required>
+                <FormInput id="name" name="name" required />
+              </FormField>
+              <FormField label="Date of birth" htmlFor="date_of_birth" required>
+                <FormInput id="date_of_birth" name="date_of_birth" type="date" required />
+              </FormField>
+              <FormField label="Sex" htmlFor="sex" required>
+                <FormSelect id="sex" name="sex" required>
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
+                  <option value="O">Other</option>
+                </FormSelect>
+              </FormField>
+              <FormField label="Phone" htmlFor="contact_phone" required>
+                <FormInput id="contact_phone" name="contact_phone" required minLength={10} />
+              </FormField>
+              <FormField label="Address" htmlFor="address" required className="sm:col-span-2">
+                <FormInput id="address" name="address" required />
+              </FormField>
+              <FormField label="Blood group" htmlFor="blood_group" required>
+                <FormSelect id="blood_group" name="blood_group" required>
+                  {GROUPS.map((g) => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </FormSelect>
+              </FormField>
+            </FormGrid>
+            <FormActions>
+              <Button type="submit" disabled={create.isPending}>
+                {create.isPending ? "Saving…" : "Save donor"}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                Cancel
+              </Button>
+            </FormActions>
+          </form>
+        </Panel>
       )}
 
       <DataTable

@@ -75,7 +75,9 @@ apiClient.interceptors.response.use(
         window.location.href = "/login";
       }
     }
-    if (!error.config?._skipErrorToast) {
+    // Global failure toast for staff/citizen flows. Opt out with `_skipErrorToast`
+    // when a screen shows a more specific message (e.g. login).
+    if (!error.config?._skipErrorToast && !isAuthEndpoint(error.config?.url)) {
       showErrorToast("Request failed", getErrorMessage(error));
     }
     return Promise.reject(error);

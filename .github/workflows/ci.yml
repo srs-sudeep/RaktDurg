@@ -2,6 +2,12 @@ name: CI / CD
 
 on:
   workflow_dispatch:
+    inputs:
+      force_reseed:
+        description: "Wipe DB and run full demo_seed"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -36,12 +42,12 @@ jobs:
              rm -f /tmp/raktdurg-sync.tgz"
       - name: Deploy on GCE host
         run: |
-          ssh -i ~/.ssh/id_ed25519 "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" <<'EOF'
+          ssh -i ~/.ssh/id_ed25519 "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" <<EOF
           set -euo pipefail
           mkdir -p "${{ secrets.DEPLOY_PATH }}/infra/nginx" "${{ secrets.DEPLOY_PATH }}/infra/gce"
           cat > "${{ secrets.DEPLOY_PATH }}/infra/.env" <<'ENVEOF'
           ${{ secrets.PROD_ENV_FILE }}
           ENVEOF
           chmod +x "${{ secrets.DEPLOY_PATH }}/infra/gce/deploy.sh"
-          APP_DIR="${{ secrets.DEPLOY_PATH }}" "${{ secrets.DEPLOY_PATH }}/infra/gce/deploy.sh"
+          FORCE_RESEED="${{ github.event.inputs.force_reseed }}" APP_DIR="${{ secrets.DEPLOY_PATH }}" "${{ secrets.DEPLOY_PATH }}/infra/gce/deploy.sh"
           EOF

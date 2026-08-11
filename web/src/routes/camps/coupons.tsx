@@ -1,30 +1,53 @@
+import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useCampCoupons } from "@/api/camps";
+import { useCampCoupons, type CampCoupon } from "@/api/camps";
 import { Badge } from "@/components/ui/badge";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { PageHeader } from "@/components/ui/panel";
 
 export default function CampCouponsPage() {
   const { id = "" } = useParams();
   const { data, isLoading, error } = useCampCoupons(id);
 
+  const columns = useMemo<DataTableColumn<CampCoupon>[]>(
+    () => [
+      {
+        id: "code",
+        header: "Coupon",
+        cell: (c) => <span className="font-mono text-[12px]">{c.coupon_code}</span>,
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: (c) => (
+          <Badge className={c.is_used ? "" : "border-emerald-300 bg-emerald-50 text-emerald-900"}>
+            {c.is_used ? "used" : "available"}
+          </Badge>
+        ),
+      },
+    ],
+    []
+  );
+
   return (
-    <div className="space-y-6">
-      <div>
-        <Link to="/camps" className="text-sm text-red-600 hover:underline">← Camps</Link>
-        <h1 className="mt-2 text-2xl font-bold">Camp coupons</h1>
-      </div>
-      {isLoading && <p>Loading…</p>}
-      {error && <p className="text-red-600">Could not load coupons.</p>}
-      <ul className="space-y-2">
-        {(data ?? []).map((c) => (
-          <li key={c.id} className="flex items-center justify-between rounded-lg border bg-white px-4 py-3 text-sm">
-            <span className="font-mono">{c.coupon_code}</span>
-            <Badge className={c.is_used ? "bg-gray-200" : "bg-green-100 text-green-800"}>
-              {c.is_used ? "used" : "available"}
-            </Badge>
-          </li>
-        ))}
-        {!isLoading && (data?.length ?? 0) === 0 && <p className="text-gray-500">No coupons for this camp.</p>}
-      </ul>
+    <div className="space-y-3">
+      <PageHeader
+        title="Camp coupons"
+        description="Issued coupon codes for this camp."
+        actions={
+          <Link to="/camps" className="text-[13px] text-red-700 hover:underline">
+            ← Camps
+          </Link>
+        }
+      />
+      {error && <p className="text-[13px] text-red-600">Could not load coupons.</p>}
+      <DataTable
+        columns={columns}
+        rows={data ?? []}
+        rowKey={(c) => c.id}
+        isLoading={isLoading}
+        emptyMessage="No coupons for this camp."
+      />
     </div>
   );
 }

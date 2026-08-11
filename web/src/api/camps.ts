@@ -60,13 +60,19 @@ export function useReviewCamp() {
   });
 }
 
+export interface CampCoupon {
+  id: string;
+  coupon_code: string;
+  is_used: boolean;
+}
+
 export function useCampCoupons(campId: string) {
   return useQuery({
     queryKey: ["camps", campId, "coupons"],
     enabled: !!campId,
     queryFn: async () => {
       const { data } = await apiClient.get(`/camps/${campId}/coupons`);
-      return data as { id: string; coupon_code: string; is_used: boolean }[];
+      return data as CampCoupon[];
     },
   });
 }

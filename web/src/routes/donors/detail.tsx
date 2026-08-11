@@ -1,22 +1,22 @@
-import { FormEvent, useState } from "react";
+import { FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useCreateScreening, useDonor } from "@/api/donors";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormActions, FormField, FormGrid, FormInput } from "@/components/ui/form";
+import { PageHeader, Panel } from "@/components/ui/panel";
+import { showSuccessToast } from "@/lib/toast";
 
 export default function DonorDetailPage() {
   const { id = "" } = useParams();
   const { data: donor, isLoading, error } = useDonor(id);
   const screening = useCreateScreening(id);
-  const [msg, setMsg] = useState("");
 
   async function onScreen(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     try {
-      const result =       await screening.mutateAsync({
+      const result = await screening.mutateAsync({
         donor_id: id,
         screening_datetime: new Date().toISOString(),
         vitals: {
@@ -37,48 +37,90 @@ export default function DonorDetailPage() {
         },
         captured_offline: false,
       });
-      setMsg(`Screening saved: ${(result as { eligibility_result?: string }).eligibility_result ?? "ok"}`);
+      const eligibility = (result as { eligibility_result?: string }).eligibility_result ?? "ok";
+      showSuccessToast("Screening saved", eligibility);
+      e.currentTarget.reset();
     } catch {
-      setMsg("Screening failed");
+      /* errors toasted by api client */
     }
   }
 
-  if (isLoading) return <p>Loading…</p>;
-  if (error || !donor) return <p className="text-red-600">Donor not found.</p>;
+  if (isLoading) return <p className="text-[13px] text-slate-500">Loading…</p>;
+  if (error || !donor) return <p className="text-[13px] text-red-600">Donor not found.</p>;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link to="/donors" className="text-sm text-red-600 hover:underline">← Donors</Link>
-        <h1 className="mt-2 text-2xl font-bold">{donor.name}</h1>
-        <div className="mt-2 flex gap-2"><Badge>{donor.blood_group}</Badge><Badge>{donor.status}</Badge></div>
-      </div>
-      <dl className="grid gap-3 rounded-xl border bg-white p-4 sm:grid-cols-2 text-sm">
-        <div><dt className="text-xs text-gray-500">Phone</dt><dd>{donor.contact_phone}</dd></div>
-        <div><dt className="text-xs text-gray-500">DOB</dt><dd>{donor.date_of_birth}</dd></div>
-        <div><dt className="text-xs text-gray-500">Sex</dt><dd>{donor.sex}</dd></div>
-        <div><dt className="text-xs text-gray-500">Age</dt><dd>{donor.age_years ?? "—"}</dd></div>
-      </dl>
+    <div className="space-y-3">
+      <PageHeader
+        title={donor.name}
+        description="Donor profile and eligibility screening."
+        actions={
+          <Link to="/donors" className="text-[13px] text-red-700 hover:underline">
+            ← Donors
+          </Link>
+        }
+      />
 
-      <form onSubmit={onScreen} className="space-y-3 rounded-xl border bg-white p-4">
-        <h2 className="font-semibold">New screening</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {[
-            ["weight_kg", "Weight (kg)", "65"],
-            ["bp_systolic", "BP sys", "120"],
-            ["bp_diastolic", "BP dia", "80"],
-            ["pulse_bpm", "Pulse", "72"],
-            ["temperature_celsius", "Temp °C", "36.8"],
-            ["hemoglobin_g_dl", "Hb g/dL", "14"],
-          ].map(([name, label, def]) => (
-            <div key={name}><Label>{label}</Label><Input name={name} type="number" step="0.1" defaultValue={def} required /></div>
-          ))}
-        </div>
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="had_recent_illness" /> Recent illness</label>
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="had_recent_surgery" /> Recent surgery</label>
-        <Button type="submit" disabled={screening.isPending}>Save screening</Button>
-        {msg && <p className="text-sm text-gray-700">{msg}</p>}
-      </form>
+      <div className="flex flex-wrap gap-1.5">
+        <Badge>{donor.blood_group}</Badge>
+        <Badge>{donor.status}</Badge>
+      </div>
+
+      <Panel title="Identity">
+        <dl className="grid gap-3 text-[13px] sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <dt className="text-[11px] text-slate-500">Phone</dt>
+            <dd>{donor.contact_phone}</dd>
+          </div>
+          <div>
+            <dt className="text-[11px] text-slate-500">DOB</dt>
+            <dd>{donor.date_of_birth}</dd>
+          </div>
+          <div>
+            <dt className="text-[11px] text-slate-500">Sex</dt>
+            <dd>{donor.sex}</dd>
+          </div>
+          <div>
+            <dt className="text-[11px] text-slate-500">Age</dt>
+            <dd>{donor.age_years ?? "—"}</dd>
+          </div>
+        </dl>
+      </Panel>
+
+      <Panel title="New screening" description="Capture vitals and quick deferral flags.">
+        <form onSubmit={onScreen} className="space-y-3">
+          <FormGrid cols={3}>
+            {(
+              [
+                ["weight_kg", "Weight (kg)", "65"],
+                ["bp_systolic", "BP sys", "120"],
+                ["bp_diastolic", "BP dia", "80"],
+                ["pulse_bpm", "Pulse", "72"],
+                ["temperature_celsius", "Temp °C", "36.8"],
+                ["hemoglobin_g_dl", "Hb g/dL", "14"],
+              ] as const
+            ).map(([name, label, def]) => (
+              <FormField key={name} label={label} htmlFor={name} required>
+                <FormInput id={name} name={name} type="number" step="0.1" defaultValue={def} required />
+              </FormField>
+            ))}
+          </FormGrid>
+          <div className="flex flex-wrap gap-4 text-[13px] text-slate-700">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" name="had_recent_illness" className="rounded border-slate-300" />
+              Recent illness
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" name="had_recent_surgery" className="rounded border-slate-300" />
+              Recent surgery
+            </label>
+          </div>
+          <FormActions>
+            <Button type="submit" disabled={screening.isPending}>
+              {screening.isPending ? "Saving…" : "Save screening"}
+            </Button>
+          </FormActions>
+        </form>
+      </Panel>
     </div>
   );
 }

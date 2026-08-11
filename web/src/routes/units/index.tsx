@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/panel";
+import { showSuccessToast } from "@/lib/toast";
 import { bloodGroupColor, cn, formatDateTime } from "@/lib/utils";
 
 type UnitRow = {
@@ -38,7 +40,7 @@ export default function UnitsPage() {
         id: "group",
         header: "Group",
         cell: (u) => (
-          <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", bloodGroupColor(u.blood_group))}>
+          <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-semibold", bloodGroupColor(u.blood_group))}>
             {u.blood_group}
           </span>
         ),
@@ -47,51 +49,43 @@ export default function UnitsPage() {
       {
         id: "expiry",
         header: "Expiry",
-        cell: (u) => <span className="text-gray-600">{formatDateTime(u.expiry_datetime)}</span>,
+        cell: (u) => <span className="text-slate-600">{formatDateTime(u.expiry_datetime)}</span>,
       },
     ],
     []
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Blood Units</h1>
-          <p className="text-sm text-gray-500">Scan barcodes or browse facility inventory.</p>
-        </div>
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (barcode.trim()) scan.mutate(barcode.trim());
-          }}
-        >
-          <Input
-            placeholder="Scan barcode"
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
-            className="w-56"
-          />
-          <Button type="submit" disabled={scan.isPending}>Lookup</Button>
-        </form>
-      </div>
+    <div className="space-y-3">
+      <PageHeader
+        title="Blood units"
+        description="Scan barcodes or browse facility inventory."
+        actions={
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!barcode.trim()) return;
+              scan.mutate(barcode.trim(), {
+                onSuccess: (res: { unit?: { barcode?: string; id?: string } }) => {
+                  showSuccessToast("Unit found", res.unit?.barcode);
+                  if (res.unit?.id) navigate(`/units/${res.unit.id}`);
+                },
+              });
+            }}
+          >
+            <Input
+              placeholder="Scan barcode"
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+              className="w-52"
+            />
+            <Button type="submit" disabled={scan.isPending}>Lookup</Button>
+          </form>
+        }
+      />
 
-      {scan.data && (
-        <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm">
-          Found unit{" "}
-          <Link className="font-semibold text-red-700 underline" to={`/units/${scan.data.unit.id}`}>
-            {scan.data.unit.barcode}
-          </Link>{" "}
-          — {scan.data.unit.blood_group} / {scan.data.unit.lifecycle_state}
-        </div>
-      )}
-      {scan.error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          Barcode not found.
-        </div>
-      )}
-      {error && <p className="text-red-600">Failed to load units.</p>}
+      {error && <p className="text-[13px] text-red-600">Failed to load units.</p>}
 
       <DataTable
         columns={columns}

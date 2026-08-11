@@ -1,36 +1,90 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useCamps, useReviewCamp } from "@/api/camps";
+import { useCamps, useReviewCamp, type Camp } from "@/api/camps";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { PageHeader } from "@/components/ui/panel";
+import { showSuccessToast } from "@/lib/toast";
 
 export default function CampApprovalPage() {
   const { data, isLoading } = useCamps("pending");
   const review = useReviewCamp();
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <Link to="/camps" className="text-sm text-red-600 hover:underline">← Camps</Link>
-        <h1 className="mt-2 text-2xl font-bold">Camp approval queue</h1>
-      </div>
-      {isLoading ? <p>Loading…</p> : (
-        <div className="space-y-3">
-          {(data?.items ?? []).map((c) => (
-            <div key={c.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4">
-              <div>
-                <div className="font-semibold">{c.camp_name}</div>
-                <div className="text-sm text-gray-500">{c.requested_date} · {c.location}</div>
-                <Badge className="mt-1">{c.status}</Badge>
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => review.mutate({ id: c.id, action: "approve", coupon_prefix: "RD" })}>Approve</Button>
-                <Button size="sm" variant="outline" onClick={() => review.mutate({ id: c.id, action: "reject", rejection_reason: "Capacity" })}>Reject</Button>
-              </div>
+  const columns = useMemo<DataTableColumn<Camp>[]>(
+    () => [
+      {
+        id: "name",
+        header: "Camp",
+        cell: (c) => (
+          <div>
+            <div className="font-medium text-slate-900">{c.camp_name}</div>
+            <div className="text-[11px] text-slate-500">
+              {c.requested_date} · {c.location}
             </div>
-          ))}
-          {(data?.items?.length ?? 0) === 0 && <p className="text-gray-500">No pending camps.</p>}
-        </div>
-      )}
+          </div>
+        ),
+      },
+      { id: "status", header: "Status", cell: (c) => <Badge>{c.status}</Badge> },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: (c) => (
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              disabled={review.isPending}
+              onClick={() =>
+                review.mutate(
+                  { id: c.id, action: "approve", coupon_prefix: "RD" },
+                  {
+                    onSuccess: () => showSuccessToast("Camp approved", c.camp_name),
+                  }
+                )
+              }
+            >
+              Approve
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={review.isPending}
+              onClick={() =>
+                review.mutate(
+                  { id: c.id, action: "reject", rejection_reason: "Capacity" },
+                  {
+                    onSuccess: () => showSuccessToast("Camp rejected", c.camp_name),
+                  }
+                )
+              }
+            >
+              Reject
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [review]
+  );
+
+  return (
+    <div className="space-y-3">
+      <PageHeader
+        title="Camp approval queue"
+        description="Pending applications waiting for doctor / admin review."
+        actions={
+          <Link to="/camps" className="text-[13px] text-red-700 hover:underline">
+            ← All camps
+          </Link>
+        }
+      />
+      <DataTable
+        columns={columns}
+        rows={data?.items ?? []}
+        rowKey={(c) => c.id}
+        isLoading={isLoading}
+        emptyMessage="No pending camps."
+      />
     </div>
   );
 }

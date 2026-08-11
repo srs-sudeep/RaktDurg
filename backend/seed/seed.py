@@ -27,8 +27,6 @@ from app.models.enums import (
 )
 from app.models.stock import AlertThreshold as AlertThresholdModel
 from app.services.auth import hash_password
-from seed.organizers_directory import seed_organizer_directory
-
 fake = Faker("en_IN")
 random.seed(42)
 
@@ -150,8 +148,18 @@ async def seed(db: AsyncSession) -> None:
         flag.is_enabled = True
 
     print("Seeding organizer directory…")
+    from seed.organizers_directory import (
+        ORGANIZER_ACCOUNT_PASSWORD,
+        seed_organizer_accounts,
+        seed_organizer_directory,
+    )
+
     dir_count = await seed_organizer_directory(db)
     print(f"  Directory contacts: {dir_count}")
+
+    print("Seeding organizer login accounts (directory → users)…")
+    org_accounts = await seed_organizer_accounts(db)
+    print(f"  Organizer accounts created: {org_accounts} (password: {ORGANIZER_ACCOUNT_PASSWORD})")
 
     await db.commit()
     print("Seed complete.")
@@ -159,6 +167,7 @@ async def seed(db: AsyncSession) -> None:
     print("Login credentials:")
     for role, password in roles_passwords:
         print(f"  seed_{role.value} / {password}")
+    print(f"  org_<serial> / {ORGANIZER_ACCOUNT_PASSWORD}  (e.g. org_1, org_99)")
 
 
 async def main() -> None:

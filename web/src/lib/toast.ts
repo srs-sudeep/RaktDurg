@@ -36,3 +36,11 @@ export function showToast(payload: ToastPayload) {
 export function showErrorToast(title: string, description?: string) {
   showToast({ title, description, variant: "error" });
 }
+
+export function showSuccessToast(title: string, description?: string) {
+  showToast({ title, description, variant: "success" });
+}
+
+export function showInfoToast(title: string, description?: string) {
+  showToast({ title, description, variant: "info" });
+}

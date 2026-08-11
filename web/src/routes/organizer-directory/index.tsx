@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { useOrganizerDirectory, type OrganizerDirectoryItem } from "@/api/admin";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { FormSelect } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/panel";
 
 const CATEGORIES = [
   "",
@@ -29,47 +31,40 @@ export default function OrganizerDirectoryPage() {
       {
         id: "serial",
         header: "#",
-        className: "w-16",
-        cell: (r) => <span className="text-xs text-gray-500">{r.source_serial ?? "—"}</span>,
+        className: "w-14",
+        cell: (r) => <span className="text-[11px] text-slate-500">{r.source_serial ?? "—"}</span>,
       },
       {
         id: "org",
         header: "Organization",
         cell: (r) => (
           <div>
-            <div className="font-medium text-gray-900">{r.org_name}</div>
-            <div className="text-xs text-gray-500">{r.contact_role || "—"}</div>
+            <div className="font-medium text-slate-900">{r.org_name}</div>
+            <div className="text-[11px] text-slate-500">{r.contact_role || "—"}</div>
           </div>
         ),
       },
       {
         id: "category",
         header: "Category",
-        cell: (r) => <span className="text-xs capitalize text-gray-600">{r.category.replace(/_/g, " ")}</span>,
+        cell: (r) => <span className="text-[11px] capitalize text-slate-600">{r.category.replace(/_/g, " ")}</span>,
       },
-      {
-        id: "location",
-        header: "Location",
-        cell: (r) => r.location || "—",
-      },
+      { id: "location", header: "Location", cell: (r) => r.location || "—" },
       {
         id: "mobile",
         header: "Mobile",
-        cell: (r) => <span className="font-mono text-sm">{r.mobile || "—"}</span>,
+        cell: (r) => <span className="font-mono text-[12px]">{r.mobile || "—"}</span>,
       },
     ],
     []
   );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Outreach directory</h1>
-        <p className="text-sm text-gray-500">
-          Red Cross Durg contact list for camp outreach — no login accounts required.
-        </p>
-      </div>
-
+    <div className="space-y-3">
+      <PageHeader
+        title="Outreach directory"
+        description="Red Cross Durg contact list for camp outreach."
+      />
       <DataTable
         columns={columns}
         rows={data?.items ?? []}
@@ -82,22 +77,18 @@ export default function OrganizerDirectoryPage() {
               placeholder="Search name or mobile…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              className="max-w-xs bg-white"
+              className="max-w-xs"
             />
-            <select
-              className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm capitalize"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
+            <FormSelect className="w-52 capitalize" value={category} onChange={(e) => setCategory(e.target.value)}>
               {CATEGORIES.map((c) => (
                 <option key={c || "all"} value={c}>
                   {c ? c.replace(/_/g, " ") : "All categories"}
                 </option>
               ))}
-            </select>
+            </FormSelect>
           </>
         }
-        footer={<p className="text-xs text-gray-500">{data?.total ?? 0} contacts</p>}
+        footer={<p className="text-[11px] text-slate-500">{data?.total ?? 0} contacts</p>}
       />
     </div>
   );

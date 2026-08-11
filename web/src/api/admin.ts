@@ -142,7 +142,7 @@ export function useOrganizerAccounts() {
     queryKey: ["admin", "organizers"],
     queryFn: async () => {
       const { data } = await apiClient.get("/admin/organizers", {
-        params: { page_size: 100 },
+        params: { page_size: 200 },
       });
       return data as { items: OrganizerAccount[]; total: number };
     },

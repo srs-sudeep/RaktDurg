@@ -18,7 +18,8 @@ export interface JWTPayload {
 
 /** Role gates for staff routes. Superadmin is included on every staff path. */
 export const ROUTE_ROLES: Record<string, UserRole[]> = {
-  "/dashboard": ["superadmin", "district_admin", "doctor"],
+  "/dashboard": ["superadmin", "district_admin", "doctor", "organizer"],
+  "/profile": ["superadmin", "district_admin", "doctor", "organizer"],
   "/units": ["superadmin", "district_admin", "doctor"],
   "/donors": ["superadmin", "district_admin", "doctor"],
   "/camps": ["superadmin", "doctor", "organizer", "district_admin"],

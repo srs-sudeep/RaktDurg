@@ -213,7 +213,11 @@ async def run(db: AsyncSession) -> None:
         {"fid": str(facility_id)},
     )
     await db.execute(
-        text("DELETE FROM organizers WHERE user_id = :uid"),
+        text("""
+            DELETE FROM organizers
+            WHERE user_id = :uid
+               OR user_id IN (SELECT id FROM users WHERE username LIKE 'org_%')
+        """),
         {"uid": str(users[UserRoleEnum.ORGANIZER.value])},
     )
     await db.execute(
@@ -243,7 +247,7 @@ async def run(db: AsyncSession) -> None:
     blood_groups = list(BloodGroupEnum)
     donor_ids: list[uuid.UUID] = []
     citizen_user_id = users[UserRoleEnum.CITIZEN.value]
-    for i in range(15):
+    for i in range(24):
         donor_id = uid()
         dob = fake.date_of_birth(minimum_age=18, maximum_age=55)
         age = (NOW.date() - dob).days // 365
@@ -279,7 +283,7 @@ async def run(db: AsyncSession) -> None:
 
     donor_rows = await db.execute(
         text(
-            "SELECT id, user_id FROM donors WHERE registered_at_facility_id = :fid ORDER BY created_at ASC LIMIT 15"
+            "SELECT id, user_id FROM donors WHERE registered_at_facility_id = :fid ORDER BY created_at ASC LIMIT 24"
         ),
         {"fid": str(facility_id)},
     )
@@ -292,14 +296,27 @@ async def run(db: AsyncSession) -> None:
     if citizen_donor_id is None:
         raise RuntimeError("Citizen-linked donor was not found after donor seeding")
 
-    print(f"  Donors: {len(donor_ids)}")
+    print(f"  Donors: {len(donor_ids)} (covers all blood groups)")
 
-    # ── Camps ─────────────────────────────────────────────────────────────────
-    organizer_id_row = await db.execute(
-        text("SELECT id FROM users WHERE role = 'organizer' LIMIT 1")
+    # ── Organizer directory + login accounts ────────────────────────────────
+    from seed.organizers_directory import (
+        ORGANIZER_ACCOUNT_PASSWORD,
+        seed_organizer_accounts,
+        seed_organizer_directory,
     )
-    organizer_user_id = organizer_id_row.scalar_one()
+    from seed.demo_ops_data import (
+        expected_stock_summary,
+        seed_camp_events,
+        seed_deliberate_inventory,
+        seed_requisitions_matrix,
+    )
 
+    dir_count = await seed_organizer_directory(db)
+    org_created = await seed_organizer_accounts(db)
+    print(f"  Organizer directory: {dir_count} contacts")
+    print(f"  Organizer accounts: +{org_created} (org_<serial> / {ORGANIZER_ACCOUNT_PASSWORD})")
+
+    # Keep demo organizer_priya profile
     org_id = uid()
     await db.execute(
         text("""
@@ -312,7 +329,7 @@ async def run(db: AsyncSession) -> None:
         """),
         {
             "id": str(org_id),
-            "uid": str(organizer_user_id),
+            "uid": str(users[UserRoleEnum.ORGANIZER.value]),
             "oname": "Lions Club Durg",
             "otype": "ngo",
             "ocat": "social_org",
@@ -324,268 +341,43 @@ async def run(db: AsyncSession) -> None:
             "addr": "Lions Bhavan, Durg",
         },
     )
-    organizer_result = await db.execute(
-        text("SELECT id FROM organizers WHERE user_id = :uid"), {"uid": str(organizer_user_id)}
+
+    # ── Camps / bookings ─────────────────────────────────────────────────────
+    camp_count = await seed_camp_events(
+        db,
+        facility_id=facility_id,
+        doctor_id=users[UserRoleEnum.DOCTOR.value],
+        citizen_donor_id=citizen_donor_id,
+        extra_donor_ids=donor_ids[1:6],
     )
-    organizer_id = organizer_result.scalar_one()
+    print(f"  Camps: {camp_count} across statuses + bookings")
 
-    camp_approved_id = uid()
-    camp_completed_id = uid()
-    mo_id = users[UserRoleEnum.DOCTOR.value]
-
-    for camp_id, camp_name, status, camp_date, expected in [
-        (camp_approved_id, "Lions Club Blood Drive", CampStatusEnum.APPROVED, days_from_now(7).date(), 50),
-        (camp_completed_id, "Rotary Club Blood Camp", CampStatusEnum.COMPLETED, days_ago(30).date(), 40),  # noqa: E501
-    ]:
-        await db.execute(
-            text("""
-                INSERT INTO camps (id, organizer_id, host_facility_id, camp_name, requested_date, location,
-                                   expected_donors, venue_mode, alternate_dates, special_date_note,
-                                   camps_per_year, notes, status, coupon_prefix, approved_by,
-                                   approval_datetime, created_at, updated_at)
-                VALUES (:id, :oid, :fid, :name, :date, :loc, :exp, :venue, :alts, :special,
-                        :cpy, :notes, :status, :prefix, :approved_by, now(), now(), now())
-                ON CONFLICT DO NOTHING
-            """),
-            {
-                "id": str(camp_id),
-                "oid": str(organizer_id),
-                "fid": str(facility_id),
-                "name": camp_name,
-                "date": camp_date,
-                "loc": "District Hospital Blood Bank, Durg"
-                if camp_name.startswith("Lions")
-                else f"{fake.street_name()}, Durg",
-                "exp": expected,
-                "venue": "district_blood_bank" if camp_name.startswith("Lions") else "organizer_venue",
-                "alts": None,
-                "special": "World Blood Donor Day drive" if camp_name.startswith("Lions") else None,
-                "cpy": 2,
-                "notes": "Demo Red Cross camp application fields",
-                "status": status.value,
-                "prefix": f"RD{str(camp_id)[:4].upper()}",
-                "approved_by": str(mo_id),
-            },
-        )
-
-    approved_camp_result = await db.execute(
-        text(
-            "SELECT id FROM camps WHERE organizer_id = :oid AND camp_name = :name AND status = :status LIMIT 1"
-        ),
-        {
-            "oid": str(organizer_id),
-            "name": "Lions Club Blood Drive",
-            "status": CampStatusEnum.APPROVED.value,
-        },
+    # ── Blood units + stock (deliberate counts) ───────────────────────────────
+    inv = await seed_deliberate_inventory(
+        db,
+        facility_id=facility_id,
+        donor_ids=donor_ids,
+        staff_user_id=users[UserRoleEnum.DISTRICT_ADMIN.value],
     )
-    camp_approved_id = approved_camp_result.scalar_one()
-
-    print("  Camps: approved + completed")
-
-    # ── Camp booking (citizen demo) ───────────────────────────────────────────
-    booking_id = uid()
-    await db.execute(
-        text("""
-            INSERT INTO camp_bookings (id, camp_id, donor_id, status, notes, created_at, updated_at)
-            VALUES (:id, :camp_id, :donor_id, 'requested', :notes, now(), now())
-            ON CONFLICT DO NOTHING
-        """),
-        {
-            "id": str(booking_id),
-            "camp_id": str(camp_approved_id),
-            "donor_id": str(citizen_donor_id),
-            "notes": "Demo booking — pending staff review",
-        },
+    print(
+        f"  Blood units: {inv['units']} | Components: {inv['components']} "
+        f"| AVAILABLE PRBC={inv['available_prbc']} FFP={inv['available_ffp']} PLT={inv['available_platelets']}"
     )
-    print("  Camp booking: 1 requested (citizen)")
 
-    # ── Blood units + donations + screenings ──────────────────────────────────
-    unit_ids: list[uuid.UUID] = []
-    component_ids: list[uuid.UUID] = []
-    citizen_donation_id: uuid.UUID | None = None
-
-    for i, donor_id in enumerate(donor_ids[:12]):
-        donation_date = days_ago(random.randint(5, 60))
-
-        # Screening (required before donation)
-        screening_id = uid()
-        await db.execute(
-            text("""
-                INSERT INTO screenings (id, donor_id, screened_by, screening_datetime,
-                                        weight_kg, bp_systolic, bp_diastolic, pulse_bpm,
-                                        temperature_celsius, hemoglobin_g_dl, questionnaire,
-                                        eligibility_result, captured_offline, created_at, updated_at)
-                VALUES (:id, :did, :by, :dt,
-                        65.0, 120, 80, 72, 36.8, 14.0,
-                        :questionnaire,
-                        'eligible', false, now(), now())
-                ON CONFLICT DO NOTHING
-            """),
-            {
-                "id": str(screening_id),
-                "did": str(donor_id),
-                "by": str(users[UserRoleEnum.DISTRICT_ADMIN.value]),
-                "dt": donation_date,
-                "questionnaire": '{"had_recent_illness":false,"had_recent_surgery":false}',
-            },
-        )
-
-        # Donation
-        donation_id = uid()
-        await db.execute(
-            text("""
-                INSERT INTO donations (id, donor_id, screening_id, facility_id, collected_by,
-                                       collection_datetime, donation_type, volume_ml, captured_offline,
-                                       created_at)
-                VALUES (:id, :did, :sid, :fid, :by, :dt, 'whole_blood', :vol, false, now())
-                ON CONFLICT DO NOTHING
-            """),
-            {
-                "id": str(donation_id),
-                "did": str(donor_id),
-                "sid": str(screening_id),
-                "fid": str(facility_id),
-                "by": str(users[UserRoleEnum.DISTRICT_ADMIN.value]),
-                "dt": donation_date,
-                "vol": random.randint(350, 450),
-            },
-        )
-        if donor_id == citizen_donor_id:
-            citizen_donation_id = donation_id
-
-        # Blood unit
-        unit_id = uid()
-        barcode = f"RDRKDURG{i+1:06d}X"
-        bg_result = await db.execute(text("SELECT blood_group FROM donors WHERE id = :id"), {"id": str(donor_id)})
-        bg = bg_result.scalar_one()
-
-        # Alternate between lifecycle states to create realistic inventory
-        if i < 4:
-            lifecycle = UnitLifecycleState.STORED
-            release_status = UnitReleaseStatus.RELEASED
-            expiry = days_from_now(random.randint(10, 35))
-        elif i < 8:
-            lifecycle = UnitLifecycleState.SEPARATED
-            release_status = UnitReleaseStatus.RELEASED
-            expiry = days_from_now(random.randint(5, 30))
-        elif i < 10:
-            lifecycle = UnitLifecycleState.ISSUED
-            release_status = UnitReleaseStatus.RELEASED
-            expiry = days_from_now(random.randint(15, 30))
-        else:
-            lifecycle = UnitLifecycleState.DISCARDED
-            release_status = UnitReleaseStatus.REJECTED
-            expiry = days_ago(2)
-
-        await db.execute(
-            text("""
-                INSERT INTO blood_units (id, barcode, donation_id, blood_group, facility_id,
-                                         collection_datetime, expiry_datetime, release_status, lifecycle_state,
-                                         created_by, created_at, updated_at)
-                VALUES (:id, :barcode, :did, :bg, :fid, :cdt, :exp, :rel, :lc, :by, now(), now())
-                ON CONFLICT (barcode) DO NOTHING
-            """),
-            {
-                "id": str(unit_id),
-                "barcode": barcode,
-                "did": str(donation_id),
-                "bg": bg,
-                "fid": str(facility_id),
-                "cdt": donation_date,
-                "exp": expiry,
-                "rel": release_status.value,
-                "lc": lifecycle.value,
-                "by": str(users[UserRoleEnum.DISTRICT_ADMIN.value]),
-            },
-        )
-        unit_ids.append(unit_id)
-
-        # Components for stored/separated units
-        if lifecycle in (UnitLifecycleState.STORED, UnitLifecycleState.SEPARATED):
-            for comp_type, vol in [
-                (ComponentTypeEnum.PRBC, 280),
-                (ComponentTypeEnum.FFP, 200),
-                (ComponentTypeEnum.PLATELETS, 50),
-            ]:
-                comp_id = uid()
-                comp_state = ComponentStateEnum.AVAILABLE
-                await db.execute(
-                    text("""
-                        INSERT INTO components (id, unit_id, type, volume_ml, blood_group, expiry_datetime,
-                                                state, facility_id, created_at, updated_at)
-                        VALUES (:id, :uid, :type, :vol, :bg, :exp, :state, :fid, now(), now())
-                        ON CONFLICT DO NOTHING
-                    """),
-                    {
-                        "id": str(comp_id),
-                        "uid": str(unit_id),
-                        "type": comp_type.value,
-                        "vol": vol,
-                        "bg": bg,
-                        "exp": expiry,
-                        "state": comp_state.value,
-                        "fid": str(facility_id),
-                    },
-                )
-                component_ids.append(comp_id)
-
-                # Stock ledger entry
-                await db.execute(
-                    text("""
-                        INSERT INTO stock_ledger (id, facility_id, blood_group, component_type, change_qty,
-                                                  reason, reference_id, reference_type, balance_after,
-                                                  recorded_by, recorded_at)
-                        VALUES (:id, :fid, :bg, :ct, 1, :reason, :ref, 'component', 1,
-                                :by, now())
-                        ON CONFLICT DO NOTHING
-                    """),
-                    {
-                        "id": str(uid()),
-                        "fid": str(facility_id),
-                        "bg": bg,
-                        "ct": comp_type.value,
-                        "reason": LedgerReasonEnum.COLLECTION.value,
-                        "ref": str(comp_id),
-                        "by": str(users[UserRoleEnum.DISTRICT_ADMIN.value]),
-                    },
-                )
-
-    print(f"  Blood units: {len(unit_ids)} | Components: {len(component_ids)}")
+    # Citizen donation id for wallet (first donation for citizen donor if any)
+    citizen_donation_row = await db.execute(
+        text("SELECT id FROM donations WHERE donor_id = :did ORDER BY created_at DESC LIMIT 1"),
+        {"did": str(citizen_donor_id)},
+    )
+    citizen_donation_id = citizen_donation_row.scalar_one_or_none()
 
     # ── Requisitions ──────────────────────────────────────────────────────────
-    req_scenarios = [
-        ("Ramesh Kumar", "A+", ComponentTypeEnum.PRBC, RequisitionPriorityEnum.URGENT, RequisitionStatusEnum.PENDING),
-        ("Sunita Devi", "B+", ComponentTypeEnum.FFP, RequisitionPriorityEnum.ROUTINE, RequisitionStatusEnum.PENDING),
-        ("Anil Sahu", "O+", ComponentTypeEnum.PRBC, RequisitionPriorityEnum.EMERGENCY, RequisitionStatusEnum.ISSUED),
-        ("Kavita Singh", "AB+", ComponentTypeEnum.PLATELETS, RequisitionPriorityEnum.ROUTINE, RequisitionStatusEnum.ISSUED),
-        ("Manoj Tiwari", "B-", ComponentTypeEnum.PRBC, RequisitionPriorityEnum.URGENT, RequisitionStatusEnum.PENDING),
-    ]
-    for patient_name, bg, ct, priority, req_status in req_scenarios:
-        req_id = uid()
-        await db.execute(
-            text("""
-                INSERT INTO requisitions (id, facility_id, patient_name, patient_hospital_id,
-                                          blood_group, component_type, units_requested, priority, status,
-                                          clinical_indication, requested_by, requested_at, created_at, updated_at)
-                VALUES (:id, :fid, :pname, :phid, :bg, :ct, 2, :priority, :status,
-                        :indication, :by, now(), now(), now())
-                ON CONFLICT DO NOTHING
-            """),
-            {
-                "id": str(req_id),
-                "fid": str(facility_id),
-                "pname": patient_name,
-                "phid": f"DGH-{fake.numerify('####')}",
-                "bg": bg,
-                "ct": ct.value,
-                "priority": priority.value,
-                "status": req_status.value,
-                "indication": random.choice(["Surgical blood loss", "Severe anaemia", "Road traffic accident", "Haematological disorder"]),
-                "by": str(users[UserRoleEnum.DOCTOR.value]),
-            },
-        )
-
-    print("  Requisitions: 5")
+    req_count = await seed_requisitions_matrix(
+        db,
+        facility_id=facility_id,
+        doctor_id=users[UserRoleEnum.DOCTOR.value],
+    )
+    print(f"  Requisitions: {req_count}")
 
     # ── Feature flags ─────────────────────────────────────────────────────────
     await db.execute(
@@ -629,17 +421,15 @@ async def run(db: AsyncSession) -> None:
         )
     print("  Wallet: enabled + citizen demo balance")
 
-    from seed.organizers_directory import seed_organizer_directory
-
-    dir_count = await seed_organizer_directory(db)
-    print(f"  Organizer directory: {dir_count} contacts")
-
     await db.commit()
 
     print("\n=== Demo seed complete ===")
+    print(expected_stock_summary())
     print("\nLogin credentials (dev only):")
     for role, (username, password) in role_creds.items():
         print(f"  {username:<30} {password:<15}  [{role.value}]")
+    print(f"  {'org_<serial>':<30} {ORGANIZER_ACCOUNT_PASSWORD:<15}  [organizer × directory]")
+    print("  Examples: org_1, org_99, org_201")
     print()
 
 
