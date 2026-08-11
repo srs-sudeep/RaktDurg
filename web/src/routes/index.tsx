@@ -28,6 +28,9 @@ import CampCouponsPage from "./camps/coupons";
 import RequisitionsPage from "./requisitions/index";
 import WalletPage from "./wallet/index";
 import AdminPage from "./admin/index";
+import UsersPage from "./users/index";
+import OrganizersPage from "./organizers/index";
+import OrganizerDirectoryPage from "./organizer-directory/index";
 
 function Unauthorized() {
   return (
@@ -77,6 +80,9 @@ export const router = createBrowserRouter([
           { path: "/camps/apply", element: <CampsPage /> },
           { path: "/requisitions", element: <RequisitionsPage /> },
           { path: "/wallet", element: <WalletPage /> },
+          { path: "/users", element: <UsersPage /> },
+          { path: "/organizers", element: <OrganizersPage /> },
+          { path: "/organizer-directory", element: <OrganizerDirectoryPage /> },
           { path: "/admin", element: <AdminPage /> },
         ],
       },

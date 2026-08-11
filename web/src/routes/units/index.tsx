@@ -1,17 +1,57 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useScanBarcode, useUnits } from "@/api/units";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { bloodGroupColor, cn, formatDateTime } from "@/lib/utils";
+
+type UnitRow = {
+  id: string;
+  barcode: string;
+  blood_group: string;
+  lifecycle_state: string;
+  expiry_datetime: string;
+};
 
 export default function UnitsPage() {
   const { user } = useAuth();
   const { data, isLoading, error } = useUnits(user?.facility_id);
   const scan = useScanBarcode();
   const [barcode, setBarcode] = useState("");
+  const navigate = useNavigate();
+
+  const columns = useMemo<DataTableColumn<UnitRow>[]>(
+    () => [
+      {
+        id: "barcode",
+        header: "Barcode",
+        cell: (u) => (
+          <Link to={`/units/${u.id}`} className="font-medium text-red-700 hover:underline">
+            {u.barcode}
+          </Link>
+        ),
+      },
+      {
+        id: "group",
+        header: "Group",
+        cell: (u) => (
+          <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", bloodGroupColor(u.blood_group))}>
+            {u.blood_group}
+          </span>
+        ),
+      },
+      { id: "state", header: "State", cell: (u) => <Badge>{u.lifecycle_state}</Badge> },
+      {
+        id: "expiry",
+        header: "Expiry",
+        cell: (u) => <span className="text-gray-600">{formatDateTime(u.expiry_datetime)}</span>,
+      },
+    ],
+    []
+  );
 
   return (
     <div className="space-y-6">
@@ -51,43 +91,16 @@ export default function UnitsPage() {
           Barcode not found.
         </div>
       )}
-
-      {isLoading && <p className="text-gray-500">Loading units…</p>}
       {error && <p className="text-red-600">Failed to load units.</p>}
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b bg-gray-50 text-gray-600">
-            <tr>
-              <th className="px-4 py-3">Barcode</th>
-              <th className="px-4 py-3">Group</th>
-              <th className="px-4 py-3">State</th>
-              <th className="px-4 py-3">Expiry</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(data?.items ?? []).map((u) => (
-              <tr key={u.id} className="border-b last:border-0 hover:bg-gray-50">
-                <td className="px-4 py-3">
-                  <Link to={`/units/${u.id}`} className="font-medium text-red-700 hover:underline">
-                    {u.barcode}
-                  </Link>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", bloodGroupColor(u.blood_group))}>
-                    {u.blood_group}
-                  </span>
-                </td>
-                <td className="px-4 py-3"><Badge>{u.lifecycle_state}</Badge></td>
-                <td className="px-4 py-3 text-gray-600">{formatDateTime(u.expiry_datetime)}</td>
-              </tr>
-            ))}
-            {!isLoading && (data?.items?.length ?? 0) === 0 && (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">No units yet.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={columns}
+        rows={(data?.items ?? []) as UnitRow[]}
+        rowKey={(u) => u.id}
+        isLoading={isLoading}
+        onRowClick={(u) => navigate(`/units/${u.id}`)}
+        emptyMessage="No units yet."
+      />
     </div>
   );
 }

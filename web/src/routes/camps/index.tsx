@@ -1,9 +1,10 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useApplyCamp, useCamps, useReviewCamp } from "@/api/camps";
+import { useApplyCamp, useCamps, useReviewCamp, type Camp } from "@/api/camps";
 import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -21,6 +22,56 @@ export default function CampsPage() {
   const canReviewBookings =
     user?.role === "superadmin" || user?.role === "doctor" || user?.role === "district_admin";
   const canApply = user?.role === "organizer" || user?.role === "superadmin";
+
+  const columns = useMemo<DataTableColumn<Camp>[]>(
+    () => [
+      {
+        id: "name",
+        header: "Name",
+        cell: (c) => (
+          <div>
+            <Link to={`/camps/${c.id}/coupons`} className="font-medium text-red-700 hover:underline">
+              {c.camp_name}
+            </Link>
+            <div className="text-xs text-gray-500">{c.location}</div>
+          </div>
+        ),
+      },
+      { id: "date", header: "Date", cell: (c) => c.requested_date },
+      {
+        id: "venue",
+        header: "Venue",
+        cell: (c) => (
+          <span className="text-xs text-gray-600">{(c.venue_mode || "—").replace(/_/g, " ")}</span>
+        ),
+      },
+      { id: "status", header: "Status", cell: (c) => <Badge>{c.status}</Badge> },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: (c) =>
+          canApprove && (c.status === "submitted" || c.status === "under_review") ? (
+            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+              <Button size="sm" onClick={() => review.mutate({ id: c.id, action: "approve", coupon_prefix: "RD" })}>
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  review.mutate({ id: c.id, action: "reject", rejection_reason: "Not feasible" })
+                }
+              >
+                Reject
+              </Button>
+            </div>
+          ) : (
+            "—"
+          ),
+      },
+    ],
+    [canApprove, review]
+  );
 
   async function onApply(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -169,42 +220,13 @@ export default function CampsPage() {
         </form>
       )}
 
-      {isLoading ? <p>Loading…</p> : (
-        <div className="overflow-hidden rounded-xl border bg-white">
-          <table className="w-full text-sm">
-            <thead className="border-b bg-gray-50 text-left text-gray-600">
-              <tr>
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Venue</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(data?.items ?? []).map((c) => (
-                <tr key={c.id} className="border-b last:border-0">
-                  <td className="px-4 py-3">
-                    <Link to={`/camps/${c.id}/coupons`} className="font-medium text-red-700 hover:underline">{c.camp_name}</Link>
-                    <div className="text-xs text-gray-500">{c.location}</div>
-                  </td>
-                  <td className="px-4 py-3">{c.requested_date}</td>
-                  <td className="px-4 py-3 text-xs text-gray-600">{(c.venue_mode || "—").replace(/_/g, " ")}</td>
-                  <td className="px-4 py-3"><Badge>{c.status}</Badge></td>
-                  <td className="px-4 py-3">
-                    {canApprove && (c.status === "submitted" || c.status === "under_review") && (
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={() => review.mutate({ id: c.id, action: "approve", coupon_prefix: "RD" })}>Approve</Button>
-                        <Button size="sm" variant="outline" onClick={() => review.mutate({ id: c.id, action: "reject", rejection_reason: "Not feasible" })}>Reject</Button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        rows={data?.items ?? []}
+        rowKey={(c) => c.id}
+        isLoading={isLoading}
+        emptyMessage="No camp applications yet."
+      />
     </div>
   );
 }

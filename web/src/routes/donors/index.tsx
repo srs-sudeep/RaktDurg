@@ -1,19 +1,29 @@
-import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { FormEvent, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useCreateDonor, useDonors } from "@/api/donors";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { bloodGroupColor, cn } from "@/lib/utils";
 
 const GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
+type DonorRow = {
+  id: string;
+  name: string;
+  blood_group: string | null;
+  contact_phone: string;
+  status: string;
+};
+
 export default function DonorsPage() {
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const { data, isLoading } = useDonors(page);
   const create = useCreateDonor();
+  const navigate = useNavigate();
   const [error, setError] = useState("");
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -37,11 +47,37 @@ export default function DonorsPage() {
     }
   }
 
+  const columns = useMemo<DataTableColumn<DonorRow>[]>(
+    () => [
+      {
+        id: "name",
+        header: "Name",
+        cell: (d) => (
+          <Link to={`/donors/${d.id}`} className="font-medium text-red-700 hover:underline">
+            {d.name}
+          </Link>
+        ),
+      },
+      {
+        id: "group",
+        header: "Group",
+        cell: (d) => (
+          <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", bloodGroupColor(d.blood_group ?? ""))}>
+            {d.blood_group ?? "—"}
+          </span>
+        ),
+      },
+      { id: "phone", header: "Phone", cell: (d) => d.contact_phone },
+      { id: "status", header: "Status", cell: (d) => <Badge>{d.status}</Badge> },
+    ],
+    []
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Donors</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Donors</h1>
           <p className="text-sm text-gray-500">Register and look up donor records.</p>
         </div>
         <Button onClick={() => setShowForm((v) => !v)}>{showForm ? "Cancel" : "Register donor"}</Button>
@@ -72,34 +108,20 @@ export default function DonorsPage() {
         </form>
       )}
 
-      {isLoading ? <p>Loading…</p> : (
-        <div className="overflow-hidden rounded-xl border bg-white">
-          <table className="w-full text-sm">
-            <thead className="border-b bg-gray-50 text-left text-gray-600">
-              <tr>
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Group</th>
-                <th className="px-4 py-3">Phone</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(data?.items ?? []).map((d) => (
-                <tr key={d.id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="px-4 py-3"><Link to={`/donors/${d.id}`} className="font-medium text-red-700 hover:underline">{d.name}</Link></td>
-                  <td className="px-4 py-3"><span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", bloodGroupColor(d.blood_group))}>{d.blood_group}</span></td>
-                  <td className="px-4 py-3">{d.contact_phone}</td>
-                  <td className="px-4 py-3"><Badge>{d.status}</Badge></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Prev</Button>
-        <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)}>Next</Button>
-      </div>
+      <DataTable
+        columns={columns}
+        rows={(data?.items ?? []) as DonorRow[]}
+        rowKey={(d) => d.id}
+        isLoading={isLoading}
+        onRowClick={(d) => navigate(`/donors/${d.id}`)}
+        emptyMessage="No donors registered yet."
+        footer={
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Prev</Button>
+            <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)}>Next</Button>
+          </div>
+        }
+      />
     </div>
   );
 }

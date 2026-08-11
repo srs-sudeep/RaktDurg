@@ -39,8 +39,38 @@ class UserOut(BaseModel):
     donor_id: uuid.UUID | None = None
     is_active: bool
     created_at: datetime
+    last_login_at: datetime | None = None
 
     model_config = {"from_attributes": True}
+
+
+class AdminUserOut(BaseModel):
+    id: uuid.UUID
+    username: str
+    email: str | None
+    phone: str | None
+    display_name: str | None
+    role: UserRoleEnum
+    facility_id: uuid.UUID | None
+    is_active: bool
+    last_login_at: datetime | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class AdminUserListResponse(BaseModel):
+    items: list[AdminUserOut]
+    total: int
+    page: int
+    page_size: int
+
+
+class AdminUserUpdateRequest(BaseModel):
+    role: UserRoleEnum | None = None
+    is_active: bool | None = None
+    display_name: str | None = None
+    facility_id: uuid.UUID | None = None
 
 
 class TokenClaims(BaseModel):

@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import {
   useCancelRequisition,
@@ -9,12 +9,25 @@ import {
 } from "@/api/requisitions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDateTime } from "@/lib/utils";
 
 const GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const COMPONENTS = ["prbc", "ffp", "platelets", "whole_blood", "cryo"];
+
+type ReqRow = {
+  id: string;
+  patient_name: string;
+  patient_hospital_id: string;
+  units_requested: number;
+  component_type: string;
+  blood_group: string;
+  status: string;
+  priority: string;
+  requested_at: string;
+};
 
 export default function RequisitionsPage() {
   const { user } = useAuth();
@@ -47,11 +60,64 @@ export default function RequisitionsPage() {
     }
   }
 
+  const columns = useMemo<DataTableColumn<ReqRow>[]>(
+    () => [
+      {
+        id: "patient",
+        header: "Patient",
+        cell: (r) => (
+          <div>
+            <div className="font-medium">{r.patient_name}</div>
+            <div className="text-xs text-gray-500">{r.patient_hospital_id}</div>
+          </div>
+        ),
+      },
+      {
+        id: "need",
+        header: "Need",
+        cell: (r) => `${r.units_requested}× ${r.component_type} (${r.blood_group})`,
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: (r) => (
+          <span className="inline-flex flex-wrap gap-1">
+            <Badge>{r.status}</Badge>
+            <Badge>{r.priority}</Badge>
+          </span>
+        ),
+      },
+      {
+        id: "requested",
+        header: "Requested",
+        cell: (r) => <span className="text-gray-600">{formatDateTime(r.requested_at)}</span>,
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: (r) => (
+          <div className="flex flex-wrap gap-1">
+            {r.status === "pending" && (
+              <Button size="sm" onClick={() => reserve.mutate(r.id)}>Reserve</Button>
+            )}
+            {(r.status === "fully_reserved" || r.status === "partially_reserved") && (
+              <Button size="sm" onClick={() => issue.mutate(r.id)}>Issue</Button>
+            )}
+            {r.status !== "cancelled" && r.status !== "issued" && (
+              <Button size="sm" variant="outline" onClick={() => cancel.mutate(r.id)}>Cancel</Button>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [reserve, issue, cancel]
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Requisitions</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Requisitions</h1>
           <p className="text-sm text-gray-500">Request, FEFO reserve, and issue components.</p>
         </div>
         <Button onClick={() => setShow((v) => !v)}>{show ? "Cancel" : "New requisition"}</Button>
@@ -85,47 +151,13 @@ export default function RequisitionsPage() {
         </form>
       )}
 
-      {isLoading ? <p>Loading…</p> : (
-        <div className="overflow-hidden rounded-xl border bg-white">
-          <table className="w-full text-sm">
-            <thead className="border-b bg-gray-50 text-left text-gray-600">
-              <tr>
-                <th className="px-4 py-3">Patient</th>
-                <th className="px-4 py-3">Need</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Requested</th>
-                <th className="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(data?.items ?? []).map((r) => (
-                <tr key={r.id} className="border-b last:border-0">
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{r.patient_name}</div>
-                    <div className="text-xs text-gray-500">{r.patient_hospital_id}</div>
-                  </td>
-                  <td className="px-4 py-3">{r.units_requested}× {r.component_type} ({r.blood_group})</td>
-                  <td className="px-4 py-3"><Badge>{r.status}</Badge> <Badge>{r.priority}</Badge></td>
-                  <td className="px-4 py-3 text-gray-600">{formatDateTime(r.requested_at)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      {r.status === "pending" && (
-                        <Button size="sm" onClick={() => reserve.mutate(r.id)}>Reserve</Button>
-                      )}
-                      {(r.status === "fully_reserved" || r.status === "partially_reserved") && (
-                        <Button size="sm" onClick={() => issue.mutate(r.id)}>Issue</Button>
-                      )}
-                      {r.status !== "cancelled" && r.status !== "issued" && (
-                        <Button size="sm" variant="outline" onClick={() => cancel.mutate(r.id)}>Cancel</Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        rows={(data?.items ?? []) as ReqRow[]}
+        rowKey={(r) => r.id}
+        isLoading={isLoading}
+        emptyMessage="No requisitions yet."
+      />
     </div>
   );
 }

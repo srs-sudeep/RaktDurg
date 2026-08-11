@@ -24,9 +24,11 @@ export function ProtectedRoute() {
     return <Navigate to="/login" replace state={{ from: pathname }} />;
   }
 
-  const required = rolesForPath(pathname);
-  if (required && !required.includes(user.role)) {
-    return <Navigate to="/unauthorized" replace />;
+  if (user.role !== "superadmin") {
+    const required = rolesForPath(pathname);
+    if (required && !required.includes(user.role)) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   return <Outlet />;
