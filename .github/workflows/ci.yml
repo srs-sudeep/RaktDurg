@@ -29,8 +29,9 @@ jobs:
           scp -i ~/.ssh/id_ed25519 /tmp/raktdurg-sync.tgz \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/raktdurg-sync.tgz"
           ssh -i ~/.ssh/id_ed25519 "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "rm -rf '${{ secrets.DEPLOY_PATH }}/backend' '${{ secrets.DEPLOY_PATH }}/web' '${{ secrets.DEPLOY_PATH }}/infra' && \
-             mkdir -p '${{ secrets.DEPLOY_PATH }}' && \
+            "sudo mkdir -p '${{ secrets.DEPLOY_PATH }}' && \
+             sudo chown -R '${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }}' '${{ secrets.DEPLOY_PATH }}' && \
+             rm -rf '${{ secrets.DEPLOY_PATH }}/backend' '${{ secrets.DEPLOY_PATH }}/web' '${{ secrets.DEPLOY_PATH }}/infra' && \
              tar xzf /tmp/raktdurg-sync.tgz -C '${{ secrets.DEPLOY_PATH }}' && \
              rm -f /tmp/raktdurg-sync.tgz"
       - name: Deploy on GCE host
