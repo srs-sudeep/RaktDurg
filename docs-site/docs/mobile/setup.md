@@ -105,11 +105,13 @@ Any demo account can **sign in** on mobile (same JSON login as web). The home sc
 
 | Role | Mobile home | Notes |
 |------|-------------|-------|
-| `superadmin`, `district_admin`, `doctor` | Field dashboard | Register donor, screening, barcode, offline sync |
-| `organizer` | Field dashboard UI | Prefer **web** for `/camps/apply` — donor/screening/sync APIs return 403 for organizers |
-| `citizen` | Citizen home | Stock, wallet, camps, bookings, history, profile |
+| `superadmin`, `district_admin`, `doctor` | Field shell with bottom nav (Home / Capture / Scan / Sync) | Register donor, screening, **camera barcode**, offline sync |
+| `organizer` | Field shell | Prefer **web** for `/camps/apply` — donor/screening/sync APIs return 403 for organizers |
+| `citizen` | Citizen shell with bottom nav (Stock / Camps / Wallet / History / Account) | Stock, wallet, camps, bookings, history, profile |
 
 Full matrix: [Demo — who can sign in where](../demo.md#who-can-sign-in-where) · [Architecture RBAC](../architecture/rbac.md).
+
+Barcode scan uses the device camera (`mobile_scanner`) with manual entry fallback. Example valid code format: `RDRKDURG000001W`.
 
 ## Demo login
 

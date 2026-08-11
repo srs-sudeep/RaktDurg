@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../data/remote/api_client.dart';
 import '../auth/auth_notifier.dart';
 import '../../widgets/branding_widgets.dart';
+import '../../widgets/ui_kit.dart';
 
 class CitizenHomeScreen extends ConsumerWidget {
   const CitizenHomeScreen({super.key});
@@ -544,7 +545,7 @@ class _CitizenAsyncPage<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: RaktAppBar(title: title, showLogo: true),
       body: FutureBuilder<T>(
         future: future,
         builder: (context, snapshot) {
@@ -552,15 +553,7 @@ class _CitizenAsyncPage<T> extends StatelessWidget {
             return const PageLoader();
           }
           if (snapshot.hasError || !snapshot.hasData) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  'Unable to load this screen right now.',
-                  style: TextStyle(color: Colors.grey.shade700),
-                ),
-              ),
-            );
+            return const EmptyState(message: 'Unable to load this screen right now.');
           }
           return builder(context, snapshot.data as T);
         },

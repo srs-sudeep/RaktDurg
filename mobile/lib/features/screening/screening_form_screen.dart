@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/eligibility.dart';
 import '../../data/local/dao/screening_dao.dart';
+import '../../widgets/ui_kit.dart';
 
 const _uuid = Uuid();
 
@@ -152,11 +153,7 @@ class _ScreeningFormState extends ConsumerState<ScreeningFormScreen> {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: const Text('Donor Screening'),
-        backgroundColor: const Color(0xFFDC2626),
-        foregroundColor: Colors.white,
-      ),
+      appBar: const RaktAppBar(title: 'Donor screening'),
       body: Form(
         key: _formKey,
         child: ListView(
