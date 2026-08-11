@@ -31,7 +31,7 @@ export default function DashboardPage() {
     const token = localStorage.getItem("access_token");
     if (!token) return;
 
-    const apiBase = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+    const apiBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || "";
     const url = `${apiBase}/stream/stock/${facilityId}?token=${encodeURIComponent(token)}`;
 
     const es = new EventSource(url);

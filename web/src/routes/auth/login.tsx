@@ -74,6 +74,16 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+              <p className="font-semibold">Production demo accounts</p>
+              <ul className="mt-2 space-y-1 font-mono text-xs leading-relaxed">
+                <li>seed_superadmin / super123</li>
+                <li>seed_doctor / doctor123</li>
+                <li>seed_organizer / organizer123</li>
+                <li>seed_citizen / citizen123</li>
+              </ul>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">Username</label>

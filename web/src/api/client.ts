@@ -2,7 +2,8 @@ import axios from "axios";
 import { getErrorMessage } from "@/lib/errors";
 import { showErrorToast } from "@/lib/toast";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+/** Empty string = same-origin (production nginx). Do not fall back to localhost when env is "". */
+const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || "";
 
 export const apiClient = axios.create({
   baseURL: API_BASE,
@@ -19,6 +20,11 @@ apiClient.interceptors.request.use((config) => {
 });
 
 let refreshPromise: Promise<string | null> | null = null;
+
+function isAuthEndpoint(url: string | undefined): boolean {
+  if (!url) return false;
+  return /\/auth\/(token|refresh|logout)(\?|$)/.test(url);
+}
 
 async function refreshAccessToken(): Promise<string | null> {
   const refresh = localStorage.getItem("refresh_token");
@@ -41,7 +47,18 @@ apiClient.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && original && !original._retry) {
+    const status = error.response?.status;
+    const onLoginPage =
+      typeof window !== "undefined" && window.location.pathname.startsWith("/login");
+
+    // Never treat failed login/refresh/logout as an expired session — that
+    // used to hard-reload /login and look like the form "just refreshes".
+    if (
+      status === 401 &&
+      original &&
+      !original._retry &&
+      !isAuthEndpoint(original.url)
+    ) {
       original._retry = true;
       refreshPromise ??= refreshAccessToken().finally(() => {
         refreshPromise = null;
@@ -53,8 +70,10 @@ apiClient.interceptors.response.use(
       }
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
-      showErrorToast("Session expired", "Please sign in again.");
-      window.location.href = "/login";
+      if (!onLoginPage) {
+        showErrorToast("Session expired", "Please sign in again.");
+        window.location.href = "/login";
+      }
     }
     if (!error.config?._skipErrorToast) {
       showErrorToast("Request failed", getErrorMessage(error));
