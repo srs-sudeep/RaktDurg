@@ -36,7 +36,8 @@ export function useCamps(params?: CampListParams | string) {
     typeof params === "string" ? { camp_status: params } : params ?? {};
   const query = {
     page: normalized.page ?? 1,
-    page_size: normalized.page_size ?? 50,
+    // API Query(le=100) — clamp so oversized page_size never 422s the list.
+    page_size: Math.min(normalized.page_size ?? 50, 100),
     camp_status: normalized.camp_status || undefined,
     q: normalized.q,
     order_by: normalized.order_by,

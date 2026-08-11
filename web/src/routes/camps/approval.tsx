@@ -12,9 +12,9 @@ import { showSuccessToast } from "@/lib/toast";
 const PENDING = new Set(["submitted", "under_review"]);
 
 export default function CampApprovalPage() {
-  const table = useTableQuery({ defaultOrderBy: "requested_date", defaultOrder: "asc", pageSize: 200 });
+  const table = useTableQuery({ defaultOrderBy: "requested_date", defaultOrder: "asc", pageSize: 100 });
   const { data, isLoading } = useCamps({
-    page: 1,
+    page: table.page,
     page_size: table.pageSize,
     q: table.q || undefined,
     order_by: table.orderBy,
