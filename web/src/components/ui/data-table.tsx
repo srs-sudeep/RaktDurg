@@ -31,8 +31,12 @@ export type DataTableProps<T> = {
 };
 
 function SortIcon({ active, dir }: { active: boolean; dir?: SortDir }) {
-  if (!active) return <ArrowUpDown className="h-3 w-3 opacity-40" />;
-  return dir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+  if (!active) return <ArrowUpDown className="h-3.5 w-3.5 text-slate-400" />;
+  return dir === "asc" ? (
+    <ArrowUp className="h-3.5 w-3.5 text-red-600" />
+  ) : (
+    <ArrowDown className="h-3.5 w-3.5 text-red-600" />
+  );
 }
 
 export function DataTable<T>({
@@ -57,14 +61,17 @@ export function DataTable<T>({
       )}
     >
       {toolbar && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100/90 bg-gradient-to-r from-slate-50/90 to-white px-3.5 py-2.5">
+        <div className="border-b border-slate-200 bg-slate-50 px-3.5 py-3">
+          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+            Search & filters
+          </div>
           {toolbar}
         </div>
       )}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-left text-[13px]">
           <thead>
-            <tr className="border-b border-slate-200/90 bg-slate-50/90 text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500">
+            <tr className="border-b border-slate-200/90 bg-white text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500">
               {columns.map((col) => {
                 const sortKey = col.sortKey ?? col.id;
                 const active = !!onSort && !!col.sortable && orderBy === sortKey;
@@ -76,9 +83,12 @@ export function DataTable<T>({
                     {col.sortable && onSort ? (
                       <button
                         type="button"
+                        title={`Sort by ${typeof col.header === "string" ? col.header : sortKey}`}
                         className={cn(
-                          "inline-flex items-center gap-1 rounded px-0.5 py-0.5 hover:text-slate-800",
-                          active && "text-slate-900"
+                          "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 transition",
+                          active
+                            ? "border-red-200 bg-red-50 text-red-800"
+                            : "border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900"
                         )}
                         onClick={() => onSort(sortKey)}
                       >
@@ -130,7 +140,7 @@ export function DataTable<T>({
         </table>
       </div>
       {footer && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/80 px-3.5 py-2.5">
+        <div className="border-t border-slate-200 bg-slate-50 px-3.5 py-3">
           {footer}
         </div>
       )}
