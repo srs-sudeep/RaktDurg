@@ -7,7 +7,7 @@ from .facility import Facility
 from .auth import User, RefreshToken
 from .donor import Donor, Organizer, Screening, Donation
 from .unit import BloodUnit, TestResult, Component
-from .camp import Camp, CampCoupon
+from .camp import Camp, CampCoupon, CampBooking
 from .stock import StockLedger, AlertThreshold, BarcodeSequence, BarcodeAllocation
 from .requisition import Requisition, Issue
 from .wallet import WalletAccount, WalletTransaction, WalletFamilyLink
@@ -28,6 +28,7 @@ __all__ = [
     "Component",
     "Camp",
     "CampCoupon",
+    "CampBooking",
     "StockLedger",
     "AlertThreshold",
     "BarcodeSequence",

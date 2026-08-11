@@ -45,12 +45,14 @@ app.add_middleware(AuditMiddleware)
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 
-from app.routers import units, stock, donors, camps, wallet, requisitions, sync, admin, barcodes  # noqa: E402
+from app.routers import units, stock, donors, camps, wallet, requisitions, sync, admin, barcodes, citizen  # noqa: E402
 app.include_router(units.router)
 app.include_router(stock.router)
 app.include_router(donors.router)
 app.include_router(camps.router)
 app.include_router(wallet.router)
+app.include_router(citizen.router)
+app.include_router(citizen.public_router)
 app.include_router(requisitions.router)
 app.include_router(sync.router)
 app.include_router(admin.router)

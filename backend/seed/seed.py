@@ -6,6 +6,7 @@ Run: python -m seed.seed  (from the backend/ directory with DATABASE_URL set)
 
 import asyncio
 import random
+from datetime import date
 
 from faker import Faker
 from sqlalchemy import text
@@ -15,8 +16,11 @@ from app.config import settings
 from app.models.enums import (
     BloodGroupEnum,
     ComponentTypeEnum,
+    DonorStatusEnum,
+    SexEnum,
     UserRoleEnum,
 )
+from app.models.donor import Donor
 from app.models.facility import Facility
 from app.models.auth import User
 from app.models.audit import FeatureFlag
@@ -67,6 +71,26 @@ async def seed(db: AsyncSession) -> None:
         )
         db.add(user)
         users[role] = user
+    await db.flush()
+
+    print("Linking citizen to a donor profile…")
+    citizen_dob = fake.date_of_birth(minimum_age=18, maximum_age=55)
+    citizen_donor = Donor(
+        name="Seed Citizen",
+        date_of_birth=citizen_dob,
+        age_years=(date.today() - citizen_dob).days // 365,
+        sex=SexEnum.MALE,
+        contact_phone=fake.msisdn()[:20],
+        address=fake.address(),
+        blood_group=BloodGroupEnum.O_POS,
+        status=DonorStatusEnum.ACTIVE,
+        consent_given=True,
+        consent_purpose="blood_donation_registration",
+        registered_at_facility_id=facility.id,
+        user_id=users[UserRoleEnum.CITIZEN].id,
+        created_by=users[UserRoleEnum.SUPERADMIN].id,
+    )
+    db.add(citizen_donor)
     await db.flush()
 
     print("Seeding alert thresholds…")

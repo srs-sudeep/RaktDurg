@@ -55,7 +55,7 @@ Barcode lookup uses manual entry on simulator (camera ML Kit is not arm64-ready 
 
 ## Demo logins (dev only)
 
-Seeded by `make demo-seed` ([`backend/seed/demo_seed.py`](backend/seed/demo_seed.py)). Five roles — all can authenticate on web and mobile; web RBAC restricts pages; mobile hides field tiles for `citizen`.
+Seeded by `make demo-seed` ([`backend/seed/demo_seed.py`](backend/seed/demo_seed.py)). Five roles — all can authenticate on web and mobile. Citizens now have dedicated account flows on both clients, while staff keep the operations dashboards.
 
 | Username | Password | Role | Web access | Mobile |
 |----------|----------|------|------------|--------|
@@ -63,10 +63,16 @@ Seeded by `make demo-seed` ([`backend/seed/demo_seed.py`](backend/seed/demo_seed
 | `district_admin` | `district123` | district_admin | Dashboard, Units, Donors, Camps, Requisitions | Field app (primary) |
 | `dr_meena` | `meena123` | doctor | Clinical routes + camp approval | Field app |
 | `organizer_priya` | `priya123` | organizer | Camps (apply) | Camp flows |
-| `citizen_ajay` | `ajay123` | citizen | Public stock + Wallet | Citizen message only |
+| `citizen_ajay` | `ajay123` | citizen | My Account, Profile, Wallet, Donation History, Camps, Bookings, Public Stock | Citizen dashboard + stock, wallet, profile, camps, bookings |
 
 Public stock (no login): http://localhost:3000/public/stock?facility=`<facility-uuid>`  
 Facility UUID is printed by `make demo-seed` and stored in `web/.env` as `VITE_DEFAULT_FACILITY_ID`.
+
+Citizen entry points:
+- Web: `/my-account`, `/public/camps`, `/public/stock`
+- Mobile: citizen dashboard opens from the same login and includes stock, wallet, profile, history, camps, and bookings
+
+Note: the wallet remains feature-flagged via `wallet_enabled`; citizen wallet screens show a disabled message until that flag is turned on.
 
 Login body example: `{"username":"superadmin","password":"super123"}`.
 

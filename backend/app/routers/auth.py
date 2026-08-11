@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -69,5 +70,22 @@ async def logout(body: RefreshRequest, db: AsyncSession = Depends(get_db)) -> di
 
 
 @router.get("/me", response_model=UserOut, summary="Current authenticated user")
-async def me(current_user: User = Depends(get_current_user)) -> User:
-    return current_user
+async def me(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> UserOut:
+    donor_id = None
+    if current_user.role.value == "citizen":
+        from app.models.donor import Donor
+
+        result = await db.execute(select(Donor.id).where(Donor.user_id == current_user.id))
+        donor_id = result.scalar_one_or_none()
+    return UserOut(
+        id=current_user.id,
+        username=current_user.username,
+        email=current_user.email,
+        phone=current_user.phone,
+        display_name=current_user.display_name,
+        role=current_user.role,
+        facility_id=current_user.facility_id,
+        donor_id=donor_id,
+        is_active=current_user.is_active,
+        created_at=current_user.created_at,
+    )

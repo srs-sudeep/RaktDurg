@@ -7,8 +7,14 @@ import LoginPage from "./auth/login";
 import HomePage from "./home/index";
 import AboutPage from "./about";
 import ContactPage from "./contact/index";
+import MyAccountPage from "./my-account/index";
+import CitizenProfilePage from "./my-account/profile";
+import CitizenWalletPage from "./my-account/wallet";
+import CitizenHistoryPage from "./my-account/history";
+import CitizenBookingsPage from "./my-account/bookings";
 import DashboardPage from "./dashboard/index";
 import PublicStockPage from "./public/stock";
+import PublicCampsPage from "./public/camps";
 import UnitsPage from "./units/index";
 import UnitDetailPage from "./units/detail";
 import DonorsPage from "./donors/index";
@@ -40,6 +46,12 @@ export const router = createBrowserRouter([
       { path: "/about", element: <AboutPage /> },
       { path: "/contact", element: <ContactPage /> },
       { path: "/public/stock", element: <PublicStockPage /> },
+      { path: "/public/camps", element: <PublicCampsPage /> },
+      { path: "/my-account", element: <MyAccountPage /> },
+      { path: "/my-account/profile", element: <CitizenProfilePage /> },
+      { path: "/my-account/wallet", element: <CitizenWalletPage /> },
+      { path: "/my-account/history", element: <CitizenHistoryPage /> },
+      { path: "/my-account/bookings", element: <CitizenBookingsPage /> },
     ],
   },
   { path: "/login", element: <LoginPage /> },

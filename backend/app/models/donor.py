@@ -49,10 +49,14 @@ class Donor(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     registered_at_facility_id: Mapped[uuid.UUID | None] = mapped_column(
         PgUUID(as_uuid=True), sa.ForeignKey("facilities.id"), nullable=True
     )
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        PgUUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=True, unique=True
+    )
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         PgUUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=True
     )
 
+    user_account: Mapped["User | None"] = relationship("User", back_populates="donor_profile")  # type: ignore[name-defined]
     screenings: Mapped[list["Screening"]] = relationship("Screening", back_populates="donor")
     donations: Mapped[list["Donation"]] = relationship("Donation", back_populates="donor")
     wallet_account: Mapped["WalletAccount | None"] = relationship(  # type: ignore[name-defined]

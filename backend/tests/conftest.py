@@ -9,6 +9,8 @@ A separate test database (rakt_durg_test) is used — never the dev database.
 import asyncio
 from typing import AsyncGenerator
 
+from datetime import date
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
@@ -19,7 +21,8 @@ from app.database import get_db
 from app.main import app
 from app.models import Base
 from app.models.audit import FeatureFlag
-from app.models.enums import UserRoleEnum
+from app.models.donor import Donor
+from app.models.enums import BloodGroupEnum, DonorStatusEnum, SexEnum, UserRoleEnum
 from app.models.facility import Facility
 from app.models.auth import User
 from app.services.auth import hash_password, create_access_token
@@ -118,6 +121,25 @@ async def seed_users(db: AsyncSession, facility: Facility) -> dict[UserRoleEnum,
         )
         db.add(user)
         users[role] = user
+    await db.flush()
+    citizen = users[UserRoleEnum.CITIZEN]
+    db.add(
+        Donor(
+            name="Citizen Test User",
+            date_of_birth=date(1995, 1, 1),
+            age_years=30,
+            sex=SexEnum.MALE,
+            contact_phone="9999999999",
+            address="Durg",
+            blood_group=BloodGroupEnum.O_POS,
+            status=DonorStatusEnum.ACTIVE,
+            consent_given=True,
+            consent_purpose="blood_donation_registration",
+            registered_at_facility_id=facility.id,
+            user_id=citizen.id,
+            created_by=users[UserRoleEnum.SUPERADMIN].id,
+        )
+    )
     await db.flush()
     return users
 

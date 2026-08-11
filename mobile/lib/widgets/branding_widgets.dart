@@ -9,42 +9,63 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgPicture.asset('assets/logo.svg', width: 96, height: 96),
-                const SizedBox(height: 20),
-                const Text(
-                  'RaktDurg',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                ),
-                const Text('District Blood Bank Platform', style: TextStyle(color: Colors.grey)),
-                const SizedBox(height: 12),
-                const Text(
-                  'By IBITF and IIT Bhilai',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black54),
-                  textAlign: TextAlign.center,
-                ),
-                const Text(
-                  'Powered by Recogx Init',
-                  style: TextStyle(fontSize: 11, color: Colors.grey),
-                ),
-                const SizedBox(height: 24),
-                const PartnerLogos(height: 36),
-                const SizedBox(height: 32),
-                const SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFFDC2626)),
-                ),
-                const SizedBox(height: 12),
-                Text(message, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-              ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFF9FAFB), Colors.white, Color(0xFFFEF2F2)],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFFDC2626).withValues(alpha: 0.08),
+                        ),
+                      ),
+                      SvgPicture.asset('assets/logo.svg', width: 88, height: 88),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'RaktDurg',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
+                  const Text('District Blood Bank Platform', style: TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'By IBITF and IIT Bhilai',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black54),
+                    textAlign: TextAlign.center,
+                  ),
+                  const Text(
+                    'Powered by Recogx Init',
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 28),
+                  const PartnerLogos(height: 36),
+                  const SizedBox(height: 36),
+                  const SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFFDC2626)),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(message, style: const TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w500)),
+                ],
+              ),
             ),
           ),
         ),
@@ -54,21 +75,29 @@ class SplashScreen extends StatelessWidget {
 }
 
 class PageLoader extends StatelessWidget {
-  const PageLoader({super.key});
+  const PageLoader({super.key, this.label = 'Loading…'});
+
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 40,
-            height: 40,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFFDC2626)),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              const SizedBox(
+                width: 52,
+                height: 52,
+                child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFFDC2626)),
+              ),
+              SvgPicture.asset('assets/logo.svg', width: 24, height: 24),
+            ],
           ),
-          SizedBox(height: 12),
-          Text('Loading…', style: TextStyle(color: Colors.grey)),
+          const SizedBox(height: 16),
+          Text(label, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
         ],
       ),
     );

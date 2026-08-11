@@ -1,10 +1,14 @@
 name: CI / CD
 
+# PAUSED — re-enable push/PR triggers when ready for CI/CD
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+  workflow_dispatch:
+
+# on:
+#   push:
+#     branches: [main, develop]
+#   pull_request:
+#     branches: [main, develop]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

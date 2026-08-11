@@ -36,6 +36,7 @@ class UserOut(BaseModel):
     display_name: str | None
     role: UserRoleEnum
     facility_id: uuid.UUID | None
+    donor_id: uuid.UUID | None = None
     is_active: bool
     created_at: datetime
 

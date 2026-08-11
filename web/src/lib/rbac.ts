@@ -25,7 +25,7 @@ export const ROUTE_ROLES: Record<string, UserRole[]> = {
   "/camps/approval": ["superadmin", "doctor"],
   "/camps/apply": ["organizer", "superadmin"],
   "/requisitions": ["superadmin", "doctor", "district_admin"],
-  "/wallet": ["superadmin", "doctor", "citizen"],
+  "/wallet": ["superadmin", "doctor"],
   "/admin": ["superadmin"],
 };
 

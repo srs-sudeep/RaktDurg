@@ -44,7 +44,7 @@ def _disabled():
 @router.get("/donors/{donor_id}", response_model=WalletOut)
 async def get_wallet(
     donor_id: uuid.UUID,
-    actor=Depends(require_roles(UserRoleEnum.CITIZEN, UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR)),
+    actor=Depends(require_roles(UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     try:
@@ -76,7 +76,7 @@ async def credit(
 async def redeem(
     donor_id: uuid.UUID,
     body: WalletRedeemRequest,
-    actor=Depends(require_roles(UserRoleEnum.CITIZEN, UserRoleEnum.DOCTOR, UserRoleEnum.SUPERADMIN)),
+    actor=Depends(require_roles(UserRoleEnum.DOCTOR, UserRoleEnum.SUPERADMIN, UserRoleEnum.DISTRICT_ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     try:
@@ -93,7 +93,7 @@ async def redeem(
 @router.get("/donors/{donor_id}/transactions", response_model=list[WalletTransactionOut])
 async def list_transactions(
     donor_id: uuid.UUID,
-    _actor=Depends(require_roles(UserRoleEnum.CITIZEN, UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR)),
+    _actor=Depends(require_roles(UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     try:
@@ -113,7 +113,7 @@ async def list_transactions(
 async def link_family(
     donor_id: uuid.UUID,
     body: FamilyLinkRequest,
-    actor=Depends(require_roles(UserRoleEnum.CITIZEN, UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR)),
+    actor=Depends(require_roles(UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     try:

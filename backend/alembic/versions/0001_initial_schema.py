@@ -157,6 +157,7 @@ def upgrade() -> None:
             consent_timestamp         TIMESTAMPTZ,
             consent_purpose           TEXT,
             registered_at_facility_id UUID REFERENCES facilities(id),
+            user_id                   UUID UNIQUE REFERENCES users(id),
             created_by                UUID REFERENCES users(id),
             created_at                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at                TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -260,6 +261,21 @@ def upgrade() -> None:
         )
     """)
     op.execute("CREATE INDEX idx_camp_coupons_camp ON camp_coupons(camp_id)")
+
+    op.execute("""
+        CREATE TABLE camp_bookings (
+            id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            camp_id    UUID NOT NULL REFERENCES camps(id),
+            donor_id   UUID NOT NULL REFERENCES donors(id),
+            status     VARCHAR(20) NOT NULL DEFAULT 'requested',
+            notes      TEXT,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            CONSTRAINT uq_camp_bookings_camp_donor UNIQUE (camp_id, donor_id)
+        )
+    """)
+    op.execute("CREATE INDEX idx_camp_bookings_camp ON camp_bookings(camp_id)")
+    op.execute("CREATE INDEX idx_camp_bookings_donor ON camp_bookings(donor_id)")
 
     # donations — camp_id FK added after camps
     op.execute("""
@@ -593,7 +609,7 @@ def upgrade() -> None:
     """)
     for tbl in [
         "facilities", "users", "donors", "organizers", "screenings",
-        "camps", "components", "blood_units", "alert_thresholds",
+        "camps", "camp_bookings", "components", "blood_units", "alert_thresholds",
         "requisitions", "issues", "wallet_accounts", "notifications",
     ]:
         op.execute(f"""
@@ -607,7 +623,7 @@ def downgrade() -> None:
     # Drop triggers
     for tbl in [
         "facilities", "users", "donors", "organizers", "screenings",
-        "camps", "components", "blood_units", "alert_thresholds",
+        "camps", "camp_bookings", "components", "blood_units", "alert_thresholds",
         "requisitions", "issues", "wallet_accounts", "notifications",
     ]:
         op.execute(f"DROP TRIGGER IF EXISTS trg_{tbl}_updated_at ON {tbl}")
@@ -619,7 +635,7 @@ def downgrade() -> None:
         "wallet_family_links", "wallet_transactions", "wallet_accounts",
         "issues", "requisitions", "barcode_allocations", "barcode_sequences",
         "alert_thresholds", "stock_ledger", "components", "test_results",
-        "blood_units", "donations", "camp_coupons",
+        "blood_units", "donations", "camp_bookings", "camp_coupons",
     ]:
         op.execute(f"DROP TABLE IF EXISTS {tbl} CASCADE")
     op.execute("ALTER TABLE screenings DROP CONSTRAINT IF EXISTS fk_screenings_camp")

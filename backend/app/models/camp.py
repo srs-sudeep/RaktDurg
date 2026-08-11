@@ -41,6 +41,9 @@ class Camp(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     coupons: Mapped[list["CampCoupon"]] = relationship(
         "CampCoupon", back_populates="camp", cascade="all, delete-orphan"
     )
+    bookings: Mapped[list["CampBooking"]] = relationship(
+        "CampBooking", back_populates="camp", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         sa.Index("idx_camps_organizer", "organizer_id"),
@@ -73,3 +76,25 @@ class CampCoupon(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     camp: Mapped[Camp] = relationship("Camp", back_populates="coupons")
 
     __table_args__ = (sa.Index("idx_camp_coupons_camp", "camp_id"),)
+
+
+class CampBooking(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = "camp_bookings"
+
+    camp_id: Mapped[uuid.UUID] = mapped_column(
+        PgUUID(as_uuid=True), sa.ForeignKey("camps.id"), nullable=False
+    )
+    donor_id: Mapped[uuid.UUID] = mapped_column(
+        PgUUID(as_uuid=True), sa.ForeignKey("donors.id"), nullable=False
+    )
+    status: Mapped[str] = mapped_column(sa.String(20), nullable=False, default="requested")
+    notes: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
+
+    camp: Mapped[Camp] = relationship("Camp", back_populates="bookings")
+    donor: Mapped["Donor"] = relationship("Donor")  # type: ignore[name-defined]
+
+    __table_args__ = (
+        sa.Index("idx_camp_bookings_camp", "camp_id"),
+        sa.Index("idx_camp_bookings_donor", "donor_id"),
+        sa.UniqueConstraint("camp_id", "donor_id", name="uq_camp_bookings_camp_donor"),
+    )

@@ -98,5 +98,56 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> getCitizenStock() async {
+    final resp = await _dio.get('/citizen/stock');
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getPublicDefaultFacility() async {
+    final resp = await _dio.get('/public/facilities/default');
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getCitizenProfile() async {
+    final resp = await _dio.get('/citizen/profile');
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getCitizenWallet() async {
+    final resp = await _dio.get('/citizen/wallet');
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<List<dynamic>> getCitizenDonations() async {
+    final resp = await _dio.get('/citizen/donations');
+    return resp.data as List<dynamic>? ?? [];
+  }
+
+  Future<List<dynamic>> getPublicCamps() async {
+    final resp = await _dio.get('/public/camps');
+    return resp.data as List<dynamic>? ?? [];
+  }
+
+  Future<List<dynamic>> getCitizenBookings() async {
+    final resp = await _dio.get('/citizen/bookings');
+    return resp.data as List<dynamic>? ?? [];
+  }
+
+  Future<Map<String, dynamic>> createCitizenBooking({
+    required String campId,
+    String? notes,
+  }) async {
+    final resp = await _dio.post('/citizen/bookings', data: {
+      'camp_id': campId,
+      if (notes != null && notes.isNotEmpty) 'notes': notes,
+    });
+    return resp.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> cancelCitizenBooking(String bookingId) async {
+    final resp = await _dio.post('/citizen/bookings/$bookingId/cancel');
+    return resp.data as Map<String, dynamic>;
+  }
+
   Dio get dio => _dio;
 }

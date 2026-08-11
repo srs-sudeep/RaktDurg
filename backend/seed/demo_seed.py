@@ -158,33 +158,36 @@ async def run(db: AsyncSession) -> None:
     # ── Donors ────────────────────────────────────────────────────────────────
     blood_groups = list(BloodGroupEnum)
     donor_ids: list[uuid.UUID] = []
+    citizen_user_id = users[UserRoleEnum.CITIZEN.value]
     for i in range(15):
         donor_id = uid()
         dob = fake.date_of_birth(minimum_age=18, maximum_age=55)
         age = (NOW.date() - dob).days // 365
         sex = random.choice(list(SexEnum))
         bg = blood_groups[i % len(blood_groups)]
+        is_citizen_donor = i == 0
         await db.execute(
             text("""
                 INSERT INTO donors (id, name, date_of_birth, age_years, sex, contact_phone, address,
                                     blood_group, status, consent_given, consent_timestamp, consent_purpose,
-                                    registered_at_facility_id, created_by, created_at, updated_at)
+                                    registered_at_facility_id, user_id, created_by, created_at, updated_at)
                 VALUES (:id, :name, :dob, :age, :sex, :phone, :addr,
                         :bg, :status, true, now(), 'blood_donation_registration',
-                        :fid, :created_by, now(), now())
+                        :fid, :user_id, :created_by, now(), now())
                 ON CONFLICT DO NOTHING
             """),
             {
                 "id": str(donor_id),
-                "name": fake.name(),
+                "name": "Ajay Citizen" if is_citizen_donor else fake.name(),
                 "dob": dob,
                 "age": age,
-                "sex": sex.value,
-                "phone": fake.phone_number()[:20],
+                "sex": SexEnum.MALE.value if is_citizen_donor else sex.value,
+                "phone": "9876543210" if is_citizen_donor else fake.phone_number()[:20],
                 "addr": fake.address()[:200],
-                "bg": bg.value,
+                "bg": BloodGroupEnum.O_POS.value if is_citizen_donor else bg.value,
                 "status": DonorStatusEnum.ACTIVE.value,
                 "fid": str(facility_id),
+                "user_id": str(citizen_user_id) if is_citizen_donor else None,
                 "created_by": str(users[UserRoleEnum.DISTRICT_ADMIN.value]),
             },
         )
