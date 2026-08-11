@@ -10,6 +10,8 @@ export interface ToastPayload {
 type ToastListener = (toast: Required<ToastPayload>) => void;
 
 const listeners = new Set<ToastListener>();
+const recentKeys = new Map<string, number>();
+const DEDUPE_MS = 2500;
 
 function createId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -23,6 +25,12 @@ export function subscribeToToasts(listener: ToastListener) {
 }
 
 export function showToast(payload: ToastPayload) {
+  const key = `${payload.variant ?? "info"}:${payload.title}:${payload.description ?? ""}`;
+  const now = Date.now();
+  const last = recentKeys.get(key);
+  if (last && now - last < DEDUPE_MS) return;
+  recentKeys.set(key, now);
+
   const toast: Required<ToastPayload> = {
     id: payload.id ?? createId(),
     title: payload.title,

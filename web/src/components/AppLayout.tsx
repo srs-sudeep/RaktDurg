@@ -113,10 +113,10 @@ function SidebarNav({
                     onClick={onNavigate}
                     className={({ isActive }) =>
                       cn(
-                        "group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition",
+                        "group flex items-center gap-2 px-2.5 py-1.5 text-[13px] font-medium",
                         isActive
-                          ? "bg-red-600 text-white shadow-md shadow-red-950/30"
-                          : "text-slate-300 hover:bg-white/10 hover:text-white"
+                          ? "bg-red-700 text-white"
+                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
                       )
                     }
                   >
@@ -144,9 +144,9 @@ function ProfileMenu({ role }: { role: UserRole }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-left shadow-sm hover:border-slate-300 hover:bg-slate-50"
+        className="flex items-center gap-2 border border-slate-300 bg-white px-2 py-1 text-left hover:bg-slate-50"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-slate-800 to-slate-950 text-[12px] font-semibold text-white">
+        <span className="flex h-7 w-7 items-center justify-center bg-slate-800 text-[11px] font-semibold text-white">
           {(name || "?").slice(0, 1).toUpperCase()}
         </span>
         <span className="hidden min-w-0 sm:block">
@@ -193,31 +193,28 @@ export function AppLayout() {
   const meta = pageMetaForPath(pathname);
 
   return (
-    <div className="flex min-h-screen text-slate-900">
-      <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-slate-950/50 bg-gradient-to-b from-[#0b1220] via-[#0f172a] to-[#111827] text-white lg:flex">
-        <div className="flex items-center gap-2.5 border-b border-white/10 px-3.5 py-4">
-          <img src="/logo.svg" alt="RaktDurg" className="h-9 w-9 rounded-lg bg-white/10 p-1.5 ring-1 ring-white/15" />
+    <div className="flex min-h-screen bg-[#f0f2f5] text-slate-900">
+      <aside className="sticky top-0 hidden h-screen w-[220px] shrink-0 flex-col border-r border-slate-800 bg-slate-900 text-white lg:flex">
+        <div className="flex items-center gap-2 border-b border-slate-700 px-3 py-3">
+          <img src="/logo.svg" alt="RaktDurg" className="h-7 w-7 bg-white/10 p-1" />
           <div className="min-w-0 leading-tight">
-            <div className="font-display truncate text-[14px] font-bold tracking-tight">RaktDurg</div>
-            <div className="truncate text-[10px] text-slate-400">District blood bank</div>
+            <div className="truncate text-[13px] font-semibold">RaktDurg</div>
+            <div className="truncate text-[10px] text-slate-400">Blood bank</div>
           </div>
         </div>
         <SidebarNav role={role} />
-        <div className="border-t border-white/10 px-3 py-3">
-          <div className="rounded-lg bg-white/5 px-2.5 py-2 ring-1 ring-white/10">
-            <div className="truncate text-[10px] uppercase tracking-[0.12em] text-slate-500">Signed in</div>
-            <div className="truncate text-[12px] font-medium text-slate-200">{ROLE_LABELS[role] ?? role}</div>
-          </div>
+        <div className="border-t border-slate-700 px-3 py-2 text-[11px] text-slate-400">
+          {ROLE_LABELS[role] ?? role}
         </div>
       </aside>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <button type="button" className="absolute inset-0 bg-slate-950/50 backdrop-blur-[1px]" aria-label="Close menu" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col bg-gradient-to-b from-[#0b1220] to-[#111827] text-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 px-3.5 py-3.5">
-              <span className="font-display text-sm font-semibold">RaktDurg</span>
-              <button type="button" onClick={() => setMobileOpen(false)} className="rounded-md p-1.5 text-slate-300 hover:bg-white/10">
+          <button type="button" className="absolute inset-0 bg-slate-950/50" aria-label="Close menu" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-slate-900 text-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-700 px-3 py-3">
+              <span className="text-sm font-semibold">RaktDurg</span>
+              <button type="button" onClick={() => setMobileOpen(false)} className="p-1.5 text-slate-300 hover:bg-slate-800">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -227,27 +224,21 @@ export function AppLayout() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/75 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur-xl">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-red-700 via-red-500 to-rose-400" />
-          <div className="flex min-h-[72px] items-center justify-between gap-4 px-3 py-3 lg:px-6">
-            <div className="flex min-w-0 items-start gap-3">
+        <header className="sticky top-0 z-30 border-b border-slate-300 bg-white">
+          <div className="flex min-h-[56px] items-center justify-between gap-3 px-3 py-2 lg:px-5">
+            <div className="flex min-w-0 items-center gap-2">
               <button
                 type="button"
-                className="mt-0.5 rounded-lg border border-slate-200 bg-white p-1.5 text-slate-700 shadow-sm lg:hidden"
+                className="border border-slate-300 p-1.5 text-slate-700 lg:hidden"
                 onClick={() => setMobileOpen(true)}
                 aria-label="Open menu"
               >
                 <Menu className="h-4 w-4" />
               </button>
               <div className="min-w-0">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  RaktDurg · {ROLE_LABELS[role] ?? role}
-                </div>
-                <h1 className="font-display truncate text-[20px] font-bold tracking-tight text-slate-900">
-                  {meta.title}
-                </h1>
+                <h1 className="truncate text-[16px] font-semibold text-slate-900">{meta.title}</h1>
                 {meta.description ? (
-                  <p className="truncate text-[12.5px] text-slate-500">{meta.description}</p>
+                  <p className="truncate text-[12px] text-slate-500">{meta.description}</p>
                 ) : null}
               </div>
             </div>
@@ -262,7 +253,7 @@ export function AppLayout() {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1440px] flex-1 px-3 py-5 lg:px-6 lg:py-6">
+        <main className="mx-auto w-full max-w-[1440px] flex-1 px-3 py-3 lg:px-5 lg:py-4">
           <Outlet />
         </main>
       </div>

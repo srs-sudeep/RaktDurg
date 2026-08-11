@@ -4,51 +4,38 @@
 
 @layer base {
   :root {
-    --background: 214 28% 96%;
-    --foreground: 222 32% 12%;
+    --background: 210 14% 96%;
+    --foreground: 215 28% 14%;
     --card: 0 0% 100%;
-    --card-foreground: 222 32% 12%;
-    --primary: 0 78% 44%;
+    --card-foreground: 215 28% 14%;
+    --primary: 0 72% 42%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 214 22% 93%;
-    --secondary-foreground: 222 24% 16%;
-    --muted: 214 20% 94%;
-    --muted-foreground: 215 14% 40%;
-    --accent: 214 22% 93%;
-    --accent-foreground: 222 24% 16%;
-    --destructive: 0 78% 44%;
+    --secondary: 210 12% 93%;
+    --secondary-foreground: 215 22% 18%;
+    --muted: 210 12% 93%;
+    --muted-foreground: 215 10% 40%;
+    --accent: 210 12% 93%;
+    --accent-foreground: 215 22% 18%;
+    --destructive: 0 72% 42%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 20% 86%;
-    --input: 214 18% 84%;
-    --ring: 0 78% 44%;
-    --radius: 0.65rem;
+    --border: 214 14% 84%;
+    --input: 214 14% 82%;
+    --ring: 0 72% 42%;
+    --radius: 0.25rem;
     --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-    --font-display: "Manrope", "IBM Plex Sans", ui-sans-serif, sans-serif;
   }
 
   * { @apply border-border; }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-[#f0f2f5] text-foreground antialiased;
     font-family: var(--font-sans);
-    font-feature-settings: "tnum" 1, "ss01" 1;
-    background-image:
-      radial-gradient(ellipse 80% 50% at 0% -10%, rgba(220, 38, 38, 0.07), transparent 55%),
-      radial-gradient(ellipse 60% 40% at 100% 0%, rgba(15, 23, 42, 0.05), transparent 50%),
-      linear-gradient(180deg, #eef2f7 0%, #f5f7fa 40%, #f3f5f8 100%);
-    background-attachment: fixed;
+    font-feature-settings: "tnum" 1;
     min-height: 100vh;
-  }
-
-  h1, h2, .font-display {
-    font-family: var(--font-display);
   }
 }
 
 @layer utilities {
   .surface-card {
-    @apply overflow-hidden rounded-xl border border-slate-200/80 bg-white/90 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.12)] backdrop-blur-sm;
-  }
-  .surface-inset {
-    @apply rounded-lg border border-slate-200/70 bg-slate-50/80;
+    @apply overflow-hidden rounded border border-slate-300 bg-white;
   }
 }
