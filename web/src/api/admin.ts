@@ -13,9 +13,10 @@ export function useWallet(donorId: string) {
   });
 }
 
-export function useFeatureFlags() {
+export function useFeatureFlags(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["admin", "flags"],
+    enabled: options?.enabled !== false,
     queryFn: async () => {
       const { data } = await apiClient.get("/admin/feature-flags");
       return data as { name: string; is_enabled: boolean; description: string | null }[];
@@ -41,6 +42,20 @@ export function useErakkoshExport() {
     mutationFn: async () => {
       const { data } = await apiClient.post("/admin/erakkosh/export");
       return data as { submission_id: string; export_date: string };
+    },
+  });
+}
+
+export function useLinkCitizen() {
+  return useMutation({
+    mutationFn: async (body: { username: string; donor_id: string }) => {
+      const { data } = await apiClient.post("/admin/citizens/link", body);
+      return data as {
+        user_id: string;
+        username: string;
+        donor_id: string;
+        donor_name: string;
+      };
     },
   });
 }

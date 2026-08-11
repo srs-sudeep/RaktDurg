@@ -89,6 +89,13 @@ class CampBooking(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     status: Mapped[str] = mapped_column(sa.String(20), nullable=False, default="requested")
     notes: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
+    reviewed_by: Mapped[uuid.UUID | None] = mapped_column(
+        PgUUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=True
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(
+        sa.DateTime(timezone=True), nullable=True
+    )
+    review_notes: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
 
     camp: Mapped[Camp] = relationship("Camp", back_populates="bookings")
     donor: Mapped["Donor"] = relationship("Donor")  # type: ignore[name-defined]

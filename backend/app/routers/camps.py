@@ -17,7 +17,9 @@ from app.schemas.camps import (
     CampReviewRequest,
     CouponOut,
 )
+from app.schemas.staff import BookingReviewRequest, StaffCampBookingOut
 from app.services.camps import CampCalendarConflict, apply_for_camp, cancel_camp, review_camp
+from app.services.staff import StaffActionError, list_staff_camp_bookings, review_camp_booking
 
 router = APIRouter(prefix="/camps", tags=["camps"])
 
@@ -67,6 +69,35 @@ async def list_camps(
         page=page,
         page_size=page_size,
     )
+
+
+@router.get("/bookings/list", response_model=list[StaffCampBookingOut])
+async def list_camp_bookings(
+    status: str | None = Query(None, description="Filter by booking status"),
+    _actor=Depends(require_roles(
+        UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN,
+    )),
+    db: AsyncSession = Depends(get_db),
+):
+    return await list_staff_camp_bookings(db, status=status)
+
+
+@router.post("/bookings/{booking_id}/review", response_model=StaffCampBookingOut)
+async def review_camp_booking_endpoint(
+    booking_id: uuid.UUID,
+    body: BookingReviewRequest,
+    actor=Depends(require_roles(
+        UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN,
+    )),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        result = await review_camp_booking(booking_id, body, actor, db)
+    except StaffActionError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    await db.commit()
+    return result
 
 
 @router.get("/{camp_id}", response_model=CampOut)

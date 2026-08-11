@@ -65,3 +65,54 @@ export function useCampCoupons(campId: string) {
     },
   });
 }
+
+export interface CampBooking {
+  id: string;
+  camp_id: string;
+  camp_name: string;
+  requested_date: string;
+  location: string;
+  donor_id: string;
+  donor_name: string;
+  donor_phone: string;
+  blood_group: string | null;
+  status: string;
+  notes: string | null;
+  review_notes: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
+export function useCampBookings(status?: string) {
+  return useQuery({
+    queryKey: ["camps", "bookings", status],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/camps/bookings/list", {
+        params: { status: status || undefined },
+      });
+      return data as CampBooking[];
+    },
+  });
+}
+
+export function useReviewCampBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      action,
+      review_notes,
+    }: {
+      id: string;
+      action: "confirm" | "reject";
+      review_notes?: string;
+    }) => {
+      const { data } = await apiClient.post(`/camps/bookings/${id}/review`, {
+        action,
+        review_notes,
+      });
+      return data as CampBooking;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["camps", "bookings"] }),
+  });
+}

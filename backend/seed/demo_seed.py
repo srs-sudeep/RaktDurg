@@ -257,9 +257,28 @@ async def run(db: AsyncSession) -> None:
 
     print("  Camps: approved + completed")
 
+    # ── Camp booking (citizen demo) ───────────────────────────────────────────
+    citizen_donor_id = donor_ids[0]
+    booking_id = uid()
+    await db.execute(
+        text("""
+            INSERT INTO camp_bookings (id, camp_id, donor_id, status, notes, created_at, updated_at)
+            VALUES (:id, :camp_id, :donor_id, 'requested', :notes, now(), now())
+            ON CONFLICT DO NOTHING
+        """),
+        {
+            "id": str(booking_id),
+            "camp_id": str(camp_approved_id),
+            "donor_id": str(citizen_donor_id),
+            "notes": "Demo booking — pending staff review",
+        },
+    )
+    print("  Camp booking: 1 requested (citizen)")
+
     # ── Blood units + donations + screenings ──────────────────────────────────
     unit_ids: list[uuid.UUID] = []
     component_ids: list[uuid.UUID] = []
+    citizen_donation_id: uuid.UUID | None = None
 
     for i, donor_id in enumerate(donor_ids[:12]):
         donation_date = days_ago(random.randint(5, 60))
@@ -307,6 +326,8 @@ async def run(db: AsyncSession) -> None:
                 "vol": random.randint(350, 450),
             },
         )
+        if donor_id == citizen_donor_id:
+            citizen_donation_id = donation_id
 
         # Blood unit
         unit_id = uid()
@@ -446,10 +467,43 @@ async def run(db: AsyncSession) -> None:
     await db.execute(
         text("""
             INSERT INTO feature_flags (name, is_enabled, description, updated_at)
-            VALUES ('wallet_enabled', false, 'Blood Credit Wallet — Phase 4', now())
-            ON CONFLICT (name) DO NOTHING
+            VALUES ('wallet_enabled', true, 'Blood Credit Wallet — enabled in demo/dev', now())
+            ON CONFLICT (name) DO UPDATE SET is_enabled = true, updated_at = now()
         """)
     )
+
+    # ── Citizen wallet (demo credit) ──────────────────────────────────────────
+    wallet_id = uid()
+    await db.execute(
+        text("""
+            INSERT INTO wallet_accounts (id, donor_id, balance, is_active, created_at, updated_at)
+            VALUES (:id, :donor_id, 2, true, now(), now())
+            ON CONFLICT (donor_id) DO UPDATE SET balance = 2, updated_at = now()
+        """),
+        {"id": str(wallet_id), "donor_id": str(citizen_donor_id)},
+    )
+    wallet_row = await db.execute(
+        text("SELECT id FROM wallet_accounts WHERE donor_id = :did"),
+        {"did": str(citizen_donor_id)},
+    )
+    wallet_id = wallet_row.scalar_one()
+    if citizen_donation_id:
+        await db.execute(
+            text("""
+                INSERT INTO wallet_transactions (id, wallet_id, type, amount,
+                                                 balance_after, reference_type, reference_id,
+                                                 notes, recorded_by, recorded_at)
+                VALUES (:id, :wid, 'earn', 2, 2, 'donation', :ref, 'Demo blood credit', :by, now())
+                ON CONFLICT DO NOTHING
+            """),
+            {
+                "id": str(uid()),
+                "wid": str(wallet_id),
+                "ref": str(citizen_donation_id),
+                "by": str(users[UserRoleEnum.DISTRICT_ADMIN.value]),
+            },
+        )
+    print("  Wallet: enabled + citizen demo balance")
 
     await db.commit()
 

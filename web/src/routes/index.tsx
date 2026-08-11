@@ -21,6 +21,7 @@ import DonorsPage from "./donors/index";
 import DonorDetailPage from "./donors/detail";
 import CampsPage from "./camps/index";
 import CampApprovalPage from "./camps/approval";
+import CampBookingsPage from "./camps/bookings";
 import CampCouponsPage from "./camps/coupons";
 import RequisitionsPage from "./requisitions/index";
 import WalletPage from "./wallet/index";
@@ -69,6 +70,7 @@ export const router = createBrowserRouter([
           { path: "/donors/:id", element: <DonorDetailPage /> },
           { path: "/camps", element: <CampsPage /> },
           { path: "/camps/approval", element: <CampApprovalPage /> },
+          { path: "/camps/bookings", element: <CampBookingsPage /> },
           { path: "/camps/:id/coupons", element: <CampCouponsPage /> },
           { path: "/camps/apply", element: <CampsPage /> },
           { path: "/requisitions", element: <RequisitionsPage /> },

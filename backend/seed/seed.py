@@ -9,7 +9,7 @@ import random
 from datetime import date
 
 from faker import Faker
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.config import settings
@@ -117,15 +117,17 @@ async def seed(db: AsyncSession) -> None:
 
     print("Verifying feature flag…")
     flag_result = await db.execute(
-        text("SELECT is_enabled FROM feature_flags WHERE name='wallet_enabled'")
+        select(FeatureFlag).where(FeatureFlag.name == "wallet_enabled")
     )
     flag = flag_result.scalar_one_or_none()
     if flag is None:
         db.add(FeatureFlag(
             name="wallet_enabled",
-            is_enabled=False,
-            description="Blood Credit Wallet — requires clinical/legal sign-off.",
+            is_enabled=True,
+            description="Blood Credit Wallet — enabled in dev seed.",
         ))
+    else:
+        flag.is_enabled = True
 
     await db.commit()
     print("Seed complete.")

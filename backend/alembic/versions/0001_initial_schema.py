@@ -269,6 +269,9 @@ def upgrade() -> None:
             donor_id   UUID NOT NULL REFERENCES donors(id),
             status     VARCHAR(20) NOT NULL DEFAULT 'requested',
             notes      TEXT,
+            reviewed_by UUID REFERENCES users(id),
+            reviewed_at TIMESTAMPTZ,
+            review_notes TEXT,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             CONSTRAINT uq_camp_bookings_camp_donor UNIQUE (camp_id, donor_id)

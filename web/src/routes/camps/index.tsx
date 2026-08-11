@@ -14,6 +14,8 @@ export default function CampsPage() {
   const review = useReviewCamp();
   const [showApply, setShowApply] = useState(false);
   const canApprove = user?.role === "superadmin" || user?.role === "doctor";
+  const canReviewBookings =
+    user?.role === "superadmin" || user?.role === "doctor" || user?.role === "district_admin";
   const canApply = user?.role === "organizer" || user?.role === "superadmin";
 
   async function onApply(e: FormEvent<HTMLFormElement>) {
@@ -37,6 +39,9 @@ export default function CampsPage() {
           <p className="text-sm text-gray-500">Applications, approvals, and coupons.</p>
         </div>
         <div className="flex gap-2">
+          {canReviewBookings && (
+            <Link to="/camps/bookings"><Button variant="outline">Booking queue</Button></Link>
+          )}
           {canApprove && <Link to="/camps/approval"><Button variant="outline">Approval queue</Button></Link>}
           {canApply && <Button onClick={() => setShowApply((v) => !v)}>{showApply ? "Cancel" : "Apply"}</Button>}
         </div>
