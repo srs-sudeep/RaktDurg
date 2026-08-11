@@ -13,6 +13,7 @@ fi
 cd "$APP_DIR/infra"
 
 # Guard against macOS metadata files breaking Python imports in container builds.
+find "$APP_DIR" -maxdepth 1 \( -name '._*' -o -name '.DS_Store' \) -delete
 find "$APP_DIR/backend" "$APP_DIR/web" "$APP_DIR/infra" \
   \( -name '._*' -o -name '.DS_Store' \) -delete
 
