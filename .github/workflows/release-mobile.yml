@@ -196,13 +196,15 @@ jobs:
       - name: Create release tag
         if: github.event_name == 'workflow_dispatch'
         run: |
+          set -euo pipefail
+          TAG="${{ needs.prepare.outputs.tag }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git rev-parse "${{ needs.prepare.outputs.tag }}" >/dev/null 2>&1; then
-            echo "Tag ${{ needs.prepare.outputs.tag }} already exists"
+          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
+            echo "Tag ${TAG} already exists on remote"
           else
-            git tag -a "${{ needs.prepare.outputs.tag }}" -m "Release ${{ needs.prepare.outputs.tag }}"
-            git push origin "${{ needs.prepare.outputs.tag }}"
+            git tag -a "${TAG}" -m "Release ${TAG}"
+            git push origin "${TAG}"
           fi
 
       - name: Download Android artifacts
