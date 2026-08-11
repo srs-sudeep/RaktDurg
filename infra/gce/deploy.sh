@@ -12,6 +12,10 @@ fi
 
 cd "$APP_DIR/infra"
 
+# Guard against macOS metadata files breaking Python imports in container builds.
+find "$APP_DIR/backend" "$APP_DIR/web" "$APP_DIR/infra" \
+  \( -name '._*' -o -name '.DS_Store' \) -delete
+
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d db redis
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" build --no-cache api web
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" --profile init run --rm migrate
