@@ -51,15 +51,42 @@ async def list_units(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     facility_id: uuid.UUID | None = None,
+    blood_group: str | None = None,
+    lifecycle_state: str | None = None,
+    q: str | None = Query(None, max_length=100),
+    order_by: str | None = Query(None, description="barcode|created_at|expiry_datetime|blood_group|lifecycle_state"),
+    order: str | None = Query("desc", pattern="^(asc|desc)$"),
     _actor=Depends(require_facility_staff),
     db: AsyncSession = Depends(get_db),
 ):
+    from app.core.query import apply_ilike_search, apply_order
+
     stmt = select(BloodUnit)
     if facility_id:
         stmt = stmt.where(BloodUnit.facility_id == facility_id)
+    if blood_group:
+        stmt = stmt.where(BloodUnit.blood_group == blood_group)
+    if lifecycle_state:
+        stmt = stmt.where(BloodUnit.lifecycle_state == lifecycle_state)
+    stmt = apply_ilike_search(stmt, q, BloodUnit.barcode)
+
     count_result = await db.execute(select(func.count()).select_from(stmt.subquery()))
     total = count_result.scalar_one()
-    stmt = stmt.order_by(BloodUnit.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    stmt = apply_order(
+        stmt,
+        order_by=order_by,
+        order=order,
+        allowlist={
+            "barcode": BloodUnit.barcode,
+            "created_at": BloodUnit.created_at,
+            "expiry_datetime": BloodUnit.expiry_datetime,
+            "blood_group": BloodUnit.blood_group,
+            "lifecycle_state": BloodUnit.lifecycle_state,
+        },
+        default="created_at",
+        default_dir="desc",
+    )
+    stmt = stmt.offset((page - 1) * page_size).limit(page_size)
     rows = (await db.execute(stmt)).scalars().all()
     return {
         "items": [UnitOut.model_validate(u) for u in rows],

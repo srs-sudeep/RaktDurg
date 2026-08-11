@@ -17,15 +17,19 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center justify-between gap-2",
-        title ? "mb-3 border-b border-slate-200/80 pb-3" : "mb-2",
+        "flex flex-wrap items-center justify-between gap-3",
+        title ? "mb-4 border-b border-slate-200/70 pb-3.5" : "mb-2",
         className
       )}
     >
       {title || description ? (
         <div className="min-w-0">
-          {title ? <h2 className="text-[15px] font-semibold tracking-tight text-slate-900">{title}</h2> : null}
-          {description ? <p className="mt-0.5 text-[12px] text-slate-500">{description}</p> : null}
+          {title ? (
+            <h2 className="font-display text-[16px] font-semibold tracking-tight text-slate-900">
+              {title}
+            </h2>
+          ) : null}
+          {description ? <p className="mt-0.5 text-[12.5px] leading-snug text-slate-500">{description}</p> : null}
         </div>
       ) : (
         <div />
@@ -51,22 +55,21 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <section
-      className={cn(
-        "overflow-hidden rounded-lg border border-slate-200/90 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]",
-        className
-      )}
-    >
+    <section className={cn("surface-card", className)}>
       {(title || actions) && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white px-3.5 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100/90 bg-gradient-to-r from-slate-50/90 via-white to-white px-4 py-3">
           <div className="min-w-0">
-            {title ? <h2 className="text-[13px] font-semibold text-slate-800">{title}</h2> : null}
-            {description ? <p className="mt-0.5 text-[11px] leading-snug text-slate-500">{description}</p> : null}
+            {title ? (
+              <h2 className="font-display text-[13.5px] font-semibold tracking-tight text-slate-800">
+                {title}
+              </h2>
+            ) : null}
+            {description ? <p className="mt-0.5 text-[11.5px] leading-snug text-slate-500">{description}</p> : null}
           </div>
           {actions}
         </div>
       )}
-      <div className={cn("p-3.5", bodyClassName)}>{children}</div>
+      <div className={cn("p-4", bodyClassName)}>{children}</div>
     </section>
   );
 }

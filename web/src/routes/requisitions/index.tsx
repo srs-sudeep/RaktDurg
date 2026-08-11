@@ -6,33 +6,43 @@ import {
   useIssueRequisition,
   useRequisitions,
   useReserveRequisition,
+  type Requisition,
 } from "@/api/requisitions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { FormActions, FormField, FormGrid, FormInput, FormSelect } from "@/components/ui/form";
 import { PageHeader, Panel } from "@/components/ui/panel";
+import { TablePagination, TableToolbar } from "@/components/ui/table-toolbar";
+import { useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
 import { formatDateTime } from "@/lib/utils";
 
 const GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const COMPONENTS = ["prbc", "ffp", "platelets", "whole_blood", "cryo"];
-
-type ReqRow = {
-  id: string;
-  patient_name: string;
-  patient_hospital_id: string;
-  units_requested: number;
-  component_type: string;
-  blood_group: string;
-  status: string;
-  priority: string;
-  requested_at: string;
-};
+const REQ_STATUSES = [
+  "pending",
+  "partially_reserved",
+  "fully_reserved",
+  "issued",
+  "cancelled",
+];
+const PRIORITIES = ["routine", "urgent", "emergency"];
 
 export default function RequisitionsPage() {
   const { user } = useAuth();
-  const { data, isLoading } = useRequisitions(user?.facility_id);
+  const table = useTableQuery({ defaultOrderBy: "requested_at", defaultOrder: "desc", pageSize: 50 });
+  const { data, isLoading } = useRequisitions({
+    facility_id: user?.facility_id,
+    page: table.page,
+    page_size: table.pageSize,
+    q: table.q || undefined,
+    status: table.filters.status || undefined,
+    blood_group: table.filters.blood_group || undefined,
+    priority: table.filters.priority || undefined,
+    order_by: table.orderBy,
+    order: table.order,
+  });
   const create = useCreateRequisition();
   const reserve = useReserveRequisition();
   const issue = useIssueRequisition();
@@ -60,11 +70,12 @@ export default function RequisitionsPage() {
     }
   }
 
-  const columns = useMemo<DataTableColumn<ReqRow>[]>(
+  const columns = useMemo<DataTableColumn<Requisition>[]>(
     () => [
       {
-        id: "patient",
+        id: "patient_name",
         header: "Patient",
+        sortable: true,
         cell: (r) => (
           <div>
             <div className="font-medium">{r.patient_name}</div>
@@ -73,13 +84,15 @@ export default function RequisitionsPage() {
         ),
       },
       {
-        id: "need",
+        id: "blood_group",
         header: "Need",
+        sortable: true,
         cell: (r) => `${r.units_requested}× ${r.component_type} (${r.blood_group})`,
       },
       {
         id: "status",
         header: "Status",
+        sortable: true,
         cell: (r) => (
           <span className="inline-flex flex-wrap gap-1">
             <Badge>{r.status}</Badge>
@@ -88,8 +101,9 @@ export default function RequisitionsPage() {
         ),
       },
       {
-        id: "requested",
+        id: "requested_at",
         header: "Requested",
+        sortable: true,
         cell: (r) => <span className="text-slate-600">{formatDateTime(r.requested_at)}</span>,
       },
       {
@@ -204,10 +218,46 @@ export default function RequisitionsPage() {
 
       <DataTable
         columns={columns}
-        rows={(data?.items ?? []) as ReqRow[]}
+        rows={data?.items ?? []}
         rowKey={(r) => r.id}
         isLoading={isLoading}
-        emptyMessage="No requisitions yet."
+        emptyMessage="No requisitions match this filter."
+        orderBy={table.orderBy}
+        order={table.order}
+        onSort={table.toggleSort}
+        toolbar={
+          <TableToolbar
+            search={{ value: table.qInput, onChange: table.setQInput }}
+            searchPlaceholder="Search patient or hospital ID…"
+            filters={[
+              {
+                key: "status",
+                label: "All statuses",
+                options: REQ_STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") })),
+              },
+              {
+                key: "blood_group",
+                label: "All groups",
+                options: GROUPS.map((g) => ({ value: g, label: g })),
+              },
+              {
+                key: "priority",
+                label: "All priorities",
+                options: PRIORITIES.map((p) => ({ value: p, label: p })),
+              },
+            ]}
+            filterValues={table.filters}
+            onFilterChange={table.setFilter}
+          />
+        }
+        footer={
+          <TablePagination
+            page={table.page}
+            pageSize={table.pageSize}
+            total={data?.total ?? 0}
+            onPageChange={table.setPage}
+          />
+        }
       />
     </div>
   );

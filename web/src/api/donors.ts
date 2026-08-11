@@ -17,14 +17,31 @@ export interface Donor {
   created_at: string;
 }
 
-export function useDonors(page = 1, bloodGroup?: string) {
+export type DonorListParams = {
+  page?: number;
+  page_size?: number;
+  q?: string;
+  blood_group?: string;
+  status?: string;
+  order_by?: string;
+  order?: string;
+};
+
+export function useDonors(params: DonorListParams = {}) {
+  const query = {
+    page: params.page ?? 1,
+    page_size: params.page_size ?? 20,
+    q: params.q,
+    blood_group: params.blood_group,
+    status: params.status,
+    order_by: params.order_by,
+    order: params.order,
+  };
   return useQuery({
-    queryKey: ["donors", page, bloodGroup],
+    queryKey: ["donors", query],
     queryFn: async () => {
-      const { data } = await apiClient.get("/donors", {
-        params: { page, page_size: 20, blood_group: bloodGroup || undefined },
-      });
-      return data as { items: Donor[]; total: number; page: number };
+      const { data } = await apiClient.get("/donors", { params: query });
+      return data as { items: Donor[]; total: number; page: number; page_size: number };
     },
   });
 }

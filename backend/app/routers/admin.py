@@ -92,27 +92,35 @@ async def list_users(
     page_size: int = Query(50, ge=1, le=200),
     role: UserRoleEnum | None = None,
     q: str | None = Query(None, max_length=100),
+    order_by: str | None = Query(None, description="username|role|created_at|last_login_at"),
+    order: str | None = Query("asc", pattern="^(asc|desc)$"),
     _actor=Depends(require_roles(UserRoleEnum.SUPERADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
+    from app.core.query import apply_ilike_search, apply_order
+
     stmt = select(User)
     if role is not None:
         stmt = stmt.where(User.role == role)
-    if q:
-        pattern = f"%{q.strip()}%"
-        stmt = stmt.where(
-            User.username.ilike(pattern)
-            | User.display_name.ilike(pattern)
-            | User.email.ilike(pattern)
-        )
+    stmt = apply_ilike_search(stmt, q, User.username, User.display_name, User.email)
 
     total = (await db.execute(select(func.count()).select_from(stmt.subquery()))).scalar_one()
+    stmt = apply_order(
+        stmt,
+        order_by=order_by,
+        order=order,
+        allowlist={
+            "username": User.username,
+            "role": User.role,
+            "created_at": User.created_at,
+            "last_login_at": User.last_login_at,
+            "display_name": User.display_name,
+        },
+        default="username",
+        default_dir="asc",
+    )
     rows = (
-        await db.execute(
-            stmt.order_by(User.role.asc(), User.username.asc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
-        )
+        await db.execute(stmt.offset((page - 1) * page_size).limit(page_size))
     ).scalars().all()
     return AdminUserListResponse(
         items=[AdminUserOut.model_validate(u) for u in rows],

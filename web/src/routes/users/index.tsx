@@ -1,26 +1,32 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useAdminUsers, useUpdateAdminUser, type AdminUser } from "@/api/admin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { FormSelect } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { PageHeader } from "@/components/ui/panel";
+import { TablePagination, TableToolbar } from "@/components/ui/table-toolbar";
 import { ROLE_LABELS, USER_ROLES, type UserRole } from "@/lib/rbac";
+import { useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
 import { formatDateTime } from "@/lib/utils";
 
 export default function UsersPage() {
-  const [q, setQ] = useState("");
-  const [role, setRole] = useState("");
-  const { data, isLoading } = useAdminUsers({ q: q || undefined, role: role || undefined });
+  const table = useTableQuery({ defaultOrderBy: "username", defaultOrder: "asc", pageSize: 50 });
+  const { data, isLoading } = useAdminUsers({
+    page: table.page,
+    q: table.q || undefined,
+    role: table.filters.role || undefined,
+    order_by: table.orderBy,
+    order: table.order,
+  });
   const update = useUpdateAdminUser();
 
   const columns = useMemo<DataTableColumn<AdminUser>[]>(
     () => [
       {
-        id: "user",
+        id: "username",
         header: "User",
+        sortable: true,
         cell: (u) => (
           <div>
             <div className="font-medium text-slate-900">{u.display_name || u.username}</div>
@@ -31,6 +37,7 @@ export default function UsersPage() {
       {
         id: "role",
         header: "Role",
+        sortable: true,
         cell: (u) => (
           <FormSelect
             className="h-7 w-[150px] text-[12px]"
@@ -39,9 +46,7 @@ export default function UsersPage() {
             onChange={(e) =>
               update.mutate(
                 { id: u.id, role: e.target.value },
-                {
-                  onSuccess: () => showSuccessToast("Role updated"),
-                }
+                { onSuccess: () => showSuccessToast("Role updated") }
               )
             }
           >
@@ -73,8 +78,9 @@ export default function UsersPage() {
         ),
       },
       {
-        id: "login",
+        id: "last_login_at",
         header: "Last login",
+        sortable: true,
         cell: (u) => (
           <span className="text-[12px] text-slate-500">
             {u.last_login_at ? formatDateTime(u.last_login_at) : "Never"}
@@ -109,43 +115,37 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-3">
-      <PageHeader
-        title="Users & roles"
-        description="Account directory, role assignment, and activation."
-      />
-
       <DataTable
         columns={columns}
         rows={data?.items ?? []}
         rowKey={(u) => u.id}
         isLoading={isLoading}
         emptyMessage="No users match this filter."
+        orderBy={table.orderBy}
+        order={table.order}
+        onSort={table.toggleSort}
         toolbar={
-          <>
-            <Input
-              placeholder="Search username, name, email…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="max-w-xs"
-            />
-            <FormSelect
-              className="w-44"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="">All roles</option>
-              {USER_ROLES.map((r) => (
-                <option key={r} value={r}>
-                  {ROLE_LABELS[r]}
-                </option>
-              ))}
-            </FormSelect>
-          </>
+          <TableToolbar
+            search={{ value: table.qInput, onChange: table.setQInput }}
+            searchPlaceholder="Search username, name, email…"
+            filters={[
+              {
+                key: "role",
+                label: "All roles",
+                options: USER_ROLES.map((r) => ({ value: r, label: ROLE_LABELS[r] })),
+              },
+            ]}
+            filterValues={table.filters}
+            onFilterChange={table.setFilter}
+          />
         }
         footer={
-          <p className="text-[11px] text-slate-500">
-            {data?.total ?? 0} user{(data?.total ?? 0) === 1 ? "" : "s"}
-          </p>
+          <TablePagination
+            page={table.page}
+            pageSize={table.pageSize}
+            total={data?.total ?? 0}
+            onPageChange={table.setPage}
+          />
         }
       />
     </div>

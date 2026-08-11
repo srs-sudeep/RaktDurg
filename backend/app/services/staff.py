@@ -61,17 +61,37 @@ async def link_citizen_account(
 async def list_staff_camp_bookings(
     db: AsyncSession,
     status: str | None = None,
+    q: str | None = None,
+    order_by: str | None = None,
+    order: str | None = "desc",
 ) -> list[StaffCampBookingOut]:
+    from app.core.query import apply_ilike_search, apply_order
+
     stmt = (
         select(CampBooking)
+        .join(Camp, CampBooking.camp_id == Camp.id)
+        .join(Donor, CampBooking.donor_id == Donor.id)
         .options(selectinload(CampBooking.camp), selectinload(CampBooking.donor))
-        .order_by(CampBooking.created_at.desc())
     )
     if status:
         stmt = stmt.where(CampBooking.status == status)
+    stmt = apply_ilike_search(stmt, q, Camp.camp_name, Donor.name, Donor.contact_phone)
+    stmt = apply_order(
+        stmt,
+        order_by=order_by,
+        order=order,
+        allowlist={
+            "created_at": CampBooking.created_at,
+            "status": CampBooking.status,
+            "camp_name": Camp.camp_name,
+            "donor_name": Donor.name,
+        },
+        default="created_at",
+        default_dir="desc",
+    )
 
     result = await db.execute(stmt)
-    bookings = result.scalars().all()
+    bookings = result.scalars().unique().all()
     return [
         StaffCampBookingOut(
             id=booking.id,

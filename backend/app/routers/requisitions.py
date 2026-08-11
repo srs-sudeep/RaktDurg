@@ -49,17 +49,46 @@ async def list_requisitions(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     facility_id: uuid.UUID | None = None,
+    status: str | None = None,
+    blood_group: str | None = None,
+    priority: str | None = None,
+    q: str | None = Query(None, max_length=100),
+    order_by: str | None = Query(None, description="requested_at|status|priority|patient_name|blood_group"),
+    order: str | None = Query("desc", pattern="^(asc|desc)$"),
     _actor=Depends(require_roles(*_CLINICAL)),
     db: AsyncSession = Depends(get_db),
 ):
+    from app.core.query import apply_ilike_search, apply_order
+
     stmt = select(Requisition)
     if facility_id:
         stmt = stmt.where(Requisition.facility_id == facility_id)
+    if status:
+        stmt = stmt.where(Requisition.status == status)
+    if blood_group:
+        stmt = stmt.where(Requisition.blood_group == blood_group)
+    if priority:
+        stmt = stmt.where(Requisition.priority == priority)
+    stmt = apply_ilike_search(stmt, q, Requisition.patient_name, Requisition.patient_hospital_id)
 
     count_result = await db.execute(select(func.count()).select_from(stmt.subquery()))
     total = count_result.scalar_one()
 
-    stmt = stmt.order_by(Requisition.requested_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    stmt = apply_order(
+        stmt,
+        order_by=order_by,
+        order=order,
+        allowlist={
+            "requested_at": Requisition.requested_at,
+            "status": Requisition.status,
+            "priority": Requisition.priority,
+            "patient_name": Requisition.patient_name,
+            "blood_group": Requisition.blood_group,
+        },
+        default="requested_at",
+        default_dir="desc",
+    )
+    stmt = stmt.offset((page - 1) * page_size).limit(page_size)
     rows = (await db.execute(stmt)).scalars().all()
 
     return RequisitionListResponse(

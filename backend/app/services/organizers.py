@@ -40,17 +40,41 @@ async def list_organizers(
     *,
     page: int = 1,
     page_size: int = 50,
+    q: str | None = None,
+    org_category: OrgCategoryEnum | None = None,
+    is_verified: bool | None = None,
+    order_by: str | None = None,
+    order: str | None = "asc",
 ) -> tuple[list[Organizer], int]:
+    from app.core.query import apply_ilike_search, apply_order
+
+    stmt = select(Organizer)
+    if org_category is not None:
+        stmt = stmt.where(Organizer.org_category == org_category)
+    if is_verified is not None:
+        stmt = stmt.where(Organizer.is_verified == is_verified)
+    stmt = apply_ilike_search(
+        stmt, q, Organizer.org_name, Organizer.contact_name, Organizer.contact_phone
+    )
+
     count = (
-        await db.execute(select(func.count()).select_from(Organizer))
+        await db.execute(select(func.count()).select_from(stmt.subquery()))
     ).scalar_one()
+    stmt = apply_order(
+        stmt,
+        order_by=order_by,
+        order=order,
+        allowlist={
+            "org_name": Organizer.org_name,
+            "created_at": Organizer.created_at,
+            "org_category": Organizer.org_category,
+            "is_verified": Organizer.is_verified,
+        },
+        default="org_name",
+        default_dir="asc",
+    )
     rows = (
-        await db.execute(
-            select(Organizer)
-            .order_by(Organizer.org_name.asc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
-        )
+        await db.execute(stmt.offset((page - 1) * page_size).limit(page_size))
     ).scalars().all()
     return list(rows), count
 
@@ -62,28 +86,35 @@ async def list_organizer_directory(
     q: str | None = None,
     page: int = 1,
     page_size: int = 50,
+    order_by: str | None = None,
+    order: str | None = "asc",
 ) -> tuple[list[OrganizerDirectory], int]:
+    from app.core.query import apply_ilike_search, apply_order
+
     stmt = select(OrganizerDirectory)
     if category is not None:
         stmt = stmt.where(OrganizerDirectory.category == category)
-    if q:
-        pattern = f"%{q.strip()}%"
-        stmt = stmt.where(
-            OrganizerDirectory.org_name.ilike(pattern)
-            | OrganizerDirectory.mobile.ilike(pattern)
-        )
+    stmt = apply_ilike_search(
+        stmt, q, OrganizerDirectory.org_name, OrganizerDirectory.mobile
+    )
 
     count = (
         await db.execute(select(func.count()).select_from(stmt.subquery()))
     ).scalar_one()
+    stmt = apply_order(
+        stmt,
+        order_by=order_by,
+        order=order,
+        allowlist={
+            "source_serial": OrganizerDirectory.source_serial,
+            "org_name": OrganizerDirectory.org_name,
+            "category": OrganizerDirectory.category,
+            "location": OrganizerDirectory.location,
+        },
+        default="source_serial",
+        default_dir="asc",
+    )
     rows = (
-        await db.execute(
-            stmt.order_by(
-                OrganizerDirectory.source_serial.asc().nulls_last(),
-                OrganizerDirectory.org_name.asc(),
-            )
-            .offset((page - 1) * page_size)
-            .limit(page_size)
-        )
+        await db.execute(stmt.offset((page - 1) * page_size).limit(page_size))
     ).scalars().all()
     return list(rows), count

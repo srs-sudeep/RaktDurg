@@ -5,24 +5,41 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { PageHeader } from "@/components/ui/panel";
+import { TableToolbar } from "@/components/ui/table-toolbar";
+import { applyClientTable, useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
 
 const PENDING = new Set(["submitted", "under_review"]);
 
 export default function CampApprovalPage() {
-  const { data, isLoading } = useCamps();
+  const table = useTableQuery({ defaultOrderBy: "requested_date", defaultOrder: "asc", pageSize: 200 });
+  const { data, isLoading } = useCamps({
+    page: 1,
+    page_size: table.pageSize,
+    q: table.q || undefined,
+    order_by: table.orderBy,
+    order: table.order,
+  });
   const review = useReviewCamp();
 
-  const rows = useMemo(
-    () => (data?.items ?? []).filter((c) => PENDING.has(c.status)),
-    [data]
-  );
+  const rows = useMemo(() => {
+    const pending = (data?.items ?? []).filter((c) => PENDING.has(c.status));
+    return applyClientTable(pending as unknown as Record<string, unknown>[], {
+      q: table.q,
+      searchKeys: ["camp_name", "location"],
+      filters: table.filters,
+      filterKeys: { camp_status: "status" },
+      orderBy: table.orderBy,
+      order: table.order,
+    }) as unknown as Camp[];
+  }, [data, table.q, table.filters, table.orderBy, table.order]);
 
   const columns = useMemo<DataTableColumn<Camp>[]>(
     () => [
       {
-        id: "name",
+        id: "camp_name",
         header: "Camp",
+        sortable: true,
         cell: (c) => (
           <div>
             <div className="font-medium text-slate-900">{c.camp_name}</div>
@@ -33,8 +50,15 @@ export default function CampApprovalPage() {
         ),
       },
       {
+        id: "requested_date",
+        header: "Date",
+        sortable: true,
+        cell: (c) => c.requested_date,
+      },
+      {
         id: "status",
         header: "Status",
+        sortable: true,
         cell: (c) => (
           <Badge
             className={
@@ -101,6 +125,27 @@ export default function CampApprovalPage() {
         rowKey={(c) => c.id}
         isLoading={isLoading}
         emptyMessage="No camps awaiting approval."
+        orderBy={table.orderBy}
+        order={table.order}
+        onSort={table.toggleSort}
+        toolbar={
+          <TableToolbar
+            search={{ value: table.qInput, onChange: table.setQInput }}
+            searchPlaceholder="Search camp or location…"
+            filters={[
+              {
+                key: "camp_status",
+                label: "All pending",
+                options: [
+                  { value: "submitted", label: "submitted" },
+                  { value: "under_review", label: "under review" },
+                ],
+              },
+            ]}
+            filterValues={table.filters}
+            onFilterChange={table.setFilter}
+          />
+        }
         footer={<p className="text-[11px] text-slate-500">{rows.length} in queue</p>}
       />
     </div>

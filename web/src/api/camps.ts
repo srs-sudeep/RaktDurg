@@ -22,14 +22,31 @@ export interface Camp {
   created_at: string;
 }
 
-export function useCamps(status?: string) {
+export type CampListParams = {
+  camp_status?: string;
+  page?: number;
+  page_size?: number;
+  q?: string;
+  order_by?: string;
+  order?: string;
+};
+
+export function useCamps(params?: CampListParams | string) {
+  const normalized: CampListParams =
+    typeof params === "string" ? { camp_status: params } : params ?? {};
+  const query = {
+    page: normalized.page ?? 1,
+    page_size: normalized.page_size ?? 50,
+    camp_status: normalized.camp_status || undefined,
+    q: normalized.q,
+    order_by: normalized.order_by,
+    order: normalized.order,
+  };
   return useQuery({
-    queryKey: ["camps", status],
+    queryKey: ["camps", query],
     queryFn: async () => {
-      const { data } = await apiClient.get("/camps", {
-        params: { page_size: 50, camp_status: status || undefined },
-      });
-      return data as { items: Camp[]; total: number };
+      const { data } = await apiClient.get("/camps", { params: query });
+      return data as { items: Camp[]; total: number; page: number; page_size: number };
     },
   });
 }
@@ -94,13 +111,26 @@ export interface CampBooking {
   created_at: string;
 }
 
-export function useCampBookings(status?: string) {
+export type CampBookingListParams = {
+  status?: string;
+  q?: string;
+  order_by?: string;
+  order?: string;
+};
+
+export function useCampBookings(params?: CampBookingListParams | string) {
+  const normalized: CampBookingListParams =
+    typeof params === "string" ? { status: params } : params ?? {};
+  const query = {
+    status: normalized.status || undefined,
+    q: normalized.q,
+    order_by: normalized.order_by,
+    order: normalized.order,
+  };
   return useQuery({
-    queryKey: ["camps", "bookings", status],
+    queryKey: ["camps", "bookings", query],
     queryFn: async () => {
-      const { data } = await apiClient.get("/camps/bookings/list", {
-        params: { status: status || undefined },
-      });
+      const { data } = await apiClient.get("/camps/bookings/list", { params: query });
       return data as CampBooking[];
     },
   });

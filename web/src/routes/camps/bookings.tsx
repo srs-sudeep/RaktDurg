@@ -4,8 +4,10 @@ import { useCampBookings, useReviewCampBooking, type CampBooking } from "@/api/c
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
-import { FormField, FormInput, FormSelect } from "@/components/ui/form";
+import { FormInput } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/panel";
+import { TableToolbar } from "@/components/ui/table-toolbar";
+import { applyClientTable, useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -15,17 +17,41 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: "border-slate-300 bg-slate-50 text-slate-600",
 };
 
+const BOOKING_STATUSES = ["requested", "confirmed", "rejected", "cancelled"];
+
 export default function CampBookingsPage() {
-  const [statusFilter, setStatusFilter] = useState("requested");
-  const { data, isLoading } = useCampBookings(statusFilter || undefined);
+  const table = useTableQuery({
+    defaultOrderBy: "created_at",
+    defaultOrder: "desc",
+    defaultFilters: { status: "requested" },
+  });
+  const { data, isLoading } = useCampBookings({
+    status: table.filters.status || undefined,
+    q: table.q || undefined,
+    order_by: table.orderBy,
+    order: table.order,
+  });
   const review = useReviewCampBooking();
   const [notes, setNotes] = useState<Record<string, string>>({});
+
+  // Server already filters/sorts; light client pass keeps UI snappy if status is cleared mid-type.
+  const rows = useMemo(
+    () =>
+      applyClientTable((data ?? []) as unknown as Record<string, unknown>[], {
+        q: table.q,
+        searchKeys: ["camp_name", "donor_name", "donor_phone", "location"],
+        orderBy: table.orderBy,
+        order: table.order,
+      }) as unknown as CampBooking[],
+    [data, table.q, table.orderBy, table.order]
+  );
 
   const columns = useMemo<DataTableColumn<CampBooking>[]>(
     () => [
       {
-        id: "camp",
+        id: "camp_name",
         header: "Camp",
+        sortable: true,
         cell: (b) => (
           <div>
             <div className="font-medium text-slate-900">{b.camp_name}</div>
@@ -36,8 +62,9 @@ export default function CampBookingsPage() {
         ),
       },
       {
-        id: "donor",
+        id: "donor_name",
         header: "Donor",
+        sortable: true,
         cell: (b) => (
           <div>
             <div>{b.donor_name}</div>
@@ -50,6 +77,7 @@ export default function CampBookingsPage() {
       {
         id: "status",
         header: "Status",
+        sortable: true,
         cell: (b) => <Badge className={STATUS_COLORS[b.status] ?? ""}>{b.status}</Badge>,
       },
       {
@@ -118,8 +146,6 @@ export default function CampBookingsPage() {
   return (
     <div className="space-y-3">
       <PageHeader
-        title="Camp bookings"
-        description="Review citizen slot requests for approved camps."
         actions={
           <Link to="/camps">
             <Button variant="outline" size="sm">
@@ -131,25 +157,29 @@ export default function CampBookingsPage() {
 
       <DataTable
         columns={columns}
-        rows={data ?? []}
+        rows={rows}
         rowKey={(b) => b.id}
         isLoading={isLoading}
-        emptyMessage="No bookings found."
+        emptyMessage="No bookings match this filter."
+        orderBy={table.orderBy}
+        order={table.order}
+        onSort={table.toggleSort}
         toolbar={
-          <FormField label="Status" htmlFor="booking_status" className="w-44">
-            <FormSelect
-              id="booking_status"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="">All</option>
-              <option value="requested">Requested</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="rejected">Rejected</option>
-              <option value="cancelled">Cancelled</option>
-            </FormSelect>
-          </FormField>
+          <TableToolbar
+            search={{ value: table.qInput, onChange: table.setQInput }}
+            searchPlaceholder="Search camp, donor, phone…"
+            filters={[
+              {
+                key: "status",
+                label: "All statuses",
+                options: BOOKING_STATUSES.map((s) => ({ value: s, label: s })),
+              },
+            ]}
+            filterValues={table.filters}
+            onFilterChange={table.setFilter}
+          />
         }
+        footer={<p className="text-[11px] text-slate-500">{rows.length} booking{rows.length === 1 ? "" : "s"}</p>}
       />
     </div>
   );

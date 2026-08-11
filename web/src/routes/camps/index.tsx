@@ -7,11 +7,31 @@ import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { FormActions, FormField, FormGrid, FormInput } from "@/components/ui/form";
 import { PageHeader, Panel } from "@/components/ui/panel";
+import { TablePagination, TableToolbar } from "@/components/ui/table-toolbar";
+import { useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
+
+const CAMP_STATUSES = [
+  "draft",
+  "submitted",
+  "under_review",
+  "approved",
+  "rejected",
+  "cancelled",
+  "completed",
+];
 
 export default function CampsPage() {
   const { user } = useAuth();
-  const { data, isLoading } = useCamps();
+  const table = useTableQuery({ defaultOrderBy: "requested_date", defaultOrder: "desc", pageSize: 50 });
+  const { data, isLoading } = useCamps({
+    page: table.page,
+    page_size: table.pageSize,
+    q: table.q || undefined,
+    camp_status: table.filters.camp_status || undefined,
+    order_by: table.orderBy,
+    order: table.order,
+  });
   const apply = useApplyCamp();
   const review = useReviewCamp();
   const [showApply, setShowApply] = useState(false);
@@ -27,8 +47,9 @@ export default function CampsPage() {
   const columns = useMemo<DataTableColumn<Camp>[]>(
     () => [
       {
-        id: "name",
+        id: "camp_name",
         header: "Name",
+        sortable: true,
         cell: (c) => (
           <div>
             <Link to={`/camps/${c.id}/coupons`} className="font-medium text-red-700 hover:underline">
@@ -38,7 +59,7 @@ export default function CampsPage() {
           </div>
         ),
       },
-      { id: "date", header: "Date", cell: (c) => c.requested_date },
+      { id: "requested_date", header: "Date", sortable: true, cell: (c) => c.requested_date },
       {
         id: "venue",
         header: "Venue",
@@ -46,7 +67,7 @@ export default function CampsPage() {
           <span className="text-[11px] text-slate-600">{(c.venue_mode || "—").replace(/_/g, " ")}</span>
         ),
       },
-      { id: "status", header: "Status", cell: (c) => <Badge>{c.status}</Badge> },
+      { id: "status", header: "Status", sortable: true, cell: (c) => <Badge>{c.status}</Badge> },
       {
         id: "actions",
         header: "Actions",
@@ -58,9 +79,7 @@ export default function CampsPage() {
                 onClick={() => {
                   review.mutate(
                     { id: c.id, action: "approve", coupon_prefix: "RD" },
-                    {
-                      onSuccess: () => showSuccessToast("Camp approved"),
-                    }
+                    { onSuccess: () => showSuccessToast("Camp approved") }
                   );
                 }}
               >
@@ -72,9 +91,7 @@ export default function CampsPage() {
                 onClick={() => {
                   review.mutate(
                     { id: c.id, action: "reject", rejection_reason: "Not feasible" },
-                    {
-                      onSuccess: () => showSuccessToast("Camp rejected"),
-                    }
+                    { onSuccess: () => showSuccessToast("Camp rejected") }
                   );
                 }}
               >
@@ -248,7 +265,33 @@ export default function CampsPage() {
         rows={data?.items ?? []}
         rowKey={(c) => c.id}
         isLoading={isLoading}
-        emptyMessage="No camp applications yet."
+        emptyMessage="No camps match this filter."
+        orderBy={table.orderBy}
+        order={table.order}
+        onSort={table.toggleSort}
+        toolbar={
+          <TableToolbar
+            search={{ value: table.qInput, onChange: table.setQInput }}
+            searchPlaceholder="Search name or location…"
+            filters={[
+              {
+                key: "camp_status",
+                label: "All statuses",
+                options: CAMP_STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") })),
+              },
+            ]}
+            filterValues={table.filters}
+            onFilterChange={table.setFilter}
+          />
+        }
+        footer={
+          <TablePagination
+            page={table.page}
+            pageSize={table.pageSize}
+            total={data?.total ?? 0}
+            onPageChange={table.setPage}
+          />
+        }
       />
     </div>
   );

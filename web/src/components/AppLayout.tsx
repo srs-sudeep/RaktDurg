@@ -113,10 +113,10 @@ function SidebarNav({
                     onClick={onNavigate}
                     className={({ isActive }) =>
                       cn(
-                        "group flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition",
+                        "group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition",
                         isActive
-                          ? "bg-red-600 text-white shadow-sm shadow-red-900/20"
-                          : "text-slate-300 hover:bg-white/5 hover:text-white"
+                          ? "bg-red-600 text-white shadow-md shadow-red-950/30"
+                          : "text-slate-300 hover:bg-white/10 hover:text-white"
                       )
                     }
                   >
@@ -193,27 +193,30 @@ export function AppLayout() {
   const meta = pageMetaForPath(pathname);
 
   return (
-    <div className="flex min-h-screen bg-[#f3f5f8] text-slate-900">
-      <aside className="sticky top-0 hidden h-screen w-[232px] shrink-0 flex-col border-r border-slate-900/40 bg-[#0f172a] text-white lg:flex">
-        <div className="flex items-center gap-2.5 border-b border-white/10 px-3.5 py-3.5">
-          <img src="/logo.svg" alt="RaktDurg" className="h-8 w-8 rounded-md bg-white/10 p-1" />
+    <div className="flex min-h-screen text-slate-900">
+      <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-slate-950/50 bg-gradient-to-b from-[#0b1220] via-[#0f172a] to-[#111827] text-white lg:flex">
+        <div className="flex items-center gap-2.5 border-b border-white/10 px-3.5 py-4">
+          <img src="/logo.svg" alt="RaktDurg" className="h-9 w-9 rounded-lg bg-white/10 p-1.5 ring-1 ring-white/15" />
           <div className="min-w-0 leading-tight">
-            <div className="truncate text-[13px] font-semibold tracking-tight">RaktDurg</div>
-            <div className="truncate text-[10px] text-slate-400">Blood bank ERP</div>
+            <div className="font-display truncate text-[14px] font-bold tracking-tight">RaktDurg</div>
+            <div className="truncate text-[10px] text-slate-400">District blood bank</div>
           </div>
         </div>
         <SidebarNav role={role} />
         <div className="border-t border-white/10 px-3 py-3">
-          <div className="truncate text-[11px] text-slate-400">{ROLE_LABELS[role] ?? role}</div>
+          <div className="rounded-lg bg-white/5 px-2.5 py-2 ring-1 ring-white/10">
+            <div className="truncate text-[10px] uppercase tracking-[0.12em] text-slate-500">Signed in</div>
+            <div className="truncate text-[12px] font-medium text-slate-200">{ROLE_LABELS[role] ?? role}</div>
+          </div>
         </div>
       </aside>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <button type="button" className="absolute inset-0 bg-slate-950/50 backdrop-blur-[1px]" aria-label="Close menu" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col bg-[#0f172a] text-white shadow-2xl">
+          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col bg-gradient-to-b from-[#0b1220] to-[#111827] text-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 px-3.5 py-3.5">
-              <span className="text-sm font-semibold">RaktDurg</span>
+              <span className="font-display text-sm font-semibold">RaktDurg</span>
               <button type="button" onClick={() => setMobileOpen(false)} className="rounded-md p-1.5 text-slate-300 hover:bg-white/10">
                 <X className="h-4 w-4" />
               </button>
@@ -224,12 +227,13 @@ export function AppLayout() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-          <div className="flex min-h-[68px] items-center justify-between gap-4 px-3 py-2.5 lg:px-6">
+        <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/75 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur-xl">
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-red-700 via-red-500 to-rose-400" />
+          <div className="flex min-h-[72px] items-center justify-between gap-4 px-3 py-3 lg:px-6">
             <div className="flex min-w-0 items-start gap-3">
               <button
                 type="button"
-                className="mt-0.5 rounded-md border border-slate-200 p-1.5 text-slate-700 shadow-sm lg:hidden"
+                className="mt-0.5 rounded-lg border border-slate-200 bg-white p-1.5 text-slate-700 shadow-sm lg:hidden"
                 onClick={() => setMobileOpen(true)}
                 aria-label="Open menu"
               >
@@ -239,11 +243,11 @@ export function AppLayout() {
                 <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                   RaktDurg · {ROLE_LABELS[role] ?? role}
                 </div>
-                <h1 className="truncate text-[18px] font-semibold tracking-tight text-slate-900">
+                <h1 className="font-display truncate text-[20px] font-bold tracking-tight text-slate-900">
                   {meta.title}
                 </h1>
                 {meta.description ? (
-                  <p className="truncate text-[12px] text-slate-500">{meta.description}</p>
+                  <p className="truncate text-[12.5px] text-slate-500">{meta.description}</p>
                 ) : null}
               </div>
             </div>
@@ -258,7 +262,7 @@ export function AppLayout() {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1440px] flex-1 px-3 py-4 lg:px-6 lg:py-5">
+        <main className="mx-auto w-full max-w-[1440px] flex-1 px-3 py-5 lg:px-6 lg:py-6">
           <Outlet />
         </main>
       </div>

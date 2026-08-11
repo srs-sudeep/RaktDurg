@@ -1,12 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useOrganizerDirectory, type OrganizerDirectoryItem } from "@/api/admin";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
-import { FormSelect } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { PageHeader } from "@/components/ui/panel";
+import { TablePagination, TableToolbar } from "@/components/ui/table-toolbar";
+import { useTableQuery } from "@/lib/table-query";
 
 const CATEGORIES = [
-  "",
   "community_society",
   "social_org",
   "police_paramilitary",
@@ -19,24 +17,28 @@ const CATEGORIES = [
 ];
 
 export default function OrganizerDirectoryPage() {
-  const [q, setQ] = useState("");
-  const [category, setCategory] = useState("");
+  const table = useTableQuery({ defaultOrderBy: "source_serial", defaultOrder: "asc", pageSize: 100 });
   const { data, isLoading } = useOrganizerDirectory({
-    q: q || undefined,
-    category: category || undefined,
+    page: table.page,
+    q: table.q || undefined,
+    category: table.filters.category || undefined,
+    order_by: table.orderBy,
+    order: table.order,
   });
 
   const columns = useMemo<DataTableColumn<OrganizerDirectoryItem>[]>(
     () => [
       {
-        id: "serial",
+        id: "source_serial",
         header: "#",
         className: "w-14",
+        sortable: true,
         cell: (r) => <span className="text-[11px] text-slate-500">{r.source_serial ?? "—"}</span>,
       },
       {
-        id: "org",
+        id: "org_name",
         header: "Organization",
+        sortable: true,
         cell: (r) => (
           <div>
             <div className="font-medium text-slate-900">{r.org_name}</div>
@@ -47,9 +49,10 @@ export default function OrganizerDirectoryPage() {
       {
         id: "category",
         header: "Category",
+        sortable: true,
         cell: (r) => <span className="text-[11px] capitalize text-slate-600">{r.category.replace(/_/g, " ")}</span>,
       },
-      { id: "location", header: "Location", cell: (r) => r.location || "—" },
+      { id: "location", header: "Location", sortable: true, cell: (r) => r.location || "—" },
       {
         id: "mobile",
         header: "Mobile",
@@ -61,34 +64,39 @@ export default function OrganizerDirectoryPage() {
 
   return (
     <div className="space-y-3">
-      <PageHeader
-        title="Outreach directory"
-        description="Red Cross Durg contact list for camp outreach."
-      />
       <DataTable
         columns={columns}
         rows={data?.items ?? []}
         rowKey={(r) => r.id}
         isLoading={isLoading}
         emptyMessage="No directory contacts match this filter."
+        orderBy={table.orderBy}
+        order={table.order}
+        onSort={table.toggleSort}
         toolbar={
-          <>
-            <Input
-              placeholder="Search name or mobile…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="max-w-xs"
-            />
-            <FormSelect className="w-52 capitalize" value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((c) => (
-                <option key={c || "all"} value={c}>
-                  {c ? c.replace(/_/g, " ") : "All categories"}
-                </option>
-              ))}
-            </FormSelect>
-          </>
+          <TableToolbar
+            search={{ value: table.qInput, onChange: table.setQInput }}
+            searchPlaceholder="Search name or mobile…"
+            filters={[
+              {
+                key: "category",
+                label: "All categories",
+                className: "w-52 capitalize",
+                options: CATEGORIES.map((c) => ({ value: c, label: c.replace(/_/g, " ") })),
+              },
+            ]}
+            filterValues={table.filters}
+            onFilterChange={table.setFilter}
+          />
         }
-        footer={<p className="text-[11px] text-slate-500">{data?.total ?? 0} contacts</p>}
+        footer={
+          <TablePagination
+            page={table.page}
+            pageSize={table.pageSize}
+            total={data?.total ?? 0}
+            onPageChange={table.setPage}
+          />
+        }
       />
     </div>
   );

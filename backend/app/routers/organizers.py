@@ -63,10 +63,24 @@ async def patch_me(
 async def admin_list_organizers(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
+    q: str | None = Query(None, max_length=100),
+    org_category: OrgCategoryEnum | None = None,
+    is_verified: bool | None = None,
+    order_by: str | None = Query(None),
+    order: str | None = Query("asc", pattern="^(asc|desc)$"),
     _actor=Depends(require_roles(*_STAFF)),
     db: AsyncSession = Depends(get_db),
 ):
-    rows, total = await list_organizers(db, page=page, page_size=page_size)
+    rows, total = await list_organizers(
+        db,
+        page=page,
+        page_size=page_size,
+        q=q,
+        org_category=org_category,
+        is_verified=is_verified,
+        order_by=order_by,
+        order=order,
+    )
     return OrganizerListResponse(
         items=[OrganizerOut.model_validate(r) for r in rows],
         total=total,
@@ -81,11 +95,19 @@ async def admin_organizer_directory(
     page_size: int = Query(50, ge=1, le=200),
     category: OrgCategoryEnum | None = None,
     q: str | None = Query(None, max_length=100),
+    order_by: str | None = Query(None),
+    order: str | None = Query("asc", pattern="^(asc|desc)$"),
     _actor=Depends(require_roles(*_STAFF)),
     db: AsyncSession = Depends(get_db),
 ):
     rows, total = await list_organizer_directory(
-        db, category=category, q=q, page=page, page_size=page_size
+        db,
+        category=category,
+        q=q,
+        page=page,
+        page_size=page_size,
+        order_by=order_by,
+        order=order,
     )
     return OrganizerDirectoryListResponse(
         items=[OrganizerDirectoryOut.model_validate(r) for r in rows],

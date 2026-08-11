@@ -101,7 +101,13 @@ export function useLinkCitizen() {
   });
 }
 
-export function useAdminUsers(params?: { page?: number; role?: string; q?: string }) {
+export function useAdminUsers(params?: {
+  page?: number;
+  role?: string;
+  q?: string;
+  order_by?: string;
+  order?: string;
+}) {
   return useQuery({
     queryKey: ["admin", "users", params],
     queryFn: async () => {
@@ -111,6 +117,8 @@ export function useAdminUsers(params?: { page?: number; role?: string; q?: strin
           page_size: 50,
           role: params?.role || undefined,
           q: params?.q || undefined,
+          order_by: params?.order_by,
+          order: params?.order,
         },
       });
       return data as { items: AdminUser[]; total: number; page: number; page_size: number };
@@ -137,19 +145,45 @@ export function useUpdateAdminUser() {
   });
 }
 
-export function useOrganizerAccounts() {
+export function useOrganizerAccounts(params?: {
+  page?: number;
+  q?: string;
+  org_category?: string;
+  is_verified?: string;
+  order_by?: string;
+  order?: string;
+}) {
   return useQuery({
-    queryKey: ["admin", "organizers"],
+    queryKey: ["admin", "organizers", params],
     queryFn: async () => {
       const { data } = await apiClient.get("/admin/organizers", {
-        params: { page_size: 100 },
+        params: {
+          page: params?.page ?? 1,
+          page_size: 100,
+          q: params?.q || undefined,
+          org_category: params?.org_category || undefined,
+          is_verified:
+            params?.is_verified === "true"
+              ? true
+              : params?.is_verified === "false"
+                ? false
+                : undefined,
+          order_by: params?.order_by,
+          order: params?.order,
+        },
       });
       return data as { items: OrganizerAccount[]; total: number };
     },
   });
 }
 
-export function useOrganizerDirectory(params?: { category?: string; q?: string; page?: number }) {
+export function useOrganizerDirectory(params?: {
+  category?: string;
+  q?: string;
+  page?: number;
+  order_by?: string;
+  order?: string;
+}) {
   return useQuery({
     queryKey: ["admin", "organizer-directory", params],
     queryFn: async () => {
@@ -159,6 +193,8 @@ export function useOrganizerDirectory(params?: { category?: string; q?: string; 
           page_size: 100,
           category: params?.category || undefined,
           q: params?.q || undefined,
+          order_by: params?.order_by,
+          order: params?.order,
         },
       });
       return data as { items: OrganizerDirectoryItem[]; total: number };

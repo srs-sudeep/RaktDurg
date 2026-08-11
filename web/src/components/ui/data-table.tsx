@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { SortDir } from "@/lib/table-query";
 
 export type DataTableColumn<T> = {
   id: string;
@@ -7,6 +9,10 @@ export type DataTableColumn<T> = {
   cell: (row: T) => ReactNode;
   className?: string;
   headerClassName?: string;
+  /** Enable click-to-sort on this column (server or client). */
+  sortable?: boolean;
+  /** Sort key sent to API / used client-side (defaults to id). */
+  sortKey?: string;
 };
 
 export type DataTableProps<T> = {
@@ -19,7 +25,15 @@ export type DataTableProps<T> = {
   onRowClick?: (row: T) => void;
   toolbar?: ReactNode;
   footer?: ReactNode;
+  orderBy?: string;
+  order?: SortDir;
+  onSort?: (sortKey: string) => void;
 };
+
+function SortIcon({ active, dir }: { active: boolean; dir?: SortDir }) {
+  if (!active) return <ArrowUpDown className="h-3 w-3 opacity-40" />;
+  return dir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+}
 
 export function DataTable<T>({
   columns,
@@ -31,44 +45,65 @@ export function DataTable<T>({
   onRowClick,
   toolbar,
   footer,
+  orderBy,
+  order,
+  onSort,
 }: DataTableProps<T>) {
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-lg border border-slate-200/90 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]",
+        "surface-card",
         className
       )}
     >
       {toolbar && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/80 px-3 py-2">
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100/90 bg-gradient-to-r from-slate-50/90 to-white px-3.5 py-2.5">
           {toolbar}
         </div>
       )}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-left text-[13px]">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500">
-              {columns.map((col) => (
-                <th
-                  key={col.id}
-                  className={cn("whitespace-nowrap px-3 py-2.5 font-semibold", col.headerClassName, col.className)}
-                >
-                  {col.header}
-                </th>
-              ))}
+            <tr className="border-b border-slate-200/90 bg-slate-50/90 text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500">
+              {columns.map((col) => {
+                const sortKey = col.sortKey ?? col.id;
+                const active = !!onSort && !!col.sortable && orderBy === sortKey;
+                return (
+                  <th
+                    key={col.id}
+                    className={cn("whitespace-nowrap px-3.5 py-3 font-semibold", col.headerClassName, col.className)}
+                  >
+                    {col.sortable && onSort ? (
+                      <button
+                        type="button"
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded px-0.5 py-0.5 hover:text-slate-800",
+                          active && "text-slate-900"
+                        )}
+                        onClick={() => onSort(sortKey)}
+                      >
+                        {col.header}
+                        <SortIcon active={active} dir={order} />
+                      </button>
+                    ) : (
+                      col.header
+                    )}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={columns.length} className="px-3 py-10 text-center text-slate-500">
+                <td colSpan={columns.length} className="px-3.5 py-12 text-center text-slate-500">
                   Loading…
                 </td>
               </tr>
             )}
             {!isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={columns.length} className="px-3 py-10 text-center text-slate-500">
+                <td colSpan={columns.length} className="px-3.5 py-12 text-center text-slate-500">
                   {emptyMessage}
                 </td>
               </tr>
@@ -79,13 +114,13 @@ export function DataTable<T>({
                   key={rowKey(row)}
                   className={cn(
                     "border-b border-slate-100/90 last:border-0 transition-colors",
-                    idx % 2 === 1 && "bg-slate-50/40",
-                    onRowClick && "cursor-pointer hover:bg-red-50/40"
+                    idx % 2 === 1 && "bg-slate-50/50",
+                    onRowClick && "cursor-pointer hover:bg-red-50/50"
                   )}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                 >
                   {columns.map((col) => (
-                    <td key={col.id} className={cn("px-3 py-2.5 align-middle text-slate-800", col.className)}>
+                    <td key={col.id} className={cn("px-3.5 py-2.5 align-middle text-slate-800", col.className)}>
                       {col.cell(row)}
                     </td>
                   ))}
@@ -95,7 +130,7 @@ export function DataTable<T>({
         </table>
       </div>
       {footer && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/70 px-3 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/80 px-3.5 py-2.5">
           {footer}
         </div>
       )}

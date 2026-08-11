@@ -17,14 +17,39 @@ export interface Requisition {
   fulfilled_at: string | null;
 }
 
-export function useRequisitions(facilityId?: string | null) {
+export type RequisitionListParams = {
+  facility_id?: string | null;
+  page?: number;
+  page_size?: number;
+  q?: string;
+  status?: string;
+  blood_group?: string;
+  priority?: string;
+  order_by?: string;
+  order?: string;
+};
+
+export function useRequisitions(params: RequisitionListParams | string | null | undefined = {}) {
+  const normalized: RequisitionListParams =
+    typeof params === "string" || params == null
+      ? { facility_id: params }
+      : params;
+  const query = {
+    facility_id: normalized.facility_id || undefined,
+    page: normalized.page ?? 1,
+    page_size: normalized.page_size ?? 50,
+    q: normalized.q,
+    status: normalized.status,
+    blood_group: normalized.blood_group,
+    priority: normalized.priority,
+    order_by: normalized.order_by,
+    order: normalized.order,
+  };
   return useQuery({
-    queryKey: ["requisitions", facilityId],
+    queryKey: ["requisitions", query],
     queryFn: async () => {
-      const { data } = await apiClient.get("/requisitions", {
-        params: { facility_id: facilityId || undefined, page_size: 50 },
-      });
-      return data as { items: Requisition[]; total: number };
+      const { data } = await apiClient.get("/requisitions", { params: query });
+      return data as { items: Requisition[]; total: number; page: number; page_size: number };
     },
   });
 }

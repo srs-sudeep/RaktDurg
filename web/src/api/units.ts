@@ -15,14 +15,37 @@ export interface BloodUnit {
   created_at: string;
 }
 
-export function useUnits(facilityId?: string | null) {
+export type UnitListParams = {
+  facility_id?: string | null;
+  page?: number;
+  page_size?: number;
+  q?: string;
+  blood_group?: string;
+  lifecycle_state?: string;
+  order_by?: string;
+  order?: string;
+};
+
+export function useUnits(params: UnitListParams | string | null | undefined = {}) {
+  const normalized: UnitListParams =
+    typeof params === "string" || params == null
+      ? { facility_id: params }
+      : params;
+  const query = {
+    facility_id: normalized.facility_id || undefined,
+    page: normalized.page ?? 1,
+    page_size: normalized.page_size ?? 50,
+    q: normalized.q,
+    blood_group: normalized.blood_group,
+    lifecycle_state: normalized.lifecycle_state,
+    order_by: normalized.order_by,
+    order: normalized.order,
+  };
   return useQuery({
-    queryKey: ["units", facilityId],
+    queryKey: ["units", query],
     queryFn: async () => {
-      const { data } = await apiClient.get("/units", {
-        params: { facility_id: facilityId || undefined, page_size: 50 },
-      });
-      return data as { items: BloodUnit[]; total: number };
+      const { data } = await apiClient.get("/units", { params: query });
+      return data as { items: BloodUnit[]; total: number; page: number; page_size: number };
     },
   });
 }

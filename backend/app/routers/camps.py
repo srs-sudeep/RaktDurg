@@ -47,20 +47,39 @@ async def list_camps(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     camp_status: CampStatusEnum | None = None,
+    q: str | None = Query(None, max_length=100),
+    order_by: str | None = Query(None, description="requested_date|camp_name|status|created_at"),
+    order: str | None = Query("desc", pattern="^(asc|desc)$"),
     _actor=Depends(require_roles(
         UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR,
         UserRoleEnum.ORGANIZER, UserRoleEnum.DISTRICT_ADMIN,
     )),
     db: AsyncSession = Depends(get_db),
 ):
+    from app.core.query import apply_ilike_search, apply_order
+
     stmt = select(Camp)
     if camp_status:
         stmt = stmt.where(Camp.status == camp_status)
+    stmt = apply_ilike_search(stmt, q, Camp.camp_name, Camp.location)
 
     count_result = await db.execute(select(func.count()).select_from(stmt.subquery()))
     total = count_result.scalar_one()
 
-    stmt = stmt.order_by(Camp.requested_date.desc()).offset((page - 1) * page_size).limit(page_size)
+    stmt = apply_order(
+        stmt,
+        order_by=order_by,
+        order=order,
+        allowlist={
+            "requested_date": Camp.requested_date,
+            "camp_name": Camp.camp_name,
+            "status": Camp.status,
+            "created_at": Camp.created_at,
+        },
+        default="requested_date",
+        default_dir="desc",
+    )
+    stmt = stmt.offset((page - 1) * page_size).limit(page_size)
     rows = (await db.execute(stmt)).scalars().all()
 
     return CampListResponse(
@@ -74,12 +93,17 @@ async def list_camps(
 @router.get("/bookings/list", response_model=list[StaffCampBookingOut])
 async def list_camp_bookings(
     status: str | None = Query(None, description="Filter by booking status"),
+    q: str | None = Query(None, max_length=100),
+    order_by: str | None = Query(None, description="created_at|status|camp_name|donor_name"),
+    order: str | None = Query("desc", pattern="^(asc|desc)$"),
     _actor=Depends(require_roles(
         UserRoleEnum.SUPERADMIN, UserRoleEnum.DOCTOR, UserRoleEnum.DISTRICT_ADMIN,
     )),
     db: AsyncSession = Depends(get_db),
 ):
-    return await list_staff_camp_bookings(db, status=status)
+    return await list_staff_camp_bookings(
+        db, status=status, q=q, order_by=order_by, order=order
+    )
 
 
 @router.post("/bookings/{booking_id}/review", response_model=StaffCampBookingOut)

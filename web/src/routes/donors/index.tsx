@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { FormActions, FormField, FormGrid, FormInput, FormSelect } from "@/components/ui/form";
 import { PageHeader, Panel } from "@/components/ui/panel";
+import { TablePagination, TableToolbar } from "@/components/ui/table-toolbar";
+import { useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
 import { bloodGroupColor, cn } from "@/lib/utils";
 
@@ -17,12 +19,21 @@ type DonorRow = {
   blood_group: string | null;
   contact_phone: string;
   status: string;
+  created_at?: string;
 };
 
 export default function DonorsPage() {
-  const [page, setPage] = useState(1);
+  const table = useTableQuery({ defaultOrderBy: "created_at", defaultOrder: "desc", pageSize: 20 });
   const [showForm, setShowForm] = useState(false);
-  const { data, isLoading } = useDonors(page);
+  const { data, isLoading } = useDonors({
+    page: table.page,
+    page_size: table.pageSize,
+    q: table.q || undefined,
+    blood_group: table.filters.blood_group || undefined,
+    status: table.filters.status || undefined,
+    order_by: table.orderBy,
+    order: table.order,
+  });
   const create = useCreateDonor();
   const navigate = useNavigate();
 
@@ -52,6 +63,7 @@ export default function DonorsPage() {
       {
         id: "name",
         header: "Name",
+        sortable: true,
         cell: (d) => (
           <Link to={`/donors/${d.id}`} className="font-medium text-red-700 hover:underline">
             {d.name}
@@ -59,8 +71,9 @@ export default function DonorsPage() {
         ),
       },
       {
-        id: "group",
+        id: "blood_group",
         header: "Group",
+        sortable: true,
         cell: (d) => (
           <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-semibold", bloodGroupColor(d.blood_group ?? ""))}>
             {d.blood_group ?? "—"}
@@ -68,7 +81,7 @@ export default function DonorsPage() {
         ),
       },
       { id: "phone", header: "Phone", cell: (d) => d.contact_phone },
-      { id: "status", header: "Status", cell: (d) => <Badge>{d.status}</Badge> },
+      { id: "status", header: "Status", sortable: true, cell: (d) => <Badge>{d.status}</Badge> },
     ],
     []
   );
@@ -76,8 +89,6 @@ export default function DonorsPage() {
   return (
     <div className="space-y-3">
       <PageHeader
-        title="Donors"
-        description="Register and look up donor master records."
         actions={
           <Button onClick={() => setShowForm((v) => !v)}>
             {showForm ? "Close form" : "Register donor"}
@@ -134,12 +145,41 @@ export default function DonorsPage() {
         rowKey={(d) => d.id}
         isLoading={isLoading}
         onRowClick={(d) => navigate(`/donors/${d.id}`)}
-        emptyMessage="No donors registered yet."
+        emptyMessage="No donors match this filter."
+        orderBy={table.orderBy}
+        order={table.order}
+        onSort={table.toggleSort}
+        toolbar={
+          <TableToolbar
+            search={{ value: table.qInput, onChange: table.setQInput }}
+            searchPlaceholder="Search name or phone…"
+            filters={[
+              {
+                key: "blood_group",
+                label: "All groups",
+                options: GROUPS.map((g) => ({ value: g, label: g })),
+              },
+              {
+                key: "status",
+                label: "All statuses",
+                options: [
+                  { value: "active", label: "Active" },
+                  { value: "deferred", label: "Deferred" },
+                  { value: "inactive", label: "Inactive" },
+                ],
+              },
+            ]}
+            filterValues={table.filters}
+            onFilterChange={table.setFilter}
+          />
+        }
         footer={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Prev</Button>
-            <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)}>Next</Button>
-          </div>
+          <TablePagination
+            page={table.page}
+            pageSize={table.pageSize}
+            total={data?.total ?? 0}
+            onPageChange={table.setPage}
+          />
         }
       />
     </div>

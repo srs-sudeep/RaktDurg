@@ -54,16 +54,38 @@ async def list_donors(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     blood_group: str | None = None,
+    status: str | None = None,
+    q: str | None = Query(None, max_length=100),
+    order_by: str | None = Query(None, description="name|created_at|blood_group|status"),
+    order: str | None = Query("desc", pattern="^(asc|desc)$"),
     _actor=Depends(require_roles(*_CLINICAL_ROLES)),
     db: AsyncSession = Depends(get_db),
 ):
+    from app.core.query import apply_ilike_search, apply_order
+
     stmt = select(Donor)
     if blood_group:
         stmt = stmt.where(Donor.blood_group == blood_group)
+    if status:
+        stmt = stmt.where(Donor.status == status)
+    stmt = apply_ilike_search(stmt, q, Donor.name, Donor.contact_phone)
 
     count_result = await db.execute(select(func.count()).select_from(stmt.subquery()))
     total = count_result.scalar_one()
 
+    stmt = apply_order(
+        stmt,
+        order_by=order_by,
+        order=order,
+        allowlist={
+            "name": Donor.name,
+            "created_at": Donor.created_at,
+            "blood_group": Donor.blood_group,
+            "status": Donor.status,
+        },
+        default="created_at",
+        default_dir="desc",
+    )
     stmt = stmt.offset((page - 1) * page_size).limit(page_size)
     rows = (await db.execute(stmt)).scalars().all()
 
