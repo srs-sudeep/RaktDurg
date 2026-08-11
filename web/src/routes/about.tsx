@@ -28,8 +28,12 @@ export default function AboutPage() {
           </p>
         </section>
 
-        <div className="mt-10 flex flex-col items-center gap-4">
-          <img src="/IIT_Bhilai.svg" alt="IIT Bhilai" className="h-16 opacity-90" />
+        <div className="mt-10 flex flex-col items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-8">
+            <img src="/IIT_Bhilai.svg" alt="IIT Bhilai" className="h-16 opacity-90" />
+            <img src="/IBITF.jpeg" alt="IBITF" className="h-14 rounded-md object-contain" />
+            <img src="/recogx.webp" alt="Recogx Init" className="h-10 object-contain" />
+          </div>
           <BrandingFooter showAboutLink={false} />
         </div>
       </main>
