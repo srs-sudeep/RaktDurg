@@ -13,18 +13,25 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.models.camp import Camp, CampCoupon
 from app.models.donor import Organizer
-from app.models.enums import CampStatusEnum
-from app.schemas.camps import CampApplyRequest, CampReviewRequest
+from app.models.enums import CampStatusEnum, VenueModeEnum
+from app.schemas.camps import DISTRICT_BB_LOCATION, CampApplyRequest, CampReviewRequest
 
 
 class CampCalendarConflict(Exception):
     pass
+
+
+def _resolve_location(request: CampApplyRequest) -> str:
+    if request.venue_mode == VenueModeEnum.DISTRICT_BLOOD_BANK:
+        return request.location or DISTRICT_BB_LOCATION
+    assert request.location  # validated by schema
+    return request.location
 
 
 async def apply_for_camp(
@@ -39,13 +46,24 @@ async def apply_for_camp(
     if not organizer:
         raise ValueError("You must be a registered organizer to apply for a camp")
 
+    alternate = (
+        [d.isoformat() for d in request.alternate_dates]
+        if request.alternate_dates
+        else None
+    )
+
     camp = Camp(
         organizer_id=organizer.id,
         host_facility_id=request.host_facility_id,
         camp_name=request.camp_name,
         requested_date=request.requested_date,
-        location=request.location,
+        location=_resolve_location(request),
         expected_donors=request.expected_donors,
+        venue_mode=request.venue_mode,
+        alternate_dates=alternate,
+        special_date_note=request.special_date_note,
+        camps_per_year=request.camps_per_year,
+        notes=request.notes,
         status=CampStatusEnum.SUBMITTED,
     )
     db.add(camp)
@@ -88,7 +106,8 @@ async def review_camp(
 
 
 async def _generate_coupons(camp: Camp, db: AsyncSession) -> None:
-    for i in range(1, camp.expected_donors + 1):
+    count = camp.expected_donors or 0
+    for i in range(1, count + 1):
         coupon = CampCoupon(
             camp_id=camp.id,
             coupon_code=f"{camp.coupon_prefix}-{i:04d}",

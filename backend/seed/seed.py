@@ -13,19 +13,21 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.config import settings
+from app.models.donor import Donor, Organizer
+from app.models.facility import Facility
+from app.models.auth import User
+from app.models.audit import FeatureFlag
 from app.models.enums import (
     BloodGroupEnum,
     ComponentTypeEnum,
     DonorStatusEnum,
+    OrgCategoryEnum,
     SexEnum,
     UserRoleEnum,
 )
-from app.models.donor import Donor
-from app.models.facility import Facility
-from app.models.auth import User
-from app.models.audit import FeatureFlag
 from app.models.stock import AlertThreshold as AlertThresholdModel
 from app.services.auth import hash_password
+from seed.organizers_directory import seed_organizer_directory
 
 fake = Faker("en_IN")
 random.seed(42)
@@ -93,6 +95,24 @@ async def seed(db: AsyncSession) -> None:
     db.add(citizen_donor)
     await db.flush()
 
+    print("Seeding organizer profile…")
+    db.add(
+        Organizer(
+            user_id=users[UserRoleEnum.ORGANIZER].id,
+            org_name="Seed Organizer Society",
+            org_type="ngo",
+            org_category=OrgCategoryEnum.SOCIAL_ORG,
+            contact_name="Seed Organizer",
+            contact_role="अध्यक्ष",
+            contact_phone=fake.msisdn()[:20],
+            contact_email="seed_organizer@rakt.local",
+            contact_address="Civil Lines, Durg",
+            address="Near District Hospital, Durg",
+            is_verified=True,
+        )
+    )
+    await db.flush()
+
     print("Seeding alert thresholds…")
     for bg in BLOOD_GROUPS:
         for ct in COMPONENT_TYPES:
@@ -128,6 +148,10 @@ async def seed(db: AsyncSession) -> None:
         ))
     else:
         flag.is_enabled = True
+
+    print("Seeding organizer directory…")
+    dir_count = await seed_organizer_directory(db)
+    print(f"  Directory contacts: {dir_count}")
 
     await db.commit()
     print("Seed complete.")

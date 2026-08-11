@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../data/remote/api_client.dart';
 import '../auth/auth_notifier.dart';
 import '../../widgets/branding_widgets.dart';
@@ -184,13 +187,19 @@ class CitizenHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _CitizenAsyncPage<List<dynamic>>(
+    return _CitizenAsyncPage<_HistoryBundle>(
       title: 'Donation History',
-      future: ApiClient.instance.getCitizenDonations(),
+      future: () async {
+        final donations = await ApiClient.instance.getCitizenDonations();
+        final certificates = await ApiClient.instance.getCitizenCertificates();
+        return _HistoryBundle(donations: donations, certificates: certificates);
+      }(),
       builder: (context, data) => ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          for (final item in data)
+          const Text('Donations', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          for (final item in data.donations)
             Card(
               margin: const EdgeInsets.only(bottom: 10),
               child: ListTile(
@@ -200,12 +209,84 @@ class CitizenHistoryScreen extends StatelessWidget {
                 trailing: Text(item['volume_ml'] == null ? '—' : '${item['volume_ml']} ml'),
               ),
             ),
-          if (data.isEmpty)
+          if (data.donations.isEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.only(bottom: 16),
               child: Text('No donation history yet.', style: TextStyle(color: Colors.grey.shade600)),
             ),
+          const SizedBox(height: 12),
+          const Text('Certificates', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          for (final raw in data.certificates)
+            _CertificateTile(cert: raw as Map<String, dynamic>),
+          if (data.certificates.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                'Certificates appear after a donation is recorded.',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ),
         ],
+      ),
+    );
+  }
+}
+
+class _HistoryBundle {
+  const _HistoryBundle({required this.donations, required this.certificates});
+  final List<dynamic> donations;
+  final List<dynamic> certificates;
+}
+
+class _CertificateTile extends StatefulWidget {
+  const _CertificateTile({required this.cert});
+  final Map<String, dynamic> cert;
+
+  @override
+  State<_CertificateTile> createState() => _CertificateTileState();
+}
+
+class _CertificateTileState extends State<_CertificateTile> {
+  bool _busy = false;
+
+  Future<void> _download() async {
+    setState(() => _busy = true);
+    try {
+      final id = widget.cert['id'] as String;
+      final number = (widget.cert['certificate_number'] as String?) ?? 'certificate';
+      final bytes = await ApiClient.instance.downloadCitizenCertificatePdf(id);
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/$number.pdf');
+      await file.writeAsBytes(bytes, flush: true);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Certificate saved to ${file.path}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Download failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cert = widget.cert;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        title: Text('${cert['certificate_number'] ?? 'Certificate'}'),
+        subtitle: Text(
+          '${cert['donor_name'] ?? ''} · ${cert['blood_group'] ?? '—'} · ${cert['donation_date'] ?? ''}',
+        ),
+        trailing: TextButton(
+          onPressed: _busy ? null : _download,
+          child: Text(_busy ? '…' : 'PDF'),
+        ),
       ),
     );
   }

@@ -82,6 +82,9 @@ seed: ## Run basic seed (one user per role + facility)
 demo-seed: ## Run comprehensive demo seed with realistic blood bank data
 	docker compose -f infra/docker-compose.yml exec api python -m seed.demo_seed
 
+seed-organizers: ## Upsert Red Cross organizer directory contacts
+	docker compose -f infra/docker-compose.yml exec api python -m seed.organizers_directory
+
 # ── Backend tests & lint ──────────────────────────────────────────────────────
 test: ## Run backend test suite
 	cd backend && pytest -q

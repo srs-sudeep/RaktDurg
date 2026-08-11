@@ -53,6 +53,20 @@ export interface CitizenDonation {
   volume_ml: number | null;
 }
 
+export interface DonationCertificate {
+  id: string;
+  donation_id: string;
+  donor_id: string;
+  facility_id: string;
+  certificate_number: string;
+  donor_name: string;
+  blood_group: string | null;
+  donation_date: string;
+  volume_ml: number | null;
+  issued_at: string;
+  created_at: string;
+}
+
 export interface PublicCamp {
   id: string;
   camp_name: string;
@@ -79,6 +93,7 @@ export const citizenKeys = {
   profile: ["citizen", "profile"] as const,
   wallet: ["citizen", "wallet"] as const,
   donations: ["citizen", "donations"] as const,
+  certificates: ["citizen", "certificates"] as const,
   bookings: ["citizen", "bookings"] as const,
   camps: ["citizen", "public-camps"] as const,
 };
@@ -111,6 +126,30 @@ export function useCitizenDonations() {
       return data as CitizenDonation[];
     },
   });
+}
+
+export function useCitizenCertificates() {
+  return useQuery({
+    queryKey: citizenKeys.certificates,
+    queryFn: async () => {
+      const { data } = await apiClient.get("/citizen/certificates");
+      return data as DonationCertificate[];
+    },
+  });
+}
+
+export async function downloadCitizenCertificatePdf(certificateId: string, filename: string) {
+  const { data } = await apiClient.get(`/citizen/certificates/${certificateId}/pdf`, {
+    responseType: "blob",
+  });
+  const url = window.URL.createObjectURL(new Blob([data], { type: "application/pdf" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename.endsWith(".pdf") ? filename : `${filename}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
 }
 
 export function useCitizenBookings() {

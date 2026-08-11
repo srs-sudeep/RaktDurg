@@ -5,7 +5,7 @@ from .base import Base
 from .enums import *  # noqa: F401, F403 — re-export all enums for convenience
 from .facility import Facility
 from .auth import User, RefreshToken
-from .donor import Donor, Organizer, Screening, Donation
+from .donor import Donor, Organizer, OrganizerDirectory, Screening, Donation, DonationCertificate
 from .unit import BloodUnit, TestResult, Component
 from .camp import Camp, CampCoupon, CampBooking
 from .stock import StockLedger, AlertThreshold, BarcodeSequence, BarcodeAllocation
@@ -21,8 +21,10 @@ __all__ = [
     "RefreshToken",
     "Donor",
     "Organizer",
+    "OrganizerDirectory",
     "Screening",
     "Donation",
+    "DonationCertificate",
     "BloodUnit",
     "TestResult",
     "Component",

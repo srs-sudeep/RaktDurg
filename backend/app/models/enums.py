@@ -77,6 +77,23 @@ class CampStatusEnum(str, enum.Enum):
     COMPLETED = "completed"
 
 
+class OrgCategoryEnum(str, enum.Enum):
+    COMMUNITY_SOCIETY = "community_society"
+    SOCIAL_ORG = "social_org"
+    POLICE_PARAMILITARY = "police_paramilitary"
+    GOVT_UNION = "govt_union"
+    EDUCATIONAL = "educational"
+    INDUSTRIAL = "industrial"
+    POLITICAL = "political"
+    DEPARTMENTAL_OFFICER = "departmental_officer"
+    OTHER = "other"
+
+
+class VenueModeEnum(str, enum.Enum):
+    DISTRICT_BLOOD_BANK = "district_blood_bank"
+    ORGANIZER_VENUE = "organizer_venue"
+
+
 class RequisitionStatusEnum(str, enum.Enum):
     PENDING = "pending"
     PARTIALLY_RESERVED = "partially_reserved"

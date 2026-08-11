@@ -3,11 +3,13 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.middleware.rbac import require_roles
 from app.models.enums import UserRoleEnum
+from app.schemas.certificates import DonationCertificateOut
 from app.schemas.citizen import (
     CampBookingCreateRequest,
     CampBookingOut,
@@ -18,6 +20,12 @@ from app.schemas.citizen import (
     PublicCampOut,
     PublicFacilityOut,
 )
+from app.services.certificates import (
+    CertificateError,
+    get_certificate,
+    list_certificates_for_donor,
+    render_certificate_pdf,
+)
 from app.services.citizen import (
     CitizenAccessError,
     cancel_citizen_booking,
@@ -25,6 +33,7 @@ from app.services.citizen import (
     get_citizen_profile,
     get_citizen_stock,
     get_citizen_wallet,
+    get_linked_donor,
     get_public_default_facility,
     list_citizen_bookings,
     list_citizen_donations,
@@ -73,6 +82,47 @@ async def my_donations(
         return await list_citizen_donations(actor, db)
     except CitizenAccessError as exc:
         raise HTTPException(status_code=409, detail=str(exc))
+
+
+@router.get("/certificates", response_model=list[DonationCertificateOut])
+async def my_certificates(
+    actor=Depends(require_roles(UserRoleEnum.CITIZEN)),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        donor = await get_linked_donor(actor, db)
+        certs = await list_certificates_for_donor(donor.id, db)
+    except CitizenAccessError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+    await db.commit()
+    return certs
+
+
+@router.get("/certificates/{certificate_id}/pdf")
+async def my_certificate_pdf(
+    certificate_id: uuid.UUID,
+    actor=Depends(require_roles(UserRoleEnum.CITIZEN)),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        donor = await get_linked_donor(actor, db)
+        cert = await get_certificate(certificate_id, db)
+    except CitizenAccessError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+    except CertificateError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+    if cert.donor_id != donor.id:
+        raise HTTPException(status_code=403, detail="Certificate does not belong to this citizen")
+
+    pdf = render_certificate_pdf(cert)
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{cert.certificate_number}.pdf"'
+        },
+    )
 
 
 @router.get("/wallet", response_model=CitizenWalletOut)

@@ -53,6 +53,15 @@ def upgrade() -> None:
           ('draft','submitted','under_review','approved','rejected','cancelled','completed')
     """)
     op.execute("""
+        CREATE TYPE org_category_enum AS ENUM
+          ('community_society','social_org','police_paramilitary','govt_union',
+           'educational','industrial','political','departmental_officer','other')
+    """)
+    op.execute("""
+        CREATE TYPE venue_mode_enum AS ENUM
+          ('district_blood_bank','organizer_venue')
+    """)
+    op.execute("""
         CREATE TYPE requisition_status_enum AS ENUM
           ('pending','partially_reserved','fully_reserved',
            'partially_issued','issued','cancelled')
@@ -171,19 +180,37 @@ def upgrade() -> None:
 
     op.execute("""
         CREATE TABLE organizers (
-            id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            user_id       UUID NOT NULL UNIQUE REFERENCES users(id),
-            org_name      VARCHAR(200) NOT NULL,
-            org_type      VARCHAR(50),
-            contact_name  VARCHAR(200),
-            contact_phone VARCHAR(20),
-            contact_email VARCHAR(200),
-            address       TEXT,
-            is_verified   BOOLEAN NOT NULL DEFAULT FALSE,
-            created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-            updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id          UUID NOT NULL UNIQUE REFERENCES users(id),
+            org_name         VARCHAR(200) NOT NULL,
+            org_type         VARCHAR(50),
+            org_category     org_category_enum,
+            contact_name     VARCHAR(200),
+            contact_role     VARCHAR(100),
+            contact_phone    VARCHAR(20),
+            contact_email    VARCHAR(200),
+            contact_address  TEXT,
+            address          TEXT,
+            is_verified      BOOLEAN NOT NULL DEFAULT FALSE,
+            created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
     """)
+
+    op.execute("""
+        CREATE TABLE organizer_directory (
+            id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            category      org_category_enum NOT NULL,
+            org_name      VARCHAR(300) NOT NULL,
+            contact_role  VARCHAR(100),
+            location      VARCHAR(200),
+            mobile        VARCHAR(20),
+            source_serial INTEGER,
+            created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+    """)
+    op.execute("CREATE INDEX idx_organizer_directory_category ON organizer_directory(category)")
+    op.execute("CREATE INDEX idx_organizer_directory_mobile ON organizer_directory(mobile)")
 
     # screenings — camp_id FK added after camps table is created
     op.execute("""
@@ -226,6 +253,10 @@ def upgrade() -> None:
             requested_date    DATE NOT NULL,
             location          VARCHAR(300) NOT NULL,
             expected_donors   SMALLINT,
+            venue_mode        venue_mode_enum NOT NULL DEFAULT 'district_blood_bank',
+            alternate_dates   JSONB,
+            special_date_note VARCHAR(300),
+            camps_per_year    SMALLINT,
             status            camp_status_enum NOT NULL DEFAULT 'draft',
             coupon_prefix     VARCHAR(10),
             approved_by       UUID REFERENCES users(id),
@@ -306,6 +337,23 @@ def upgrade() -> None:
         "CREATE UNIQUE INDEX idx_donations_sync_uniq ON donations(sync_id) "
         "WHERE sync_id IS NOT NULL"
     )
+
+    op.execute("""
+        CREATE TABLE donation_certificates (
+            id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            donation_id         UUID NOT NULL UNIQUE REFERENCES donations(id),
+            donor_id            UUID NOT NULL REFERENCES donors(id),
+            facility_id         UUID NOT NULL REFERENCES facilities(id),
+            certificate_number  VARCHAR(40) NOT NULL UNIQUE,
+            donor_name          VARCHAR(200) NOT NULL,
+            blood_group         VARCHAR(5),
+            donation_date       DATE NOT NULL,
+            volume_ml           SMALLINT,
+            issued_at           TIMESTAMPTZ NOT NULL,
+            created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+    """)
+    op.execute("CREATE INDEX idx_donation_certificates_donor ON donation_certificates(donor_id)")
 
     op.execute("""
         CREATE TABLE blood_units (
@@ -638,12 +686,13 @@ def downgrade() -> None:
         "wallet_family_links", "wallet_transactions", "wallet_accounts",
         "issues", "requisitions", "barcode_allocations", "barcode_sequences",
         "alert_thresholds", "stock_ledger", "components", "test_results",
-        "blood_units", "donations", "camp_bookings", "camp_coupons",
+        "blood_units", "donations", "donation_certificates", "camp_bookings", "camp_coupons",
     ]:
         op.execute(f"DROP TABLE IF EXISTS {tbl} CASCADE")
     op.execute("ALTER TABLE screenings DROP CONSTRAINT IF EXISTS fk_screenings_camp")
     op.execute("DROP TABLE IF EXISTS screenings CASCADE")
     op.execute("DROP TABLE IF EXISTS camps CASCADE")
+    op.execute("DROP TABLE IF EXISTS organizer_directory CASCADE")
     op.execute("DROP TABLE IF EXISTS organizers CASCADE")
     op.execute("DROP TABLE IF EXISTS donors CASCADE")
     op.execute("DROP TABLE IF EXISTS refresh_tokens CASCADE")
@@ -655,7 +704,8 @@ def downgrade() -> None:
         "user_role_enum", "donor_status_enum", "sync_status_enum",
         "audit_actor_type", "notification_status_enum", "notification_channel_enum",
         "wallet_txn_type_enum", "ledger_reason_enum", "requisition_priority_enum",
-        "requisition_status_enum", "camp_status_enum", "eligibility_result_enum",
+        "requisition_status_enum", "venue_mode_enum", "org_category_enum", "camp_status_enum",
+        "eligibility_result_enum",
         "test_result_enum", "component_state_enum", "unit_release_status",
         "unit_lifecycle_state", "component_type_enum", "sex_enum", "blood_group_enum",
     ]:

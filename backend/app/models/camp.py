@@ -2,11 +2,11 @@ import uuid
 from datetime import date, datetime
 
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID as PgUUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, CreatedAtMixin, TimestampMixin, UUIDPrimaryKeyMixin
-from .enums import CampStatusEnum
+from .enums import CampStatusEnum, VenueModeEnum
 
 
 class Camp(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -22,6 +22,18 @@ class Camp(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     requested_date: Mapped[date] = mapped_column(sa.Date, nullable=False)
     location: Mapped[str] = mapped_column(sa.String(300), nullable=False)
     expected_donors: Mapped[int | None] = mapped_column(sa.SmallInteger, nullable=True)
+    venue_mode: Mapped[VenueModeEnum] = mapped_column(
+        sa.Enum(
+            VenueModeEnum,
+            name="venue_mode_enum",
+            values_callable=lambda e: [i.value for i in e],
+        ),
+        nullable=False,
+        default=VenueModeEnum.DISTRICT_BLOOD_BANK,
+    )
+    alternate_dates: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    special_date_note: Mapped[str | None] = mapped_column(sa.String(300), nullable=True)
+    camps_per_year: Mapped[int | None] = mapped_column(sa.SmallInteger, nullable=True)
     status: Mapped[CampStatusEnum] = mapped_column(
         sa.Enum(CampStatusEnum, name="camp_status_enum", values_callable=lambda e: [i.value for i in e]),
         nullable=False,

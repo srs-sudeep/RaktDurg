@@ -182,6 +182,16 @@ async def run(db: AsyncSession) -> None:
         {"fid": str(facility_id)},
     )
     await db.execute(
+        text(
+            """
+            DELETE FROM donation_certificates
+            WHERE facility_id = :fid
+               OR donation_id IN (SELECT id FROM donations WHERE facility_id = :fid)
+            """
+        ),
+        {"fid": str(facility_id)},
+    )
+    await db.execute(
         text("DELETE FROM donations WHERE facility_id = :fid"),
         {"fid": str(facility_id)},
     )
@@ -293,9 +303,11 @@ async def run(db: AsyncSession) -> None:
     org_id = uid()
     await db.execute(
         text("""
-            INSERT INTO organizers (id, user_id, org_name, org_type, contact_name, contact_phone,
-                                    contact_email, is_verified, created_at, updated_at)
-            VALUES (:id, :uid, :oname, :otype, :contact, :phone, :email, true, now(), now())
+            INSERT INTO organizers (id, user_id, org_name, org_type, org_category, contact_name,
+                                    contact_role, contact_phone, contact_email, contact_address,
+                                    address, is_verified, created_at, updated_at)
+            VALUES (:id, :uid, :oname, :otype, :ocat, :contact, :role, :phone, :email, :caddr,
+                    :addr, true, now(), now())
             ON CONFLICT (user_id) DO NOTHING
         """),
         {
@@ -303,9 +315,13 @@ async def run(db: AsyncSession) -> None:
             "uid": str(organizer_user_id),
             "oname": "Lions Club Durg",
             "otype": "ngo",
+            "ocat": "social_org",
             "contact": "Priya Sharma",
+            "role": "अध्यक्ष",
             "phone": "9876543210",
             "email": "lionsclub.durg@example.com",
+            "caddr": "Near Bus Stand, Durg",
+            "addr": "Lions Bhavan, Durg",
         },
     )
     organizer_result = await db.execute(
@@ -324,10 +340,11 @@ async def run(db: AsyncSession) -> None:
         await db.execute(
             text("""
                 INSERT INTO camps (id, organizer_id, host_facility_id, camp_name, requested_date, location,
-                                   expected_donors, status, coupon_prefix, approved_by, approval_datetime,
-                                   created_at, updated_at)
-                VALUES (:id, :oid, :fid, :name, :date, :loc, :exp, :status,
-                        :prefix, :approved_by, now(), now(), now())
+                                   expected_donors, venue_mode, alternate_dates, special_date_note,
+                                   camps_per_year, notes, status, coupon_prefix, approved_by,
+                                   approval_datetime, created_at, updated_at)
+                VALUES (:id, :oid, :fid, :name, :date, :loc, :exp, :venue, :alts, :special,
+                        :cpy, :notes, :status, :prefix, :approved_by, now(), now(), now())
                 ON CONFLICT DO NOTHING
             """),
             {
@@ -336,8 +353,15 @@ async def run(db: AsyncSession) -> None:
                 "fid": str(facility_id),
                 "name": camp_name,
                 "date": camp_date,
-                "loc": f"{fake.street_name()}, Durg",
+                "loc": "District Hospital Blood Bank, Durg"
+                if camp_name.startswith("Lions")
+                else f"{fake.street_name()}, Durg",
                 "exp": expected,
+                "venue": "district_blood_bank" if camp_name.startswith("Lions") else "organizer_venue",
+                "alts": None,
+                "special": "World Blood Donor Day drive" if camp_name.startswith("Lions") else None,
+                "cpy": 2,
+                "notes": "Demo Red Cross camp application fields",
                 "status": status.value,
                 "prefix": f"RD{str(camp_id)[:4].upper()}",
                 "approved_by": str(mo_id),
@@ -604,6 +628,11 @@ async def run(db: AsyncSession) -> None:
             },
         )
     print("  Wallet: enabled + citizen demo balance")
+
+    from seed.organizers_directory import seed_organizer_directory
+
+    dir_count = await seed_organizer_directory(db)
+    print(f"  Organizer directory: {dir_count} contacts")
 
     await db.commit()
 

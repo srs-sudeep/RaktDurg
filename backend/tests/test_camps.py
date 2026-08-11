@@ -63,3 +63,35 @@ async def test_review_requires_doctor(client: AsyncClient, seed_users):
         headers=auth_header(organizer),
     )
     assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_apply_requires_alternate_dates_over_350(client: AsyncClient, seed_users, facility, db):
+    from sqlalchemy import select
+
+    from app.models.donor import Organizer
+    from tests.conftest import auth_header
+
+    organizer_user = next(u for u in seed_users.values() if u.role.value == "organizer")
+    existing = await db.execute(select(Organizer).where(Organizer.user_id == organizer_user.id))
+    if existing.scalar_one_or_none() is None:
+        db.add(Organizer(user_id=organizer_user.id, org_name="Capacity Test Org"))
+        await db.commit()
+
+    payload = {
+        "host_facility_id": str(facility.id),
+        "camp_name": "Large Capacity Camp",
+        "requested_date": _FUTURE_DATE,
+        "venue_mode": "district_blood_bank",
+        "expected_donors": 400,
+    }
+    resp = await client.post("/camps", json=payload, headers=auth_header(organizer_user))
+    assert resp.status_code == 422
+
+    payload["alternate_dates"] = [(date.today() + timedelta(days=35)).isoformat()]
+    resp_ok = await client.post("/camps", json=payload, headers=auth_header(organizer_user))
+    assert resp_ok.status_code == 201
+    body = resp_ok.json()
+    assert body["venue_mode"] == "district_blood_bank"
+    assert body["location"] == "District Hospital Blood Bank, Durg"
+    assert body["expected_donors"] == 400

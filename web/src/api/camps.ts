@@ -9,6 +9,11 @@ export interface Camp {
   requested_date: string;
   location: string;
   expected_donors: number;
+  venue_mode?: string;
+  alternate_dates?: string[] | null;
+  special_date_note?: string | null;
+  camps_per_year?: number | null;
+  notes?: string | null;
   status: string;
   coupon_prefix: string | null;
   approved_by: string | null;

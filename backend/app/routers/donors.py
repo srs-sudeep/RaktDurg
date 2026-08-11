@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,6 +11,7 @@ from app.database import get_db
 from app.middleware.rbac import require_roles
 from app.models.donor import Donor, Screening
 from app.models.enums import UserRoleEnum
+from app.schemas.certificates import DonationCertificateOut
 from app.schemas.donors import (
     DonorCreateRequest,
     DonorListResponse,
@@ -17,6 +19,12 @@ from app.schemas.donors import (
     DonorUpdateRequest,
     ScreeningCreateRequest,
     ScreeningOut,
+)
+from app.services.certificates import (
+    CertificateError,
+    get_certificate,
+    list_certificates_for_donor,
+    render_certificate_pdf,
 )
 from app.services.donors import register_donor, screen_donor
 
@@ -132,3 +140,40 @@ async def list_screenings(
         .order_by(Screening.screening_datetime.desc())
     )
     return result.scalars().all()
+
+
+@router.get("/{donor_id}/certificates", response_model=list[DonationCertificateOut])
+async def list_donor_certificates(
+    donor_id: uuid.UUID,
+    _actor=Depends(require_roles(*_CLINICAL_ROLES)),
+    db: AsyncSession = Depends(get_db),
+):
+    donor = await db.get(Donor, donor_id)
+    if not donor:
+        raise HTTPException(status_code=404, detail="Donor not found")
+    certs = await list_certificates_for_donor(donor_id, db)
+    await db.commit()
+    return certs
+
+
+@router.get("/{donor_id}/certificates/{certificate_id}/pdf")
+async def donor_certificate_pdf(
+    donor_id: uuid.UUID,
+    certificate_id: uuid.UUID,
+    _actor=Depends(require_roles(*_CLINICAL_ROLES)),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        cert = await get_certificate(certificate_id, db)
+    except CertificateError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    if cert.donor_id != donor_id:
+        raise HTTPException(status_code=404, detail="Certificate not found for donor")
+    pdf = render_certificate_pdf(cert)
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{cert.certificate_number}.pdf"'
+        },
+    )

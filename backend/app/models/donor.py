@@ -10,6 +10,7 @@ from .enums import (
     BloodGroupEnum,
     DonorStatusEnum,
     EligibilityResultEnum,
+    OrgCategoryEnum,
     SexEnum,
 )
 
@@ -88,9 +89,19 @@ class Organizer(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     org_name: Mapped[str] = mapped_column(sa.String(200), nullable=False)
     org_type: Mapped[str | None] = mapped_column(sa.String(50), nullable=True)
+    org_category: Mapped[OrgCategoryEnum | None] = mapped_column(
+        sa.Enum(
+            OrgCategoryEnum,
+            name="org_category_enum",
+            values_callable=lambda e: [i.value for i in e],
+        ),
+        nullable=True,
+    )
     contact_name: Mapped[str | None] = mapped_column(sa.String(200), nullable=True)
+    contact_role: Mapped[str | None] = mapped_column(sa.String(100), nullable=True)
     contact_phone: Mapped[str | None] = mapped_column(sa.String(20), nullable=True)
     contact_email: Mapped[str | None] = mapped_column(sa.String(200), nullable=True)
+    contact_address: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
     address: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
     is_verified: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=False)
 
@@ -98,6 +109,65 @@ class Organizer(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     def __repr__(self) -> str:
         return f"<Organizer {self.org_name}>"
+
+
+class OrganizerDirectory(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
+    """Staff outreach contact list — no login account required."""
+
+    __tablename__ = "organizer_directory"
+
+    category: Mapped[OrgCategoryEnum] = mapped_column(
+        sa.Enum(
+            OrgCategoryEnum,
+            name="org_category_enum",
+            values_callable=lambda e: [i.value for i in e],
+            create_type=False,
+        ),
+        nullable=False,
+    )
+    org_name: Mapped[str] = mapped_column(sa.String(300), nullable=False)
+    contact_role: Mapped[str | None] = mapped_column(sa.String(100), nullable=True)
+    location: Mapped[str | None] = mapped_column(sa.String(200), nullable=True)
+    mobile: Mapped[str | None] = mapped_column(sa.String(20), nullable=True)
+    source_serial: Mapped[int | None] = mapped_column(sa.Integer, nullable=True)
+
+    __table_args__ = (
+        sa.Index("idx_organizer_directory_category", "category"),
+        sa.Index("idx_organizer_directory_mobile", "mobile"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<OrganizerDirectory {self.org_name}>"
+
+
+class DonationCertificate(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
+    __tablename__ = "donation_certificates"
+
+    donation_id: Mapped[uuid.UUID] = mapped_column(
+        PgUUID(as_uuid=True), sa.ForeignKey("donations.id"), nullable=False, unique=True
+    )
+    donor_id: Mapped[uuid.UUID] = mapped_column(
+        PgUUID(as_uuid=True), sa.ForeignKey("donors.id"), nullable=False
+    )
+    facility_id: Mapped[uuid.UUID] = mapped_column(
+        PgUUID(as_uuid=True), sa.ForeignKey("facilities.id"), nullable=False
+    )
+    certificate_number: Mapped[str] = mapped_column(sa.String(40), nullable=False, unique=True)
+    donor_name: Mapped[str] = mapped_column(sa.String(200), nullable=False)
+    blood_group: Mapped[str | None] = mapped_column(sa.String(5), nullable=True)
+    donation_date: Mapped[date] = mapped_column(sa.Date, nullable=False)
+    volume_ml: Mapped[int | None] = mapped_column(sa.SmallInteger, nullable=True)
+    issued_at: Mapped[datetime] = mapped_column(sa.DateTime(timezone=True), nullable=False)
+
+    donation: Mapped["Donation"] = relationship("Donation", back_populates="certificate")
+    donor: Mapped["Donor"] = relationship("Donor")
+
+    __table_args__ = (
+        sa.Index("idx_donation_certificates_donor", "donor_id"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<DonationCertificate {self.certificate_number}>"
 
 
 class Screening(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -185,6 +255,9 @@ class Donation(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     screening: Mapped[Screening] = relationship("Screening", back_populates="donation")
     blood_unit: Mapped["BloodUnit | None"] = relationship(  # type: ignore[name-defined]
         "BloodUnit", back_populates="donation", uselist=False
+    )
+    certificate: Mapped["DonationCertificate | None"] = relationship(
+        "DonationCertificate", back_populates="donation", uselist=False
     )
 
     __table_args__ = (

@@ -123,6 +123,19 @@ class ApiClient {
     return resp.data as List<dynamic>? ?? [];
   }
 
+  Future<List<dynamic>> getCitizenCertificates() async {
+    final resp = await _dio.get('/citizen/certificates');
+    return resp.data as List<dynamic>? ?? [];
+  }
+
+  Future<List<int>> downloadCitizenCertificatePdf(String certificateId) async {
+    final resp = await _dio.get(
+      '/citizen/certificates/$certificateId/pdf',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return List<int>.from(resp.data as List<int>);
+  }
+
   Future<List<dynamic>> getPublicCamps() async {
     final resp = await _dio.get('/public/camps');
     return resp.data as List<dynamic>? ?? [];
