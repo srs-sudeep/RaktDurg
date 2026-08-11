@@ -13,7 +13,7 @@ fi
 cd "$APP_DIR/infra"
 
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d db redis
-docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" build api web
+docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" build --no-cache api web
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" --profile init run --rm migrate
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --build api worker beat web nginx
 docker image prune -f
