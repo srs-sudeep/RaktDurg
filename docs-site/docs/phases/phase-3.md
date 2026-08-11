@@ -92,7 +92,7 @@ Returns the full list. Organizers distribute physical coupons to participants. A
 |--------|------|-------|
 | POST | `/camps` | admin, organizer |
 | GET | `/camps` | admin, medical_officer, organizer |
-| GET | `/camps/{id}` | admin, medical_officer, organizer |
-| POST | `/camps/{id}/review` | admin, medical_officer |
-| POST | `/camps/{id}/cancel` | admin, medical_officer |
-| GET | `/camps/{id}/coupons` | admin, medical_officer, organizer |
+| GET | `/camps/\{id\}` | admin, medical_officer, organizer |
+| POST | `/camps/\{id\}/review` | admin, medical_officer |
+| POST | `/camps/\{id\}/cancel` | admin, medical_officer |
+| GET | `/camps/\{id\}/coupons` | admin, medical_officer, organizer |

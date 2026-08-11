@@ -9,7 +9,7 @@ title: Wallet API
 All endpoints return `503 Service Unavailable` when `wallet_enabled = false`. Enable via `PATCH /admin/feature-flags/wallet_enabled`.
 :::
 
-## GET /wallet/donors/{id}
+## GET /wallet/donors/\{id\}
 
 Get donor wallet balance and summary.
 
@@ -28,7 +28,7 @@ Get donor wallet balance and summary.
 
 ---
 
-## POST /wallet/donors/{id}/credit
+## POST /wallet/donors/\{id\}/credit
 
 Credit wallet for a donation.
 
@@ -44,7 +44,7 @@ Credit wallet for a donation.
 
 ---
 
-## POST /wallet/donors/{id}/redeem
+## POST /wallet/donors/\{id\}/redeem
 
 Redeem credits. Beneficiary may be the donor or a verified family member.
 
@@ -65,7 +65,7 @@ Redeem credits. Beneficiary may be the donor or a verified family member.
 
 ---
 
-## GET /wallet/donors/{id}/transactions
+## GET /wallet/donors/\{id\}/transactions
 
 Paginated transaction history.
 
@@ -88,7 +88,7 @@ Paginated transaction history.
 
 ---
 
-## POST /wallet/donors/{id}/family-links
+## POST /wallet/donors/\{id\}/family-links
 
 Link a family member.
 

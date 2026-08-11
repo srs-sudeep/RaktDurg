@@ -35,13 +35,13 @@ GET /requisitions?status=pending&blood_group=B%2B&page=1
 
 ---
 
-## GET /requisitions/{id}
+## GET /requisitions/\{id\}
 
 Fetch requisition details including reserved components.
 
 ---
 
-## POST /requisitions/{id}/reserve
+## POST /requisitions/\{id\}/reserve
 
 Reserve components via FEFO.
 
@@ -53,7 +53,7 @@ No request body needed — uses FEFO to pick earliest-expiry matching components
 
 ---
 
-## POST /requisitions/{id}/issue
+## POST /requisitions/\{id\}/issue
 
 Issue reserved components to the ward.
 
@@ -63,7 +63,7 @@ Requires status = `fully_reserved`.
 
 ---
 
-## POST /requisitions/{id}/cancel
+## POST /requisitions/\{id\}/cancel
 
 Cancel a requisition (if not yet issued).
 
@@ -73,7 +73,7 @@ Cannot cancel if status is `partially_issued`, `issued`, or `cancelled`.
 
 ---
 
-## POST /requisitions/issues/{issue_id}/transfusion
+## POST /requisitions/issues/\{issue_id\}/transfusion
 
 Record that a transfusion was completed.
 

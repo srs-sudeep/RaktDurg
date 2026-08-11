@@ -38,13 +38,13 @@ GET /camps?status=submitted&page=1&size=20
 
 ---
 
-## GET /camps/{id}
+## GET /camps/\{id\}
 
 Fetch camp details.
 
 ---
 
-## POST /camps/{id}/review
+## POST /camps/\{id\}/review
 
 Approve or reject a camp.
 
@@ -58,11 +58,11 @@ Approve or reject a camp.
 }
 ```
 
-On approval: coupons auto-generated (`RD{YYMM}-{seq:04d}`).
+On approval: coupons auto-generated (`RD\{YYMM\}-\{seq:04d\}`).
 
 ---
 
-## POST /camps/{id}/cancel
+## POST /camps/\{id\}/cancel
 
 Cancel an approved camp.
 
@@ -72,7 +72,7 @@ Frees the date slot (removes from the partial unique index).
 
 ---
 
-## GET /camps/{id}/coupons
+## GET /camps/\{id\}/coupons
 
 List all coupons for a camp.
 

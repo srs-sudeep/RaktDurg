@@ -2,7 +2,7 @@
 id: intro
 title: Introduction
 sidebar_label: Introduction
-slug: /
+slug: /intro
 ---
 
 # RAKT Durg

@@ -5,7 +5,7 @@ title: Stock API
 
 # Stock API
 
-## GET /stock/{facility_id}
+## GET /stock/\{facility_id\}
 
 Authenticated stock summary for a facility.
 
@@ -29,7 +29,7 @@ Authenticated stock summary for a facility.
 
 ---
 
-## GET /public/stock/{facility_id}
+## GET /public/stock/\{facility_id\}
 
 Public stock availability — no authentication required.
 
@@ -37,7 +37,7 @@ Public stock availability — no authentication required.
 
 ---
 
-## GET /stream/stock/{facility_id}
+## GET /stream/stock/\{facility_id\}
 
 Server-Sent Events stream for real-time stock updates.
 

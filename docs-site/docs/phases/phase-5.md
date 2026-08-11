@@ -128,11 +128,11 @@ Currently seeded flags:
 |--------|------|-------|
 | POST | `/requisitions` | admin, medical_officer, inventory_officer |
 | GET | `/requisitions` | admin, medical_officer, inventory_officer |
-| GET | `/requisitions/{id}` | admin, medical_officer, inventory_officer |
-| POST | `/requisitions/{id}/reserve` | admin, inventory_officer |
-| POST | `/requisitions/{id}/issue` | admin, inventory_officer |
-| POST | `/requisitions/{id}/cancel` | admin, medical_officer, inventory_officer |
-| POST | `/requisitions/issues/{id}/transfusion` | admin, medical_officer |
+| GET | `/requisitions/\{id\}` | admin, medical_officer, inventory_officer |
+| POST | `/requisitions/\{id\}/reserve` | admin, inventory_officer |
+| POST | `/requisitions/\{id\}/issue` | admin, inventory_officer |
+| POST | `/requisitions/\{id\}/cancel` | admin, medical_officer, inventory_officer |
+| POST | `/requisitions/issues/\{id\}/transfusion` | admin, medical_officer |
 | POST | `/admin/erakkosh/export` | admin |
 | GET | `/admin/feature-flags` | admin |
-| PATCH | `/admin/feature-flags/{name}` | admin |
+| PATCH | `/admin/feature-flags/\{name\}` | admin |

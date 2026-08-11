@@ -9,6 +9,7 @@ from app.config import settings
 from app.middleware.audit import AuditMiddleware
 from app.routers import auth
 from app.schemas.common import HealthResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 
 @asynccontextmanager
@@ -67,6 +68,14 @@ async def health() -> HealthResponse:
         version=settings.APP_VERSION,
         environment=settings.ENVIRONMENT,
     )
+
+
+# ── Prometheus metrics (scraped on the Docker network; not exposed via nginx) ─
+Instrumentator(
+    should_group_status_codes=True,
+    should_ignore_untemplated=True,
+    excluded_handlers=["/metrics", "/health"],
+).instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 
 # ── Request-ID header on all responses ────────────────────────────────────────

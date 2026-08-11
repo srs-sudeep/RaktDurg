@@ -150,8 +150,8 @@ Future<void> sync() async {
 |--------|------|-------|
 | POST | `/donors` | admin, medical_officer, lab_tech, phlebotomist |
 | GET | `/donors` | admin, medical_officer, lab_tech, phlebotomist |
-| GET | `/donors/{id}` | admin, medical_officer, lab_tech, phlebotomist |
-| PATCH | `/donors/{id}` | admin, medical_officer, phlebotomist |
-| POST | `/donors/{id}/screenings` | admin, medical_officer, lab_tech, phlebotomist |
-| GET | `/donors/{id}/screenings` | admin, medical_officer, lab_tech |
+| GET | `/donors/\{id\}` | admin, medical_officer, lab_tech, phlebotomist |
+| PATCH | `/donors/\{id\}` | admin, medical_officer, phlebotomist |
+| POST | `/donors/\{id\}/screenings` | admin, medical_officer, lab_tech, phlebotomist |
+| GET | `/donors/\{id\}/screenings` | admin, medical_officer, lab_tech |
 | POST | `/sync` | phlebotomist, lab_tech |

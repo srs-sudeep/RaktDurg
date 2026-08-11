@@ -7,8 +7,14 @@ const config: Config = {
   tagline: "District-Level Digital Blood Bank Platform — Durg, Chhattisgarh",
   favicon: "img/favicon.svg",
 
-  url: "https://rakt.durg.gov.in",
-  baseUrl: "/docs/",
+  // Vercel hosts docs-site as its own project at the domain root.
+  // Local / self-hosted deploys can still serve under /docs/.
+  url: process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "https://rakt.durg.gov.in",
+  baseUrl: process.env.VERCEL ? "/" : "/docs/",
 
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",

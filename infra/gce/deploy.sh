@@ -59,7 +59,7 @@ else
 fi
 
 # Bring app stack up with cached images (rebuild only if sources changed since last build).
-compose up -d api worker beat web nginx
+compose up -d api worker beat web nginx prometheus grafana
 
 # Seed base login accounts only when the users table is empty / missing.
 USER_COUNT="$(

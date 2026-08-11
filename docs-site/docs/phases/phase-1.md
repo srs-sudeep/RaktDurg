@@ -126,14 +126,14 @@ async def stock_stream(facility_id, request, token):
 | Method | Path | Roles |
 |--------|------|-------|
 | POST | `/units` | admin, medical_officer, lab_tech, phlebotomist |
-| GET | `/units/scan/{barcode}` | admin, medical_officer, lab_tech, phlebotomist, inventory_officer |
-| GET | `/units/{unit_id}` | (same) |
-| POST | `/units/{unit_id}/tests` | admin, medical_officer, lab_tech |
-| POST | `/units/{unit_id}/components` | admin, medical_officer, lab_tech |
-| PATCH | `/units/{unit_id}/state` | admin, medical_officer, lab_tech, inventory_officer |
-| GET | `/stock/{facility_id}` | Authenticated staff |
-| GET | `/public/stock/{facility_id}` | No auth |
-| GET | `/stream/stock/{facility_id}` | Authenticated staff |
+| GET | `/units/scan/\{barcode\}` | admin, medical_officer, lab_tech, phlebotomist, inventory_officer |
+| GET | `/units/\{unit_id\}` | (same) |
+| POST | `/units/\{unit_id\}/tests` | admin, medical_officer, lab_tech |
+| POST | `/units/\{unit_id\}/components` | admin, medical_officer, lab_tech |
+| PATCH | `/units/\{unit_id\}/state` | admin, medical_officer, lab_tech, inventory_officer |
+| GET | `/stock/\{facility_id\}` | Authenticated staff |
+| GET | `/public/stock/\{facility_id\}` | No auth |
+| GET | `/stream/stock/\{facility_id\}` | Authenticated staff |
 
 ## Web Dashboard
 

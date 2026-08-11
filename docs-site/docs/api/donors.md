@@ -35,19 +35,19 @@ GET /donors?page=1&size=20&search=Ramesh&blood_group=O%2B
 
 ---
 
-## GET /donors/{id}
+## GET /donors/\{id\}
 
 Fetch donor profile.
 
 ---
 
-## PATCH /donors/{id}
+## PATCH /donors/\{id\}
 
 Update donor profile fields.
 
 ---
 
-## POST /donors/{id}/screenings
+## POST /donors/\{id\}/screenings
 
 Create a pre-donation screening.
 
@@ -78,6 +78,6 @@ Create a pre-donation screening.
 
 ---
 
-## GET /donors/{id}/screenings
+## GET /donors/\{id\}/screenings
 
 List all screenings for a donor, newest first.

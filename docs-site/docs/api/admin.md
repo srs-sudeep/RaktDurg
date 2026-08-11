@@ -46,7 +46,7 @@ List all feature flags and their current values.
 
 ---
 
-## PATCH /admin/feature-flags/{name}
+## PATCH /admin/feature-flags/\{name\}
 
 Update a feature flag value.
 

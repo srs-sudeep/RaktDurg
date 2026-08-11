@@ -23,7 +23,7 @@ Create a new blood unit (assigns barcode).
 
 ---
 
-## GET /units/scan/{barcode}
+## GET /units/scan/\{barcode\}
 
 Look up a unit by its 15-character barcode.
 
@@ -33,13 +33,13 @@ Look up a unit by its 15-character barcode.
 
 ---
 
-## GET /units/{unit_id}
+## GET /units/\{unit_id\}
 
 Fetch unit by UUID.
 
 ---
 
-## POST /units/{unit_id}/tests
+## POST /units/\{unit_id\}/tests
 
 Record test panel results.
 
@@ -62,7 +62,7 @@ When all 5 panels are recorded → `release_status = "approved"`, `lifecycle_sta
 
 ---
 
-## POST /units/{unit_id}/components
+## POST /units/\{unit_id\}/components
 
 Separate a unit into blood components (FEFO inventory).
 
@@ -83,7 +83,7 @@ Separate a unit into blood components (FEFO inventory).
 
 ---
 
-## PATCH /units/{unit_id}/state
+## PATCH /units/\{unit_id\}/state
 
 Transition unit to a new lifecycle state.
 

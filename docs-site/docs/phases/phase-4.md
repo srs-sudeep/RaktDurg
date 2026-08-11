@@ -80,11 +80,11 @@ def expire_wallet_credits():
 
 | Method | Path | Roles |
 |--------|------|-------|
-| GET | `/wallet/donors/{id}` | admin, medical_officer, donor (own only) |
-| POST | `/wallet/donors/{id}/credit` | admin, medical_officer |
-| POST | `/wallet/donors/{id}/redeem` | admin, medical_officer, donor (own only) |
-| GET | `/wallet/donors/{id}/transactions` | admin, medical_officer, donor (own only) |
-| POST | `/wallet/donors/{id}/family-links` | admin, medical_officer, donor (own only) |
+| GET | `/wallet/donors/\{id\}` | admin, medical_officer, donor (own only) |
+| POST | `/wallet/donors/\{id\}/credit` | admin, medical_officer |
+| POST | `/wallet/donors/\{id\}/redeem` | admin, medical_officer, donor (own only) |
+| GET | `/wallet/donors/\{id\}/transactions` | admin, medical_officer, donor (own only) |
+| POST | `/wallet/donors/\{id\}/family-links` | admin, medical_officer, donor (own only) |
 
 All endpoints return `503 Service Unavailable` when `wallet_enabled = FALSE`.
 
