@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/remote/api_client.dart';
+import '../../theme/app_theme.dart';
 import '../../widgets/ui_kit.dart';
 
 class CampSelectScreen extends StatefulWidget {
@@ -51,51 +52,42 @@ class _CampSelectScreenState extends State<CampSelectScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? EmptyState(message: _error!, action: PrimaryButton(label: 'Retry', icon: Icons.refresh, onPressed: _load))
+              ? EmptyState(
+                  message: _error!,
+                  action: PrimaryButton(label: 'Retry', icon: Icons.refresh, onPressed: _load),
+                )
               : ListView(
                   children: [
                     const Text(
                       'Choose a camp for screening, or continue without one.',
-                      style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                      style: TextStyle(color: AppColors.muted, fontSize: 13),
                     ),
                     const SizedBox(height: 12),
                     ListRowCard(
-                      leading: const Icon(Icons.apartment, color: Color(0xFFDC2626)),
+                      leading: const IconBadge(Icons.apartment, AppColors.brand),
                       title: 'No camp (facility only)',
                       subtitle: 'Screen at the blood bank',
                       onTap: () => context.push('/donors/select'),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     if (_camps.isEmpty)
                       const EmptyState(message: 'No approved camps available', icon: Icons.event_busy)
                     else
-                      DataTableCard(
-                        columns: const ['Camp', 'Date', 'Status'],
-                        rows: [
-                          for (final raw in _camps)
-                            () {
-                              final c = raw as Map<String, dynamic>;
-                              return [
-                                c['camp_name']?.toString() ?? '—',
-                                c['requested_date']?.toString() ?? '—',
-                                c['status']?.toString() ?? '—',
-                              ];
-                            }(),
-                        ],
-                      ),
-                    const SizedBox(height: 10),
-                    ..._camps.map((raw) {
-                      final c = raw as Map<String, dynamic>;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: ListRowCard(
-                          title: c['camp_name']?.toString() ?? '',
-                          subtitle: '${c['requested_date']} · ${c['location']}',
-                          trailing: StatusChip(c['status']?.toString() ?? '', tone: StatusTone.success),
-                          onTap: () => context.push('/donors/select?camp_id=${c['id']}'),
-                        ),
-                      );
-                    }),
+                      ..._camps.map((raw) {
+                        final c = raw as Map<String, dynamic>;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: ListRowCard(
+                            title: c['camp_name']?.toString() ?? '',
+                            subtitle: '${c['requested_date']} · ${c['location']}',
+                            trailing: StatusChip(
+                              c['status']?.toString() ?? '',
+                              tone: StatusTone.success,
+                            ),
+                            onTap: () => context.push('/donors/select?camp_id=${c['id']}'),
+                          ),
+                        );
+                      }),
                   ],
                 ),
     );

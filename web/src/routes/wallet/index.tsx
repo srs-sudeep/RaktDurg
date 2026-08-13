@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { useWallet } from "@/api/admin";
 import { Button } from "@/components/ui/button";
 import { FormField, FormInput } from "@/components/ui/form";
-import { PageHeader, Panel } from "@/components/ui/panel";
+import { Panel } from "@/components/ui/panel";
 import { showSuccessToast } from "@/lib/toast";
 
 export default function WalletPage() {
@@ -30,14 +30,9 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="space-y-3">
-      <PageHeader
-        title="Blood credit wallet"
-        description="Look up donor wallet balance (feature-flagged)."
-      />
-
+    <div className="space-y-4">
       {disabled && (
-        <p className="border border-amber-300 bg-amber-50 px-3 py-2 text-[13px] text-amber-900">
+        <p className="border border-warning/30 bg-warning/10 px-3 py-2 text-[13px] text-warning">
           Wallet is disabled. Enable <code className="font-mono text-[12px]">wallet_enabled</code> in System.
         </p>
       )}
@@ -60,8 +55,8 @@ export default function WalletPage() {
 
       {lookup && data && (
         <Panel title="Balance">
-          <div className="text-3xl font-semibold tabular-nums text-red-700">{data.balance}</div>
-          <p className="mt-1 text-[12px] text-slate-500">Donor {lookup}</p>
+          <div className="text-3xl font-semibold tabular-nums text-primary">{data.balance}</div>
+          <p className="mt-1 text-[11px] text-muted-foreground">Donor {lookup}</p>
         </Panel>
       )}
     </div>

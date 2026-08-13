@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { FormActions, FormField, FormGrid, FormInput } from "@/components/ui/form";
-import { PageHeader, Panel } from "@/components/ui/panel";
+import { Panel } from "@/components/ui/panel";
 import { TablePagination, TableToolbar } from "@/components/ui/table-toolbar";
 import { useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
@@ -20,6 +20,15 @@ const CAMP_STATUSES = [
   "cancelled",
   "completed",
 ];
+
+const CAMP_STATUS_COLORS: Record<string, string> = {
+  approved: "border-success/30 bg-success/10 text-success",
+  completed: "border-success/30 bg-success/10 text-success",
+  submitted: "border-primary/25 bg-primary/10 text-primary",
+  under_review: "border-warning/30 bg-warning/10 text-warning",
+  rejected: "border-destructive/30 bg-destructive/10 text-destructive",
+  cancelled: "border-border bg-muted text-muted-foreground",
+};
 
 export default function CampsPage() {
   const { user } = useAuth();
@@ -52,10 +61,10 @@ export default function CampsPage() {
         sortable: true,
         cell: (c) => (
           <div>
-            <Link to={`/camps/${c.id}/coupons`} className="font-medium text-red-700 hover:underline">
+            <Link to={`/camps/${c.id}/coupons`} className="font-medium text-primary hover:underline">
               {c.camp_name}
             </Link>
-            <div className="text-[11px] text-slate-500">{c.location}</div>
+            <div className="text-[11px] text-muted-foreground">{c.location}</div>
           </div>
         ),
       },
@@ -64,10 +73,19 @@ export default function CampsPage() {
         id: "venue",
         header: "Venue",
         cell: (c) => (
-          <span className="text-[11px] text-slate-600">{(c.venue_mode || "—").replace(/_/g, " ")}</span>
+          <span className="text-[11px] text-muted-foreground">{(c.venue_mode || "—").replace(/_/g, " ")}</span>
         ),
       },
-      { id: "status", header: "Status", sortable: true, cell: (c) => <Badge>{c.status}</Badge> },
+      {
+        id: "status",
+        header: "Status",
+        sortable: true,
+        cell: (c) => (
+          <Badge className={CAMP_STATUS_COLORS[c.status] ?? ""}>
+            {c.status.replace(/_/g, " ")}
+          </Badge>
+        ),
+      },
       {
         id: "actions",
         header: "Actions",
@@ -140,28 +158,10 @@ export default function CampsPage() {
   }
 
   return (
-    <div className="space-y-3">
-      <PageHeader
-        title="Camps"
-        description="Applications, approvals, and coupons."
-        actions={
-          <div className="flex flex-wrap gap-2">
-            {canReviewBookings && (
-              <Link to="/camps/bookings"><Button variant="outline">Booking queue</Button></Link>
-            )}
-            {canApprove && <Link to="/camps/approval"><Button variant="outline">Approval queue</Button></Link>}
-            {canApply && (
-              <Button onClick={() => setShowApply((v) => !v)}>
-                {showApply ? "Close form" : "Apply"}
-              </Button>
-            )}
-          </div>
-        }
-      />
-
+    <div className="space-y-4">
       {showApply && (
         <Panel title="Camp application" description="Indian Red Cross Society, District Durg fields">
-          <form onSubmit={onApply} className="space-y-3">
+          <form onSubmit={onApply} className="space-y-4">
             <FormGrid>
               {!user?.facility_id && (
                 <FormField label="Host facility ID" htmlFor="host_facility_id" required className="sm:col-span-2">
@@ -248,7 +248,7 @@ export default function CampsPage() {
                 <FormInput id="notes" name="notes" />
               </FormField>
             </FormGrid>
-            <FormActions>
+            <FormActions flush>
               <Button type="submit" disabled={apply.isPending}>
                 {apply.isPending ? "Submitting…" : "Submit application"}
               </Button>
@@ -282,7 +282,27 @@ export default function CampsPage() {
             ]}
             filterValues={table.filters}
             onFilterChange={table.setFilter}
-          />
+          >
+            {canReviewBookings && (
+              <Link to="/camps/bookings">
+                <Button variant="outline" size="sm">
+                  Booking queue
+                </Button>
+              </Link>
+            )}
+            {canApprove && (
+              <Link to="/camps/approval">
+                <Button variant="outline" size="sm">
+                  Approval queue
+                </Button>
+              </Link>
+            )}
+            {canApply && (
+              <Button size="sm" onClick={() => setShowApply((v) => !v)}>
+                {showApply ? "Close form" : "Apply"}
+              </Button>
+            )}
+          </TableToolbar>
         }
         footer={
           <TablePagination

@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
-import { PageHeader } from "@/components/ui/panel";
 import { TablePagination, TableToolbar } from "@/components/ui/table-toolbar";
 import { useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
@@ -48,7 +47,7 @@ export default function UnitsPage() {
         header: "Barcode",
         sortable: true,
         cell: (u) => (
-          <Link to={`/units/${u.id}`} className="font-medium text-red-700 hover:underline">
+          <Link to={`/units/${u.id}`} className="font-medium text-primary hover:underline">
             {u.barcode}
           </Link>
         ),
@@ -73,41 +72,15 @@ export default function UnitsPage() {
         id: "expiry_datetime",
         header: "Expiry",
         sortable: true,
-        cell: (u) => <span className="text-slate-600">{formatDateTime(u.expiry_datetime)}</span>,
+        cell: (u) => <span className="text-muted-foreground">{formatDateTime(u.expiry_datetime)}</span>,
       },
     ],
     []
   );
 
   return (
-    <div className="space-y-3">
-      <PageHeader
-        actions={
-          <form
-            className="flex gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!barcode.trim()) return;
-              scan.mutate(barcode.trim(), {
-                onSuccess: (res: { unit?: { barcode?: string; id?: string } }) => {
-                  showSuccessToast("Unit found", res.unit?.barcode);
-                  if (res.unit?.id) navigate(`/units/${res.unit.id}`);
-                },
-              });
-            }}
-          >
-            <Input
-              placeholder="Scan barcode"
-              value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
-              className="w-52"
-            />
-            <Button type="submit" disabled={scan.isPending}>Lookup</Button>
-          </form>
-        }
-      />
-
-      {error && <p className="text-[13px] text-red-600">Failed to load units.</p>}
+    <div className="space-y-4">
+      {error && <p className="text-[13px] text-destructive">Failed to load units.</p>}
 
       <DataTable
         columns={columns}
@@ -137,7 +110,31 @@ export default function UnitsPage() {
             ]}
             filterValues={table.filters}
             onFilterChange={table.setFilter}
-          />
+          >
+            <form
+              className="flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!barcode.trim()) return;
+                scan.mutate(barcode.trim(), {
+                  onSuccess: (res: { unit?: { barcode?: string; id?: string } }) => {
+                    showSuccessToast("Unit found", res.unit?.barcode);
+                    if (res.unit?.id) navigate(`/units/${res.unit.id}`);
+                  },
+                });
+              }}
+            >
+              <Input
+                placeholder="Scan barcode"
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+                className="w-44"
+              />
+              <Button type="submit" disabled={scan.isPending}>
+                Lookup
+              </Button>
+            </form>
+          </TableToolbar>
         }
         footer={
           <TablePagination

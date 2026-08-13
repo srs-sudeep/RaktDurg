@@ -27,14 +27,14 @@ export function formatDateTime(iso: string | null | undefined): string {
 
 export function bloodGroupColor(bg: string): string {
   const colors: Record<string, string> = {
-    "A+": "bg-red-100 text-red-800",
-    "A-": "bg-red-50 text-red-700",
-    "B+": "bg-blue-100 text-blue-800",
-    "B-": "bg-blue-50 text-blue-700",
-    "AB+": "bg-purple-100 text-purple-800",
-    "AB-": "bg-purple-50 text-purple-700",
-    "O+": "bg-green-100 text-green-800",
-    "O-": "bg-green-50 text-green-700",
+    "A+": "bg-primary/15 text-primary",
+    "A-": "bg-primary/10 text-primary",
+    "B+": "bg-muted text-foreground",
+    "B-": "bg-muted text-muted-foreground",
+    "AB+": "bg-secondary text-foreground",
+    "AB-": "bg-secondary text-muted-foreground",
+    "O+": "bg-success/15 text-success",
+    "O-": "bg-success/10 text-success",
   };
-  return colors[bg] ?? "bg-gray-100 text-gray-800";
+  return colors[bg] ?? "bg-muted text-foreground";
 }

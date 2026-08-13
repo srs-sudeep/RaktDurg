@@ -44,16 +44,17 @@ export default function LoginPage() {
         <LoginHeroPanel />
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center bg-slate-100 px-6 py-10">
-        <div className="mb-6 flex flex-col items-center lg:hidden">
+      <div className="flex flex-1 flex-col items-center justify-center bg-background px-6 py-10">
+        <div className="mb-5 flex flex-col items-center lg:hidden">
           <img src="/logo.svg" alt="RaktDurg" className="h-12 w-12" />
-          <h1 className="mt-2 text-lg font-semibold text-slate-900">RaktDurg sign in</h1>
+          <h1 className="mt-2 font-display text-xl font-semibold text-foreground">RaktDurg</h1>
+          <p className="text-[13px] text-muted-foreground">Sign in</p>
         </div>
 
-        <div className="w-full max-w-md border border-slate-300 bg-white p-6 shadow-sm">
-          <div className="mb-5 hidden border-b border-slate-200 pb-4 lg:block">
-            <h2 className="text-lg font-semibold text-slate-900">Sign in</h2>
-            <p className="mt-0.5 text-[13px] text-slate-500">
+        <div className="surface-card w-full max-w-sm p-5">
+          <div className="mb-4 hidden border-b border-border pb-3 lg:block">
+            <h2 className="font-display text-lg font-semibold text-foreground">Sign in</h2>
+            <p className="mt-0.5 text-[12px] text-muted-foreground">
               Staff operations and citizen account access.
             </p>
           </div>
@@ -84,7 +85,9 @@ export default function LoginPage() {
             </FormField>
 
             {error && (
-              <p className="border border-red-300 bg-red-50 px-3 py-2 text-[13px] text-red-700">{error}</p>
+              <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-[13px] text-destructive">
+                {error}
+              </p>
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
@@ -92,11 +95,11 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-1 border-t border-slate-200 pt-4 text-[12px] text-slate-500">
-            <Link to="/" className="font-medium text-red-700 hover:underline">
+          <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 border-t border-border pt-3 text-[12px] text-muted-foreground">
+            <Link to="/" className="font-medium text-primary hover:underline">
               ← Home
             </Link>
-            <Link to="/public/stock" className="font-medium text-red-700 hover:underline">
+            <Link to="/public/stock" className="font-medium text-primary hover:underline">
               Public stock
             </Link>
           </div>

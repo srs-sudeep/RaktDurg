@@ -24,12 +24,12 @@ export default function LinkCitizenPage() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <Panel
         title="Link citizen login"
         description="Connect a citizen username to an existing donor profile for wallet and camp bookings."
       >
-        <form onSubmit={onLinkCitizen} className="space-y-3">
+        <form onSubmit={onLinkCitizen} className="space-y-4">
           <FormGrid>
             <FormField label="Citizen username" htmlFor="username" required>
               <FormInput id="username" name="username" placeholder="citizen_ajay" required />
@@ -38,7 +38,7 @@ export default function LinkCitizenPage() {
               <FormInput id="donor_id" name="donor_id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" required />
             </FormField>
           </FormGrid>
-          <FormActions>
+          <FormActions flush>
             <Button type="submit" disabled={linkCitizen.isPending}>
               {linkCitizen.isPending ? "Linking…" : "Link account"}
             </Button>
@@ -47,8 +47,10 @@ export default function LinkCitizenPage() {
       </Panel>
 
       <Panel title="Notes">
-        <ul className="list-disc space-y-1 pl-4 text-[13px] text-slate-600">
-          <li>Citizen must already have a login with role <code className="text-[12px]">citizen</code>.</li>
+        <ul className="list-disc space-y-1 pl-4 text-[13px] text-muted-foreground">
+          <li>
+            Citizen must already have a login with role <code className="text-[12px]">citizen</code>.
+          </li>
           <li>Donor profile must exist and not already be linked to another user.</li>
           <li>Find donor IDs from the Donors list or donor detail page.</li>
         </ul>

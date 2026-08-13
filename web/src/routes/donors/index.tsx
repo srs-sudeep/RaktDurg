@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { FormActions, FormField, FormGrid, FormInput, FormSelect } from "@/components/ui/form";
-import { PageHeader, Panel } from "@/components/ui/panel";
+import { Panel } from "@/components/ui/panel";
 import { TablePagination, TableToolbar } from "@/components/ui/table-toolbar";
 import { useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
@@ -65,7 +65,7 @@ export default function DonorsPage() {
         header: "Name",
         sortable: true,
         cell: (d) => (
-          <Link to={`/donors/${d.id}`} className="font-medium text-red-700 hover:underline">
+          <Link to={`/donors/${d.id}`} className="font-medium text-primary hover:underline">
             {d.name}
           </Link>
         ),
@@ -87,18 +87,10 @@ export default function DonorsPage() {
   );
 
   return (
-    <div className="space-y-3">
-      <PageHeader
-        actions={
-          <Button onClick={() => setShowForm((v) => !v)}>
-            {showForm ? "Close form" : "Register donor"}
-          </Button>
-        }
-      />
-
+    <div className="space-y-4">
       {showForm && (
         <Panel title="New donor" description="Mandatory fields marked with *">
-          <form onSubmit={onSubmit} className="space-y-3">
+          <form onSubmit={onSubmit} className="space-y-4">
             <FormGrid>
               <FormField label="Name" htmlFor="name" required>
                 <FormInput id="name" name="name" required />
@@ -127,7 +119,7 @@ export default function DonorsPage() {
                 </FormSelect>
               </FormField>
             </FormGrid>
-            <FormActions>
+            <FormActions flush>
               <Button type="submit" disabled={create.isPending}>
                 {create.isPending ? "Saving…" : "Save donor"}
               </Button>
@@ -171,7 +163,11 @@ export default function DonorsPage() {
             ]}
             filterValues={table.filters}
             onFilterChange={table.setFilter}
-          />
+          >
+            <Button onClick={() => setShowForm((v) => !v)}>
+              {showForm ? "Close form" : "Register donor"}
+            </Button>
+          </TableToolbar>
         }
         footer={
           <TablePagination

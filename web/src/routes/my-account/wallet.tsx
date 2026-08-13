@@ -11,36 +11,43 @@ export default function CitizenWalletPage() {
       title="Blood credit wallet"
       subtitle="Review your available credits and transaction history."
     >
-      {disabled && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Wallet is currently disabled. It can be enabled later by the blood bank admin.
-        </div>
-      )}
+      <div className="space-y-8">
+        {disabled && (
+          <div className="rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm text-warning">
+            Wallet is currently disabled. It can be enabled later by the blood bank admin.
+          </div>
+        )}
 
-      <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <p className="text-sm font-medium text-gray-500">Current balance</p>
-        <p className="mt-2 text-4xl font-bold text-gray-900">{data?.wallet.balance ?? "—"}</p>
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Transactions</h2>
-        <div className="mt-4 space-y-3">
-          {(data?.transactions ?? []).map((txn) => (
-            <div key={txn.id} className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
-              <div>
-                <p className="font-medium text-gray-900">{txn.type.toUpperCase()}</p>
-                <p className="text-sm text-gray-500">{formatDate(txn.recorded_at)}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-gray-900">{txn.amount}</p>
-                <p className="text-xs text-gray-500">Balance after: {txn.balance_after}</p>
-              </div>
-            </div>
-          ))}
-          {!disabled && data?.transactions?.length === 0 && (
-            <p className="text-sm text-gray-500">No wallet transactions yet.</p>
-          )}
+        <div>
+          <p className="text-[12px] font-medium text-muted-foreground">Current balance</p>
+          <p className="mt-1 text-4xl font-semibold tabular-nums text-foreground">
+            {data?.wallet.balance ?? "—"}
+          </p>
         </div>
+
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-foreground">Transactions</h2>
+          <div className="space-y-3">
+            {(data?.transactions ?? []).map((txn) => (
+              <div
+                key={txn.id}
+                className="flex items-center justify-between gap-4 border-b border-border pb-3 last:border-0"
+              >
+                <div>
+                  <p className="font-medium text-foreground">{txn.type.toUpperCase()}</p>
+                  <p className="text-sm text-muted-foreground">{formatDate(txn.recorded_at)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold tabular-nums text-foreground">{txn.amount}</p>
+                  <p className="text-xs text-muted-foreground">Balance after: {txn.balance_after}</p>
+                </div>
+              </div>
+            ))}
+            {!disabled && data?.transactions?.length === 0 && (
+              <p className="text-sm text-muted-foreground">No wallet transactions yet.</p>
+            )}
+          </div>
+        </section>
       </div>
     </CitizenShell>
   );

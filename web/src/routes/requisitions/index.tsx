@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { FormActions, FormField, FormGrid, FormInput, FormSelect } from "@/components/ui/form";
-import { PageHeader, Panel } from "@/components/ui/panel";
+import { Panel } from "@/components/ui/panel";
 import { TablePagination, TableToolbar } from "@/components/ui/table-toolbar";
 import { useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
@@ -28,6 +28,20 @@ const REQ_STATUSES = [
   "cancelled",
 ];
 const PRIORITIES = ["routine", "urgent", "emergency"];
+
+const STATUS_COLORS: Record<string, string> = {
+  pending: "border-warning/30 bg-warning/10 text-warning",
+  partially_reserved: "border-primary/25 bg-primary/10 text-primary",
+  fully_reserved: "border-primary/25 bg-primary/10 text-primary",
+  issued: "border-success/30 bg-success/10 text-success",
+  cancelled: "border-border bg-muted text-muted-foreground",
+};
+
+const PRIORITY_COLORS: Record<string, string> = {
+  routine: "",
+  urgent: "border-warning/30 bg-warning/10 text-warning",
+  emergency: "border-destructive/30 bg-destructive/10 text-destructive",
+};
 
 export default function RequisitionsPage() {
   const { user } = useAuth();
@@ -79,7 +93,7 @@ export default function RequisitionsPage() {
         cell: (r) => (
           <div>
             <div className="font-medium">{r.patient_name}</div>
-            <div className="text-[11px] text-slate-500">{r.patient_hospital_id}</div>
+            <div className="text-[11px] text-muted-foreground">{r.patient_hospital_id}</div>
           </div>
         ),
       },
@@ -87,7 +101,14 @@ export default function RequisitionsPage() {
         id: "blood_group",
         header: "Need",
         sortable: true,
-        cell: (r) => `${r.units_requested}× ${r.component_type} (${r.blood_group})`,
+        cell: (r) => (
+          <div>
+            <div>
+              {r.units_requested}× {r.component_type.replace(/_/g, " ")}
+            </div>
+            <div className="text-[11px] text-muted-foreground">{r.blood_group}</div>
+          </div>
+        ),
       },
       {
         id: "status",
@@ -95,8 +116,10 @@ export default function RequisitionsPage() {
         sortable: true,
         cell: (r) => (
           <span className="inline-flex flex-wrap gap-1">
-            <Badge>{r.status}</Badge>
-            <Badge>{r.priority}</Badge>
+            <Badge className={STATUS_COLORS[r.status] ?? ""}>
+              {r.status.replace(/_/g, " ")}
+            </Badge>
+            <Badge className={PRIORITY_COLORS[r.priority] ?? ""}>{r.priority}</Badge>
           </span>
         ),
       },
@@ -104,7 +127,9 @@ export default function RequisitionsPage() {
         id: "requested_at",
         header: "Requested",
         sortable: true,
-        cell: (r) => <span className="text-slate-600">{formatDateTime(r.requested_at)}</span>,
+        cell: (r) => (
+          <span className="text-[11px] text-muted-foreground">{formatDateTime(r.requested_at)}</span>
+        ),
       },
       {
         id: "actions",
@@ -156,20 +181,10 @@ export default function RequisitionsPage() {
   );
 
   return (
-    <div className="space-y-3">
-      <PageHeader
-        title="Requisitions"
-        description="Request, FEFO reserve, and issue components."
-        actions={
-          <Button onClick={() => setShow((v) => !v)}>
-            {show ? "Close form" : "New requisition"}
-          </Button>
-        }
-      />
-
+    <div className="space-y-4">
       {show && (
         <Panel title="Create requisition">
-          <form onSubmit={onCreate} className="space-y-3">
+          <form onSubmit={onCreate} className="space-y-4">
             <FormGrid>
               {!user?.facility_id && (
                 <FormField label="Facility ID" htmlFor="facility_id" required className="sm:col-span-2">
@@ -206,7 +221,7 @@ export default function RequisitionsPage() {
                 <FormInput id="clinical_indication" name="clinical_indication" required />
               </FormField>
             </FormGrid>
-            <FormActions>
+            <FormActions flush>
               <Button type="submit" disabled={create.isPending}>
                 {create.isPending ? "Creating…" : "Create"}
               </Button>
@@ -248,7 +263,11 @@ export default function RequisitionsPage() {
             ]}
             filterValues={table.filters}
             onFilterChange={table.setFilter}
-          />
+          >
+            <Button size="sm" onClick={() => setShow((v) => !v)}>
+              {show ? "Close form" : "New requisition"}
+            </Button>
+          </TableToolbar>
         }
         footer={
           <TablePagination

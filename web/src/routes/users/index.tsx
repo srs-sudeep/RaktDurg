@@ -29,8 +29,8 @@ export default function UsersPage() {
         sortable: true,
         cell: (u) => (
           <div>
-            <div className="font-medium text-slate-900">{u.display_name || u.username}</div>
-            <div className="text-[11px] text-slate-500">@{u.username}</div>
+            <div className="font-medium text-foreground">{u.display_name || u.username}</div>
+            <div className="text-[11px] text-muted-foreground">@{u.username}</div>
           </div>
         ),
       },
@@ -62,9 +62,9 @@ export default function UsersPage() {
         id: "contact",
         header: "Contact",
         cell: (u) => (
-          <div className="text-[12px] text-slate-600">
+          <div>
             <div>{u.email || "—"}</div>
-            <div>{u.phone || "—"}</div>
+            <div className="text-[11px] text-muted-foreground">{u.phone || "—"}</div>
           </div>
         ),
       },
@@ -72,7 +72,13 @@ export default function UsersPage() {
         id: "status",
         header: "Status",
         cell: (u) => (
-          <Badge className={u.is_active ? "border-emerald-300 bg-emerald-50 text-emerald-800" : ""}>
+          <Badge
+            className={
+              u.is_active
+                ? "border-success/30 bg-success/10 text-success"
+                : "border-border bg-muted text-muted-foreground"
+            }
+          >
             {u.is_active ? "active" : "inactive"}
           </Badge>
         ),
@@ -82,7 +88,7 @@ export default function UsersPage() {
         header: "Last login",
         sortable: true,
         cell: (u) => (
-          <span className="text-[12px] text-slate-500">
+          <span className="text-[11px] text-muted-foreground">
             {u.last_login_at ? formatDateTime(u.last_login_at) : "Never"}
           </span>
         ),
@@ -114,7 +120,7 @@ export default function UsersPage() {
   );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <DataTable
         columns={columns}
         rows={data?.items ?? []}

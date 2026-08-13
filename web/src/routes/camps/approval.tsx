@@ -4,7 +4,6 @@ import { useCamps, useReviewCamp, type Camp } from "@/api/camps";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
-import { PageHeader } from "@/components/ui/panel";
 import { TableToolbar } from "@/components/ui/table-toolbar";
 import { applyClientTable, useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
@@ -42,8 +41,8 @@ export default function CampApprovalPage() {
         sortable: true,
         cell: (c) => (
           <div>
-            <div className="font-medium text-slate-900">{c.camp_name}</div>
-            <div className="text-[11px] text-slate-500">
+            <div className="font-medium text-foreground">{c.camp_name}</div>
+            <div className="text-[11px] text-muted-foreground">
               {c.requested_date} · {c.location}
             </div>
           </div>
@@ -63,8 +62,8 @@ export default function CampApprovalPage() {
           <Badge
             className={
               c.status === "under_review"
-                ? "border-amber-300 bg-amber-50 text-amber-900"
-                : "border-sky-300 bg-sky-50 text-sky-900"
+                ? "border-warning/40 bg-warning/10 text-warning"
+                : "border-primary/25 bg-primary/10 text-primary"
             }
           >
             {c.status.replace(/_/g, " ")}
@@ -109,16 +108,7 @@ export default function CampApprovalPage() {
   );
 
   return (
-    <div className="space-y-3">
-      <PageHeader
-        actions={
-          <Link to="/camps">
-            <Button variant="outline" size="sm">
-              All camps
-            </Button>
-          </Link>
-        }
-      />
+    <div className="space-y-4">
       <DataTable
         columns={columns}
         rows={rows}
@@ -144,9 +134,15 @@ export default function CampApprovalPage() {
             ]}
             filterValues={table.filters}
             onFilterChange={table.setFilter}
-          />
+          >
+            <Link to="/camps">
+              <Button variant="outline" size="sm">
+                All camps
+              </Button>
+            </Link>
+          </TableToolbar>
         }
-        footer={<p className="text-[11px] text-slate-500">{rows.length} in queue</p>}
+        footer={<p className="text-[12px] text-muted-foreground tabular-nums">{rows.length} in queue</p>}
       />
     </div>
   );

@@ -45,16 +45,16 @@ export default function DonorDetailPage() {
     }
   }
 
-  if (isLoading) return <p className="text-[13px] text-slate-500">Loading…</p>;
-  if (error || !donor) return <p className="text-[13px] text-red-600">Donor not found.</p>;
+  if (isLoading) return <p className="text-[13px] text-muted-foreground">Loading…</p>;
+  if (error || !donor) return <p className="text-[13px] text-destructive">Donor not found.</p>;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <PageHeader
         title={donor.name}
         description="Donor profile and eligibility screening."
         actions={
-          <Link to="/donors" className="text-[13px] text-red-700 hover:underline">
+          <Link to="/donors" className="text-[13px] text-primary hover:underline">
             ← Donors
           </Link>
         }
@@ -68,26 +68,26 @@ export default function DonorDetailPage() {
       <Panel title="Identity">
         <dl className="grid gap-3 text-[13px] sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <dt className="text-[11px] text-slate-500">Phone</dt>
+            <dt className="text-[11px] text-muted-foreground">Phone</dt>
             <dd>{donor.contact_phone}</dd>
           </div>
           <div>
-            <dt className="text-[11px] text-slate-500">DOB</dt>
+            <dt className="text-[11px] text-muted-foreground">DOB</dt>
             <dd>{donor.date_of_birth}</dd>
           </div>
           <div>
-            <dt className="text-[11px] text-slate-500">Sex</dt>
+            <dt className="text-[11px] text-muted-foreground">Sex</dt>
             <dd>{donor.sex}</dd>
           </div>
           <div>
-            <dt className="text-[11px] text-slate-500">Age</dt>
+            <dt className="text-[11px] text-muted-foreground">Age</dt>
             <dd>{donor.age_years ?? "—"}</dd>
           </div>
         </dl>
       </Panel>
 
       <Panel title="New screening" description="Capture vitals and quick deferral flags.">
-        <form onSubmit={onScreen} className="space-y-3">
+        <form onSubmit={onScreen} className="space-y-4">
           <FormGrid cols={3}>
             {(
               [
@@ -104,17 +104,17 @@ export default function DonorDetailPage() {
               </FormField>
             ))}
           </FormGrid>
-          <div className="flex flex-wrap gap-4 text-[13px] text-slate-700">
+          <div className="flex flex-wrap gap-4 text-[13px] text-foreground">
             <label className="flex items-center gap-2">
-              <input type="checkbox" name="had_recent_illness" className="rounded border-slate-300" />
+              <input type="checkbox" name="had_recent_illness" className="rounded border-border" />
               Recent illness
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" name="had_recent_surgery" className="rounded border-slate-300" />
+              <input type="checkbox" name="had_recent_surgery" className="rounded border-border" />
               Recent surgery
             </label>
           </div>
-          <FormActions>
+          <FormActions flush>
             <Button type="submit" disabled={screening.isPending}>
               {screening.isPending ? "Saving…" : "Save screening"}
             </Button>

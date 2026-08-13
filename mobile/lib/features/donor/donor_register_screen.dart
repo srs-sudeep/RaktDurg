@@ -142,7 +142,7 @@ class _DonorRegisterScreenState extends State<DonorRegisterScreen> {
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),
-              Text(_error!, style: const TextStyle(color: Colors.red)),
+              ErrorBanner(_error!),
             ],
             const SizedBox(height: 16),
             PrimaryButton(

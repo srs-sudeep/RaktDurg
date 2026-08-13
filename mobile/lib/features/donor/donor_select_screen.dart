@@ -72,7 +72,10 @@ class _DonorSelectScreenState extends State<DonorSelectScreen> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
-                    ? EmptyState(message: _error!, action: PrimaryButton(label: 'Retry', icon: Icons.refresh, onPressed: _load))
+                    ? EmptyState(
+                        message: _error!,
+                        action: PrimaryButton(label: 'Retry', icon: Icons.refresh, onPressed: _load),
+                      )
                     : _donors.isEmpty
                         ? EmptyState(
                             message: 'No donors found',
@@ -82,35 +85,17 @@ class _DonorSelectScreenState extends State<DonorSelectScreen> {
                               onPressed: () => context.push('/donors/register'),
                             ),
                           )
-                        : ListView(
-                            children: [
-                              DataTableCard(
-                                columns: const ['Name', 'Group', 'Phone'],
-                                rows: [
-                                  for (final raw in _donors)
-                                    () {
-                                      final d = raw as Map<String, dynamic>;
-                                      return [
-                                        d['name']?.toString() ?? '—',
-                                        d['blood_group']?.toString() ?? '—',
-                                        d['contact_phone']?.toString() ?? '—',
-                                      ];
-                                    }(),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              ..._donors.map((raw) {
-                                final d = raw as Map<String, dynamic>;
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: ListRowCard(
-                                    title: d['name']?.toString() ?? '',
-                                    subtitle: '${d['blood_group']} · ${d['contact_phone']}',
-                                    onTap: () => context.push('/screening/${d['id']}$campQ'),
-                                  ),
-                                );
-                              }),
-                            ],
+                        : ListView.separated(
+                            itemCount: _donors.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 8),
+                            itemBuilder: (context, i) {
+                              final d = _donors[i] as Map<String, dynamic>;
+                              return ListRowCard(
+                                title: d['name']?.toString() ?? '',
+                                subtitle: '${d['blood_group']} · ${d['contact_phone']}',
+                                onTap: () => context.push('/screening/${d['id']}$campQ'),
+                              );
+                            },
                           ),
           ),
         ],

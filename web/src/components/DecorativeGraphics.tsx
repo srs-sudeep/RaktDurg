@@ -2,14 +2,14 @@
 
 export function LoginHeroPanel() {
   return (
-    <div className="relative flex h-full flex-col justify-between overflow-hidden bg-gradient-to-br from-red-700 via-red-600 to-red-900 p-10 text-white">
+    <div className="relative flex h-full flex-col justify-between overflow-hidden bg-sidebar p-10 text-sidebar-foreground">
       <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-red-400/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-primary/30 blur-3xl" />
 
       <div className="relative z-10">
         <img src="/logo.svg" alt="" className="h-16 w-16 drop-shadow-lg" />
-        <h1 className="mt-6 text-4xl font-bold tracking-tight">RaktDurg</h1>
-        <p className="mt-2 max-w-sm text-lg text-red-100">
+        <h1 className="mt-6 font-display text-4xl font-semibold tracking-tight">RaktDurg</h1>
+        <p className="mt-2 max-w-sm text-lg text-sidebar-muted">
           District Blood Bank Platform for Durg — inventory, camps, and donor workflows in one place.
         </p>
       </div>
@@ -26,12 +26,12 @@ export function LoginHeroPanel() {
             { value: "100%", label: "NBTC aligned" },
           ].map((stat) => (
             <div key={stat.label} className="rounded-xl bg-white/10 px-3 py-4 backdrop-blur-sm">
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="mt-1 text-xs text-red-100">{stat.label}</p>
+              <p className="text-2xl font-bold tabular-nums">{stat.value}</p>
+              <p className="mt-1 text-xs text-sidebar-muted">{stat.label}</p>
             </div>
           ))}
         </div>
-        <p className="text-sm text-red-200">
+        <p className="text-sm text-sidebar-muted">
           By IBITF and IIT Bhilai · Powered by Recogx Init
         </p>
       </div>
@@ -84,7 +84,7 @@ export function HeroPattern() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <div className="absolute -left-24 top-0 h-96 w-96 rounded-full bg-red-200/40 blur-3xl" />
-      <div className="absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-red-100/60 blur-3xl" />
+      <div className="absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-primary/10/60 blur-3xl" />
       <svg className="absolute inset-0 h-full w-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
@@ -120,7 +120,7 @@ export function FeatureIcon({ type }: { type: "stock" | "camp" | "ops" | "phone"
   };
 
   return (
-    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 text-red-600">
+    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
         {icons[type]}
       </svg>
@@ -132,16 +132,16 @@ export function StockSkeleton() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="animate-pulse rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div key={i} className="animate-pulse rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="h-8 w-14 rounded-full bg-gray-200" />
-            <div className="h-5 w-20 rounded bg-gray-200" />
+            <div className="h-8 w-14 rounded-full bg-muted" />
+            <div className="h-5 w-20 rounded bg-muted" />
           </div>
-          <div className="mt-4 h-3 w-full rounded bg-gray-100" />
-          <div className="mt-2 h-3 w-2/3 rounded bg-gray-100" />
+          <div className="mt-4 h-3 w-full rounded bg-muted" />
+          <div className="mt-2 h-3 w-2/3 rounded bg-muted" />
           <div className="mt-4 flex gap-2">
-            <div className="h-12 flex-1 rounded-lg bg-gray-100" />
-            <div className="h-12 flex-1 rounded-lg bg-gray-100" />
+            <div className="h-12 flex-1 rounded-lg bg-muted" />
+            <div className="h-12 flex-1 rounded-lg bg-muted" />
           </div>
         </div>
       ))}

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { BrandingFooter } from "@/components/Branding";
 import { useAuth } from "@/context/AuthContext";
 import { defaultRouteForRole } from "@/lib/auth-redirect";
+import { cn } from "@/lib/utils";
 
 const NAV = [
   { path: "/", label: "Home" },
@@ -19,12 +21,12 @@ export function PublicLayout() {
   const staffHome = user ? defaultRouteForRole(user.role) : "/login";
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur-md">
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-40 border-b border-border bg-card/95 shadow-sm backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <Link to="/" className="flex items-center gap-2.5">
             <img src="/logo.svg" alt="RaktDurg" className="h-9 w-9" />
-            <span className="text-lg font-bold text-gray-900">RaktDurg</span>
+            <span className="font-display text-lg font-semibold text-foreground">RaktDurg</span>
           </Link>
 
           <nav className="hidden items-center gap-1 sm:flex">
@@ -34,77 +36,64 @@ export function PublicLayout() {
                 to={item.path}
                 end={item.path === "/"}
                 className={({ isActive }) =>
-                  `rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                    isActive ? "bg-red-50 text-red-700" : "text-gray-600 hover:bg-gray-100"
-                  }`
+                  cn(
+                    "rounded-lg px-3 py-1.5 text-sm font-medium transition",
+                    isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+                  )
                 }
               >
                 {item.label}
               </NavLink>
             ))}
-            {user ? (
-              <>
-                {isCitizen ? (
-                  <>
+            <div className="ml-3 flex items-center gap-2 border-l border-border pl-4">
+              {user ? (
+                <>
+                  {isCitizen ? (
                     <Link
                       to="/my-account"
-                      className="ml-2 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                      className="rounded-lg px-3 py-1.5 text-sm font-medium text-foreground transition hover:bg-muted"
                     >
                       My Account
                     </Link>
+                  ) : (
                     <Link
-                      to="/my-account/wallet"
-                      className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                      to={staffHome}
+                      className="rounded-lg px-3 py-1.5 text-sm font-medium text-foreground transition hover:bg-muted"
                     >
-                      Wallet
+                      Dashboard
                     </Link>
-                  </>
-                ) : (
-                  <Link
-                    to={staffHome}
-                    className="ml-2 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => void logout()}
+                    className="rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
                   >
-                    Dashboard
-                  </Link>
-                )}
-                <button
-                  type="button"
-                  onClick={() => void logout()}
-                  className="rounded-lg bg-red-600 px-4 py-1.5 text-sm font-medium text-white shadow-sm shadow-red-600/20 transition hover:bg-red-700"
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
                 >
-                  Sign out
-                </button>
-              </>
-            ) : (
-              <Link
-                to="/login"
-                className="ml-2 rounded-lg bg-red-600 px-4 py-1.5 text-sm font-medium text-white shadow-sm shadow-red-600/20 transition hover:bg-red-700"
-              >
-                Sign in
-              </Link>
-            )}
+                  Sign in
+                </Link>
+              )}
+            </div>
           </nav>
 
           <button
             type="button"
-            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 sm:hidden"
+            className="rounded-lg p-2 text-muted-foreground hover:bg-muted sm:hidden"
             onClick={() => setMobileOpen((o) => !o)}
             aria-label="Toggle menu"
           >
-            {mobileOpen ? (
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
 
         {mobileOpen && (
-          <nav className="border-t border-gray-100 bg-white px-4 py-3 sm:hidden">
+          <nav className="border-t border-border bg-card px-4 py-3 sm:hidden">
             <div className="flex flex-col gap-1">
               {NAV.map((item) => (
                 <NavLink
@@ -113,9 +102,10 @@ export function PublicLayout() {
                   end={item.path === "/"}
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
-                    `rounded-lg px-3 py-2.5 text-sm font-medium ${
-                      isActive ? "bg-red-50 text-red-700" : "text-gray-700 hover:bg-gray-50"
-                    }`
+                    cn(
+                      "rounded-lg px-3 py-2.5 text-sm font-medium",
+                      isActive ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                    )
                   }
                 >
                   {item.label}
@@ -124,27 +114,18 @@ export function PublicLayout() {
               {user ? (
                 <>
                   {isCitizen ? (
-                    <>
-                      <Link
-                        to="/my-account"
-                        onClick={() => setMobileOpen(false)}
-                        className="mt-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                      >
-                        My Account
-                      </Link>
-                      <Link
-                        to="/my-account/wallet"
-                        onClick={() => setMobileOpen(false)}
-                        className="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                      >
-                        Wallet
-                      </Link>
-                    </>
+                    <Link
+                      to="/my-account"
+                      onClick={() => setMobileOpen(false)}
+                      className="mt-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
+                    >
+                      My Account
+                    </Link>
                   ) : (
                     <Link
                       to={staffHome}
                       onClick={() => setMobileOpen(false)}
-                      className="mt-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="mt-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
                     >
                       Dashboard
                     </Link>
@@ -155,7 +136,7 @@ export function PublicLayout() {
                       setMobileOpen(false);
                       void logout();
                     }}
-                    className="mt-2 rounded-lg bg-red-600 px-3 py-2.5 text-center text-sm font-medium text-white"
+                    className="mt-2 rounded-lg bg-primary px-3 py-2.5 text-center text-sm font-medium text-primary-foreground"
                   >
                     Sign out
                   </button>
@@ -164,7 +145,7 @@ export function PublicLayout() {
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="mt-2 rounded-lg bg-red-600 px-3 py-2.5 text-center text-sm font-medium text-white"
+                  className="mt-2 rounded-lg bg-primary px-3 py-2.5 text-center text-sm font-medium text-primary-foreground"
                 >
                   Sign in
                 </Link>
@@ -178,13 +159,33 @@ export function PublicLayout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-gray-200 bg-white py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4">
-          <PartnerLogos size="sm" />
-          <BrandingFooter showAboutLink={false} />
-          <p className="text-xs text-gray-400">
-            © {new Date().getFullYear()} RaktDurg — Durg District Blood Bank Platform
-          </p>
+      <footer className="border-t border-border bg-card py-10">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:grid-cols-3">
+          <div>
+            <p className="font-display text-base font-semibold text-foreground">RaktDurg</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              District blood bank operations for Durg — stock, camps, and donor workflows.
+            </p>
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Explore</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {NAV.map((item) => (
+                <li key={item.path}>
+                  <Link to={item.path} className="text-foreground hover:text-primary">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex flex-col items-start gap-4 sm:items-end">
+            <PartnerLogos size="sm" />
+            <BrandingFooter showAboutLink={false} className="sm:text-right" />
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} RaktDurg
+            </p>
+          </div>
         </div>
       </footer>
     </div>

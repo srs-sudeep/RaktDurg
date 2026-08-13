@@ -33,7 +33,7 @@ export default function OrganizerDirectoryPage() {
         header: "#",
         className: "w-14",
         sortable: true,
-        cell: (r) => <span className="text-[11px] text-slate-500">{r.source_serial ?? "—"}</span>,
+        cell: (r) => <span className="text-[11px] text-muted-foreground">{r.source_serial ?? "—"}</span>,
       },
       {
         id: "org_name",
@@ -41,8 +41,8 @@ export default function OrganizerDirectoryPage() {
         sortable: true,
         cell: (r) => (
           <div>
-            <div className="font-medium text-slate-900">{r.org_name}</div>
-            <div className="text-[11px] text-slate-500">{r.contact_role || "—"}</div>
+            <div className="font-medium text-foreground">{r.org_name}</div>
+            <div className="text-[11px] text-muted-foreground">{r.contact_role || "—"}</div>
           </div>
         ),
       },
@@ -50,9 +50,11 @@ export default function OrganizerDirectoryPage() {
         id: "category",
         header: "Category",
         sortable: true,
-        cell: (r) => <span className="text-[11px] capitalize text-slate-600">{r.category.replace(/_/g, " ")}</span>,
+        cell: (r) => <span className="text-[11px] capitalize text-muted-foreground">{r.category.replace(/_/g, " ")}</span>,
       },
-      { id: "location", header: "Location", sortable: true, cell: (r) => r.location || "—" },
+      { id: "location", header: "Location", sortable: true, cell: (r) => (
+        <span className="text-[11px] text-muted-foreground">{r.location || "—"}</span>
+      ) },
       {
         id: "mobile",
         header: "Mobile",
@@ -63,7 +65,7 @@ export default function OrganizerDirectoryPage() {
   );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <DataTable
         columns={columns}
         rows={data?.items ?? []}

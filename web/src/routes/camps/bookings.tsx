@@ -5,16 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { FormInput } from "@/components/ui/form";
-import { PageHeader } from "@/components/ui/panel";
 import { TableToolbar } from "@/components/ui/table-toolbar";
 import { applyClientTable, useTableQuery } from "@/lib/table-query";
 import { showSuccessToast } from "@/lib/toast";
 
 const STATUS_COLORS: Record<string, string> = {
-  requested: "border-amber-300 bg-amber-50 text-amber-900",
-  confirmed: "border-emerald-300 bg-emerald-50 text-emerald-900",
-  rejected: "border-red-300 bg-red-50 text-red-900",
-  cancelled: "border-slate-300 bg-slate-50 text-slate-600",
+  requested: "border-warning/30 bg-warning/10 text-warning",
+  confirmed: "border-success/30 bg-success/10 text-success",
+  rejected: "border-destructive/30 bg-destructive/10 text-destructive",
+  cancelled: "border-border bg-muted text-muted-foreground",
 };
 
 const BOOKING_STATUSES = ["requested", "confirmed", "rejected", "cancelled"];
@@ -54,8 +53,8 @@ export default function CampBookingsPage() {
         sortable: true,
         cell: (b) => (
           <div>
-            <div className="font-medium text-slate-900">{b.camp_name}</div>
-            <div className="text-[11px] text-slate-500">
+            <div className="font-medium text-foreground">{b.camp_name}</div>
+            <div className="text-[11px] text-muted-foreground">
               {b.requested_date} · {b.location}
             </div>
           </div>
@@ -68,7 +67,7 @@ export default function CampBookingsPage() {
         cell: (b) => (
           <div>
             <div>{b.donor_name}</div>
-            <div className="text-[11px] text-slate-500">
+            <div className="text-[11px] text-muted-foreground">
               {b.blood_group ?? "—"} · {b.donor_phone}
             </div>
           </div>
@@ -84,10 +83,10 @@ export default function CampBookingsPage() {
         id: "notes",
         header: "Notes",
         cell: (b) => (
-          <div className="max-w-[220px] text-[12px] text-slate-600">
+          <div className="max-w-[220px] text-[12px] text-muted-foreground">
             {b.notes ?? "—"}
             {b.review_notes ? (
-              <div className="mt-0.5 text-[11px] text-slate-400">Review: {b.review_notes}</div>
+              <div className="mt-0.5 text-[11px] text-muted-foreground">Review: {b.review_notes}</div>
             ) : null}
           </div>
         ),
@@ -136,7 +135,7 @@ export default function CampBookingsPage() {
               </div>
             </div>
           ) : (
-            <span className="text-[11px] text-slate-400">Reviewed</span>
+            <span className="text-[11px] text-muted-foreground">Reviewed</span>
           ),
       },
     ],
@@ -144,17 +143,7 @@ export default function CampBookingsPage() {
   );
 
   return (
-    <div className="space-y-3">
-      <PageHeader
-        actions={
-          <Link to="/camps">
-            <Button variant="outline" size="sm">
-              All camps
-            </Button>
-          </Link>
-        }
-      />
-
+    <div className="space-y-4">
       <DataTable
         columns={columns}
         rows={rows}
@@ -177,9 +166,19 @@ export default function CampBookingsPage() {
             ]}
             filterValues={table.filters}
             onFilterChange={table.setFilter}
-          />
+          >
+            <Link to="/camps">
+              <Button variant="outline" size="sm">
+                All camps
+              </Button>
+            </Link>
+          </TableToolbar>
         }
-        footer={<p className="text-[11px] text-slate-500">{rows.length} booking{rows.length === 1 ? "" : "s"}</p>}
+        footer={
+          <p className="text-[12px] text-muted-foreground tabular-nums">
+            {rows.length} booking{rows.length === 1 ? "" : "s"}
+          </p>
+        }
       />
     </div>
   );

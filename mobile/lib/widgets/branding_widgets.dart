@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../theme/app_theme.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key, this.message = 'Loading RaktDurg…'});
@@ -9,63 +10,55 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFF9FAFB), Colors.white, Color(0xFFFEF2F2)],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFFDC2626).withValues(alpha: 0.08),
-                        ),
+      backgroundColor: AppColors.canvas,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.brand.withValues(alpha: 0.08),
                       ),
-                      SvgPicture.asset('assets/logo.svg', width: 88, height: 88),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'RaktDurg',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  ),
-                  const Text('District Blood Bank Platform', style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'By IBITF and IIT Bhilai',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black54),
-                    textAlign: TextAlign.center,
-                  ),
-                  const Text(
-                    'Powered by Recogx Init',
-                    style: TextStyle(fontSize: 11, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 28),
-                  const PartnerLogos(height: 36),
-                  const SizedBox(height: 36),
-                  const SizedBox(
-                    width: 36,
-                    height: 36,
-                    child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFFDC2626)),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(message, style: const TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w500)),
-                ],
-              ),
+                    ),
+                    SvgPicture.asset('assets/logo.svg', width: 88, height: 88),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'RaktDurg',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.ink),
+                ),
+                const Text('District Blood Bank Platform', style: TextStyle(color: AppColors.muted)),
+                const SizedBox(height: 12),
+                const Text(
+                  'By IBITF and IIT Bhilai',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted),
+                  textAlign: TextAlign.center,
+                ),
+                const Text(
+                  'Powered by Recogx Init',
+                  style: TextStyle(fontSize: 11, color: AppColors.muted),
+                ),
+                const SizedBox(height: 28),
+                const PartnerLogos(height: 36),
+                const SizedBox(height: 36),
+                const SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: CircularProgressIndicator(strokeWidth: 3, color: AppColors.brand),
+                ),
+                const SizedBox(height: 16),
+                Text(message, style: const TextStyle(color: AppColors.muted, fontSize: 14, fontWeight: FontWeight.w500)),
+              ],
             ),
           ),
         ),
@@ -91,13 +84,13 @@ class PageLoader extends StatelessWidget {
               const SizedBox(
                 width: 52,
                 height: 52,
-                child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFFDC2626)),
+                child: CircularProgressIndicator(strokeWidth: 3, color: AppColors.brand),
               ),
               SvgPicture.asset('assets/logo.svg', width: 24, height: 24),
             ],
           ),
           const SizedBox(height: 16),
-          Text(label, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
+          Text(label, style: const TextStyle(color: AppColors.muted, fontWeight: FontWeight.w500)),
         ],
       ),
     );

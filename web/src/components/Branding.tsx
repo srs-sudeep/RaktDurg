@@ -5,28 +5,28 @@ interface BrandingFooterProps {
 
 export function BrandingFooter({ className = "", showAboutLink = true }: BrandingFooterProps) {
   return (
-    <footer className={`text-center text-xs text-gray-500 ${className}`}>
-      <p className="font-medium text-gray-600">By IBITF and IIT Bhilai</p>
+    <div className={`text-center text-xs text-muted-foreground ${className}`}>
+      <p className="font-medium text-muted-foreground">By IBITF and IIT Bhilai</p>
       <p className="mt-1">Powered by Recogx Init</p>
       {showAboutLink && (
         <div className="mt-2 flex justify-center gap-3">
-          <a href="/about" className="text-red-600 underline hover:text-red-800">
+          <a href="/about" className="text-primary hover:underline">
             About
           </a>
           <a
             href="https://rakt-durg-docs.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-red-600 underline hover:text-red-800"
+            className="text-primary hover:underline"
           >
             Docs
           </a>
-          <a href="/contact" className="text-red-600 underline hover:text-red-800">
+          <a href="/contact" className="text-primary hover:underline">
             Contact
           </a>
         </div>
       )}
-    </footer>
+    </div>
   );
 }
 
@@ -37,8 +37,8 @@ export function BrandingLogo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   return (
     <div className="flex flex-col items-center gap-2">
       <img src="/logo.svg" alt="RaktDurg" className={dims} />
-      <h1 className={`font-semibold text-gray-900 ${textSize}`}>RaktDurg</h1>
-      <p className="text-sm text-gray-500">District Blood Bank Platform</p>
+      <h1 className={`font-display font-semibold text-foreground ${textSize}`}>RaktDurg</h1>
+      <p className="text-sm text-muted-foreground">District Blood Bank Platform</p>
     </div>
   );
 }

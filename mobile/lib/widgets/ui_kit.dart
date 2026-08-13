@@ -37,6 +37,54 @@ class RaktAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+class IconBadge extends StatelessWidget {
+  const IconBadge(this.icon, this.color, {super.key});
+
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(icon, color: color, size: 22),
+    );
+  }
+}
+
+class ErrorBanner extends StatelessWidget {
+  const ErrorBanner(this.message, {super.key});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.danger.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.error_outline, color: AppColors.danger, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(message, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     super.key,
@@ -98,7 +146,10 @@ class SectionCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title!, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.ink)),
+                        Text(
+                          title!,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.ink),
+                        ),
                         if (subtitle != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 2),
@@ -129,14 +180,14 @@ class StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (bg, fg) = switch (tone) {
-      StatusTone.success => (const Color(0xFFECFDF5), AppColors.success),
-      StatusTone.warning => (const Color(0xFFFFFBEB), AppColors.warning),
-      StatusTone.danger => (const Color(0xFFFEF2F2), AppColors.danger),
-      StatusTone.neutral => (const Color(0xFFF1F5F9), AppColors.muted),
+      StatusTone.success => (AppColors.success.withValues(alpha: 0.12), AppColors.success),
+      StatusTone.warning => (AppColors.warning.withValues(alpha: 0.12), AppColors.warning),
+      StatusTone.danger => (AppColors.danger.withValues(alpha: 0.12), AppColors.danger),
+      StatusTone.neutral => (AppColors.canvas, AppColors.muted),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
       child: Text(label, style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w600)),
     );
   }
@@ -170,7 +221,6 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-/// Simple responsive key/value “table” rows used across field + citizen screens.
 class InfoTable extends StatelessWidget {
   const InfoTable({super.key, required this.rows});
 
@@ -178,63 +228,55 @@ class InfoTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (var i = 0; i < rows.length; i++) ...[
-          if (i > 0) const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 118,
-                  child: Text(rows[i].$1, style: const TextStyle(fontSize: 12, color: AppColors.muted, fontWeight: FontWeight.w600)),
-                ),
-                Expanded(
-                  child: Text(rows[i].$2, style: const TextStyle(fontSize: 14, color: AppColors.ink, fontWeight: FontWeight.w500)),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class DataTableCard extends StatelessWidget {
-  const DataTableCard({
-    super.key,
-    required this.columns,
-    required this.rows,
-    this.emptyMessage = 'No rows',
-  });
-
-  final List<String> columns;
-  final List<List<String>> rows;
-  final String emptyMessage;
-
-  @override
-  Widget build(BuildContext context) {
-    if (rows.isEmpty) {
-      return EmptyState(message: emptyMessage, icon: Icons.table_rows_outlined);
-    }
-    return SectionCard(
-      padding: EdgeInsets.zero,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          headingRowColor: const WidgetStatePropertyAll(Color(0xFFFAFBFC)),
-          headingTextStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.muted),
-          dataTextStyle: const TextStyle(fontSize: 13, color: AppColors.ink),
-          columns: [for (final c in columns) DataColumn(label: Text(c.toUpperCase()))],
-          rows: [
-            for (final r in rows)
-              DataRow(cells: [for (final cell in r) DataCell(Text(cell))]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stacked = constraints.maxWidth < 340;
+        return Column(
+          children: [
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0) const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: stacked
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            rows[i].$1,
+                            style: const TextStyle(fontSize: 12, color: AppColors.muted, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            rows[i].$2,
+                            style: const TextStyle(fontSize: 14, color: AppColors.ink, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Flexible(
+                            flex: 35,
+                            child: Text(
+                              rows[i].$1,
+                              style: const TextStyle(fontSize: 12, color: AppColors.muted, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 65,
+                            child: Text(
+                              rows[i].$2,
+                              style: const TextStyle(fontSize: 14, color: AppColors.ink, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -279,7 +321,10 @@ class ListRowCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (trailing != null) trailing! else if (onTap != null) const Icon(Icons.chevron_right, color: AppColors.muted),
+              if (trailing != null)
+                trailing!
+              else if (onTap != null)
+                const Icon(Icons.chevron_right, color: AppColors.muted),
             ],
           ),
         ),
@@ -311,9 +356,7 @@ class PageScaffold extends StatelessWidget {
     return Scaffold(
       appBar: RaktAppBar(title: title, actions: actions, showLogo: showLogo),
       floatingActionButton: floatingActionButton,
-      body: padding == null
-          ? body
-          : Padding(padding: padding!, child: body),
+      body: padding == null ? body : Padding(padding: padding!, child: body),
     );
   }
 }

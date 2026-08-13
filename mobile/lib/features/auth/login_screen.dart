@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../theme/app_theme.dart';
 import '../../widgets/branding_widgets.dart';
+import '../../widgets/ui_kit.dart';
 import 'auth_notifier.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -42,6 +44,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final bottomPad = media.viewInsets.bottom + 24;
 
     return Scaffold(
+      backgroundColor: AppColors.canvas,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         top: false,
@@ -58,9 +61,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                       child: Card(
-                        elevation: 4,
-                        shadowColor: Colors.black12,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                         child: Padding(
                           padding: const EdgeInsets.all(22),
                           child: Column(
@@ -68,23 +68,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             children: [
                               const Text(
                                 'Sign in',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.ink),
                               ),
                               const SizedBox(height: 4),
-                              Text(
+                              const Text(
                                 'One sign-in for citizens and staff',
-                                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                style: TextStyle(color: AppColors.muted, fontSize: 13),
                               ),
                               const SizedBox(height: 18),
                               TextField(
                                 controller: _usernameCtrl,
                                 enabled: !isLoading,
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   labelText: 'Username',
-                                  prefixIcon: const Icon(Icons.person_outline),
-                                  filled: true,
-                                  fillColor: Colors.grey.shade50,
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                  prefixIcon: Icon(Icons.person_outline),
                                 ),
                                 textInputAction: TextInputAction.next,
                                 autocorrect: false,
@@ -98,9 +95,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 decoration: InputDecoration(
                                   labelText: 'Password',
                                   prefixIcon: const Icon(Icons.lock_outline),
-                                  filled: true,
-                                  fillColor: Colors.grey.shade50,
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                                   suffixIcon: IconButton(
                                     icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
                                     onPressed: () => setState(() => _obscure = !_obscure),
@@ -112,50 +106,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               if (authState.error != null) ...[
                                 const SizedBox(height: 14),
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.red.shade100),
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          authState.error!,
-                                          style: TextStyle(color: Colors.red.shade800, fontSize: 13),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                ErrorBanner(authState.error!),
                               ],
                               const SizedBox(height: 20),
-                              SizedBox(
-                                height: 48,
-                                child: ElevatedButton(
-                                  onPressed: isLoading ? null : _submit,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFDC2626),
-                                    foregroundColor: Colors.white,
-                                    elevation: 2,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                  child: isLoading
-                                      ? const SizedBox(
-                                          height: 22,
-                                          width: 22,
-                                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                                        )
-                                      : const Text(
-                                          'Sign in',
-                                          style: TextStyle(fontWeight: FontWeight.bold),
-                                        ),
-                                ),
+                              FilledButton(
+                                onPressed: isLoading ? null : _submit,
+                                child: isLoading
+                                    ? const SizedBox(
+                                        height: 22,
+                                        width: 22,
+                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                      )
+                                    : const Text('Sign in'),
                               ),
                             ],
                           ),
@@ -189,11 +151,7 @@ class _LoginHeroHeader extends StatelessWidget {
       duration: const Duration(milliseconds: 180),
       width: double.infinity,
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFB91C1C), Color(0xFFDC2626), Color(0xFF991B1B)],
-        ),
+        color: AppColors.brandDark,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(28),
           bottomRight: Radius.circular(28),
@@ -202,67 +160,35 @@ class _LoginHeroHeader extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(24, compact ? 8 : 16, 24, compact ? 14 : 28),
+          padding: EdgeInsets.fromLTRB(24, compact ? 8 : 16, 24, compact ? 14 : 24),
           child: Column(
             children: [
-              SvgPicture.asset('assets/logo.svg', width: compact ? 44 : 72, height: compact ? 44 : 72),
-              SizedBox(height: compact ? 6 : 12),
+              SvgPicture.asset('assets/logo.svg', width: compact ? 44 : 64, height: compact ? 44 : 64),
+              SizedBox(height: compact ? 6 : 10),
               Text(
                 'RaktDurg',
                 style: TextStyle(
-                  fontSize: compact ? 20 : 26,
-                  fontWeight: FontWeight.bold,
+                  fontSize: compact ? 20 : 24,
+                  fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
               ),
               if (!compact) ...[
-                const Text(
+                const SizedBox(height: 4),
+                Text(
                   'Blood Bank Field App',
-                  style: TextStyle(color: Color(0xFFFECACA), fontSize: 14),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 14),
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                const SizedBox(height: 6),
+                Text(
                   'By IBITF and IIT Bhilai · Recogx Init',
-                  style: TextStyle(fontSize: 11, color: Color(0xFFFECACA)),
+                  style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.65)),
                   textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _HeroStat(value: '4', label: 'Field tools'),
-                    _HeroStat(value: '24/7', label: 'Offline sync'),
-                    _HeroStat(value: 'NBTC', label: 'Aligned'),
-                  ],
                 ),
               ],
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _HeroStat extends StatelessWidget {
-  const _HeroStat({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-          Text(label, style: const TextStyle(color: Color(0xFFFECACA), fontSize: 10)),
-        ],
       ),
     );
   }

@@ -36,8 +36,8 @@ export default function OrganizersPage() {
         sortable: true,
         cell: (o) => (
           <div>
-            <div className="font-medium text-slate-900">{o.org_name}</div>
-            <div className="text-[11px] text-slate-500">{o.org_category?.replace(/_/g, " ") || o.org_type || "—"}</div>
+            <div className="font-medium text-foreground">{o.org_name}</div>
+            <div className="text-[11px] text-muted-foreground">{o.org_category?.replace(/_/g, " ") || o.org_type || "—"}</div>
           </div>
         ),
       },
@@ -45,23 +45,31 @@ export default function OrganizersPage() {
         id: "contact",
         header: "Authorized contact",
         cell: (o) => (
-          <div className="text-[13px]">
-            <div>{o.contact_name || "—"}{o.contact_role ? ` · ${o.contact_role}` : ""}</div>
-            <div className="text-[11px] text-slate-500">{o.contact_phone || "—"}</div>
+          <div>
+            <div>{o.contact_name || "—"}</div>
+            <div className="text-[11px] text-muted-foreground">
+              {[o.contact_role, o.contact_phone].filter(Boolean).join(" · ") || "—"}
+            </div>
           </div>
         ),
       },
       {
         id: "email",
         header: "Email",
-        cell: (o) => <span className="text-[13px] text-slate-600">{o.contact_email || "—"}</span>,
+        cell: (o) => <span className="text-[11px] text-muted-foreground">{o.contact_email || "—"}</span>,
       },
       {
         id: "is_verified",
         header: "Verified",
         sortable: true,
         cell: (o) => (
-          <Badge className={o.is_verified ? "border-emerald-300 bg-emerald-50 text-emerald-800" : ""}>
+          <Badge
+            className={
+              o.is_verified
+                ? "border-success/30 bg-success/10 text-success"
+                : "border-warning/30 bg-warning/10 text-warning"
+            }
+          >
             {o.is_verified ? "yes" : "no"}
           </Badge>
         ),
@@ -71,7 +79,7 @@ export default function OrganizersPage() {
   );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <DataTable
         columns={columns}
         rows={data?.items ?? []}

@@ -1,20 +1,18 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-
-const controlClass =
-  "flex h-8 w-full rounded-md border border-slate-200 bg-white px-2.5 text-[13px] text-slate-900 shadow-sm placeholder:text-slate-400 focus-visible:border-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600/20 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400";
+import { controlClassName } from "@/components/ui/input";
 
 export const FormInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (
-    <input className={cn(controlClass, className)} ref={ref} {...props} />
+    <input className={cn(controlClassName, className)} ref={ref} {...props} />
   )
 );
 FormInput.displayName = "FormInput";
 
 export const FormSelect = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(
   ({ className, children, ...props }, ref) => (
-    <select className={cn(controlClass, "pr-8", className)} ref={ref} {...props}>
+    <select className={cn(controlClassName, "appearance-none pr-8", className)} ref={ref} {...props}>
       {children}
     </select>
   )
@@ -23,15 +21,7 @@ FormSelect.displayName = "FormSelect";
 
 export const FormTextarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(
   ({ className, ...props }, ref) => (
-    <textarea
-      className={cn(
-        controlClass,
-        "min-h-[72px] py-2",
-        className
-      )}
-      ref={ref}
-      {...props}
-    />
+    <textarea className={cn(controlClassName, "min-h-[72px] py-2", className)} ref={ref} {...props} />
   )
 );
 FormTextarea.displayName = "FormTextarea";
@@ -54,14 +44,14 @@ export function FormField({
   children: ReactNode;
 }) {
   return (
-    <div className={cn("space-y-1", className)}>
-      <Label htmlFor={htmlFor} className="text-[12px] font-medium text-slate-600">
+    <div className={cn("space-y-1.5", className)}>
+      <Label htmlFor={htmlFor} className="text-[12px] font-semibold text-foreground">
         {label}
-        {required ? <span className="ml-0.5 text-red-600">*</span> : null}
+        {required ? <span className="ml-0.5 text-primary">*</span> : null}
       </Label>
       {children}
-      {hint && !error ? <p className="text-[11px] text-slate-400">{hint}</p> : null}
-      {error ? <p className="text-[11px] text-red-600">{error}</p> : null}
+      {hint && !error ? <p className="text-[11px] text-muted-foreground">{hint}</p> : null}
+      {error ? <p className="text-[11px] text-destructive">{error}</p> : null}
     </div>
   );
 }
@@ -78,7 +68,7 @@ export function FormGrid({
   return (
     <div
       className={cn(
-        "grid gap-3",
+        "grid gap-x-4 gap-y-4",
         cols === 1 && "grid-cols-1",
         cols === 2 && "grid-cols-1 sm:grid-cols-2",
         cols === 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
@@ -91,9 +81,23 @@ export function FormGrid({
   );
 }
 
-export function FormActions({ className, children }: { className?: string; children: ReactNode }) {
+export function FormActions({
+  className,
+  flush,
+  children,
+}: {
+  className?: string;
+  flush?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <div className={cn("flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3", className)}>
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-2 border-t border-border pt-3",
+        flush && "-mx-4 mt-4 px-4",
+        className
+      )}
+    >
       {children}
     </div>
   );

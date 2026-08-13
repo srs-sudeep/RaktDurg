@@ -15,26 +15,32 @@ export default function AdminPage() {
   if (!isSuperadmin) {
     return (
       <Panel title="System">
-        <p className="text-[13px] text-slate-600">Only superadmin can manage feature flags and exports.</p>
+        <p className="text-[13px] text-muted-foreground">Only superadmin can manage feature flags and exports.</p>
       </Panel>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <Panel title="Feature flags" description="Runtime switches for optional modules.">
         {isLoading ? (
-          <p className="text-[13px] text-slate-500">Loading…</p>
+          <p className="text-[13px] text-muted-foreground">Loading…</p>
         ) : (
-          <div className="divide-y divide-slate-100 overflow-hidden rounded-md border border-slate-200">
+          <div className="divide-y divide-border overflow-hidden rounded-md border border-border">
             {(flags ?? []).map((f) => (
               <div key={f.name} className="flex items-center justify-between gap-3 px-3 py-2.5">
                 <div className="min-w-0">
-                  <div className="font-mono text-[13px] font-medium text-slate-900">{f.name}</div>
-                  <div className="text-[12px] text-slate-500">{f.description}</div>
+                  <div className="font-mono text-[13px] font-medium text-foreground">{f.name}</div>
+                  <div className="text-[11px] text-muted-foreground">{f.description}</div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <Badge className={f.is_enabled ? "border-emerald-300 bg-emerald-50 text-emerald-800" : ""}>
+                  <Badge
+                    className={
+                      f.is_enabled
+                        ? "border-success/30 bg-success/10 text-success"
+                        : "border-border bg-muted text-muted-foreground"
+                    }
+                  >
                     {f.is_enabled ? "on" : "off"}
                   </Badge>
                   <Button

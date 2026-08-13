@@ -2,40 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Clinical Crimson Ops — shared web tokens.
+  Mirror hexes in mobile/lib/theme/app_theme.dart:
+  crimson #B42318 | ink #141A22 | mute #5B6775 | canvas #F3F5F7
+  line #D8DEE6 | success #0F7A4C | warn #B45309
+  sidebar chrome #111827 (near-black; not crimson)
+*/
+
 @layer base {
   :root {
-    --background: 210 14% 96%;
-    --foreground: 215 28% 14%;
+    --background: 210 17% 96%;
+    --foreground: 215 27% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 215 28% 14%;
-    --primary: 0 72% 42%;
+    --card-foreground: 215 27% 11%;
+    --primary: 4 76% 40%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 12% 93%;
-    --secondary-foreground: 215 22% 18%;
-    --muted: 210 12% 93%;
-    --muted-foreground: 215 10% 40%;
-    --accent: 210 12% 93%;
-    --accent-foreground: 215 22% 18%;
-    --destructive: 0 72% 42%;
+    --secondary: 210 16% 93%;
+    --secondary-foreground: 215 27% 11%;
+    --muted: 210 16% 93%;
+    --muted-foreground: 210 12% 41%;
+    --accent: 210 16% 93%;
+    --accent-foreground: 215 27% 11%;
+    --destructive: 4 76% 40%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 14% 84%;
-    --input: 214 14% 82%;
-    --ring: 0 72% 42%;
+    --border: 210 16% 87%;
+    --input: 210 16% 87%;
+    --ring: 4 76% 40%;
+    --sidebar: 220 26% 11%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-muted: 215 12% 65%;
+    --sidebar-accent: 4 76% 40%;
+    --success: 154 78% 27%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 91% 37%;
+    --warning-foreground: 0 0% 100%;
     --radius: 0.65rem;
-    --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Newsreader", ui-serif, Georgia, serif;
   }
 
   * { @apply border-border; }
+
   body {
-    @apply bg-[#eef1f4] text-foreground antialiased;
+    @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
-    font-feature-settings: "tnum" 1;
+    font-feature-settings: "tnum" 1, "ss01" 1;
     min-height: 100vh;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
   }
 }
 
 @layer utilities {
   .surface-card {
-    @apply overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm shadow-slate-900/[0.03];
+    @apply overflow-hidden rounded-xl border border-border bg-card shadow-sm shadow-foreground/[0.03];
+  }
+
+  .text-display {
+    font-family: var(--font-display);
   }
 }

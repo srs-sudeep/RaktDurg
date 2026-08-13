@@ -1,34 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-/// Shared RaktDurg mobile visual tokens (aligned with web staff red).
+/// Clinical Crimson Ops — mirrors web/src/index.css hex tokens.
+/// crimson #B42318 | deep #7A1410 | ink #141A22 | mute #5B6775
+/// canvas #F3F5F7 | line #D8DEE6 | success #0F7A4C | warn #B45309
 abstract final class AppColors {
-  static const brand = Color(0xFFDC2626);
-  static const brandDark = Color(0xFFB91C1C);
-  static const canvas = Color(0xFFEEF1F4);
+  static const brand = Color(0xFFB42318);
+  static const brandDark = Color(0xFF7A1410);
+  static const canvas = Color(0xFFF3F5F7);
   static const card = Colors.white;
-  static const ink = Color(0xFF0F172A);
-  static const muted = Color(0xFF64748B);
-  static const line = Color(0xFFE2E8F0);
-  static const success = Color(0xFF059669);
-  static const warning = Color(0xFFD97706);
-  static const danger = Color(0xFFB91C1C);
+  static const ink = Color(0xFF141A22);
+  static const muted = Color(0xFF5B6775);
+  static const line = Color(0xFFD8DEE6);
+  static const success = Color(0xFF0F7A4C);
+  static const warning = Color(0xFFB45309);
+  static const danger = Color(0xFFB42318);
 }
 
 ThemeData buildRaktTheme() {
-  final base = ColorScheme.fromSeed(
-    seedColor: AppColors.brand,
-    brightness: Brightness.light,
-  );
+  final textTheme = GoogleFonts.manropeTextTheme();
   return ThemeData(
     useMaterial3: true,
-    colorScheme: base.copyWith(primary: AppColors.brand),
+    colorScheme: ColorScheme.light(
+      primary: AppColors.brand,
+      onPrimary: Colors.white,
+      secondary: AppColors.canvas,
+      onSecondary: AppColors.ink,
+      surface: AppColors.card,
+      onSurface: AppColors.ink,
+      error: AppColors.danger,
+      onError: Colors.white,
+      outline: AppColors.line,
+    ),
     scaffoldBackgroundColor: AppColors.canvas,
-    appBarTheme: const AppBarTheme(
+    textTheme: textTheme.apply(bodyColor: AppColors.ink, displayColor: AppColors.ink),
+    appBarTheme: AppBarTheme(
       backgroundColor: AppColors.brand,
       foregroundColor: Colors.white,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: TextStyle(
+      titleTextStyle: GoogleFonts.manrope(
         color: Colors.white,
         fontSize: 18,
         fontWeight: FontWeight.w600,
@@ -45,7 +56,7 @@ ThemeData buildRaktTheme() {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFFF8FAFC),
+      fillColor: AppColors.canvas,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.line)),
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.line)),
@@ -61,7 +72,7 @@ ThemeData buildRaktTheme() {
         foregroundColor: Colors.white,
         minimumSize: const Size.fromHeight(48),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+        textStyle: GoogleFonts.manrope(fontWeight: FontWeight.w600, fontSize: 15),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -77,7 +88,7 @@ ThemeData buildRaktTheme() {
       indicatorColor: AppColors.brand.withValues(alpha: 0.12),
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
-        return TextStyle(
+        return GoogleFonts.manrope(
           fontSize: 12,
           fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
           color: selected ? AppColors.brand : AppColors.muted,

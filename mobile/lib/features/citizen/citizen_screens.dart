@@ -1,108 +1,25 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
+
 import '../../data/remote/api_client.dart';
-import '../auth/auth_notifier.dart';
+import '../../theme/app_theme.dart';
 import '../../widgets/branding_widgets.dart';
 import '../../widgets/ui_kit.dart';
 
-class CitizenHomeScreen extends ConsumerWidget {
+/// Legacy hub — bottom nav is canonical. Kept so old deep links can show a note.
+class CitizenHomeScreen extends StatelessWidget {
   const CitizenHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('RaktDurg'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authProvider.notifier).logout(),
-          ),
-        ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.red.shade50.withValues(alpha: 0.5), Colors.grey.shade50],
-          ),
-        ),
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFFDC2626), Color(0xFFB91C1C)]),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.favorite, color: Colors.white, size: 34),
-                  SizedBox(height: 12),
-                  Text(
-                    'Citizen dashboard',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Track your donor profile, wallet, camps, and donation history.',
-                    style: TextStyle(color: Color(0xFFFECACA), fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _CitizenTile(
-              icon: Icons.water_drop_outlined,
-              color: const Color(0xFFDC2626),
-              title: 'Blood Stock',
-              subtitle: 'Check current public availability by group',
-              onTap: () => context.push('/citizen/stock'),
-            ),
-            _CitizenTile(
-              icon: Icons.account_balance_wallet_outlined,
-              color: const Color(0xFF7C3AED),
-              title: 'Wallet',
-              subtitle: 'View blood credit balance and transactions',
-              onTap: () => context.push('/citizen/wallet'),
-            ),
-            _CitizenTile(
-              icon: Icons.event_available_outlined,
-              color: const Color(0xFF059669),
-              title: 'Camps',
-              subtitle: 'Explore public donation camps and request booking',
-              onTap: () => context.push('/citizen/camps'),
-            ),
-            _CitizenTile(
-              icon: Icons.history_outlined,
-              color: const Color(0xFFEA580C),
-              title: 'Donation History',
-              subtitle: 'See your past donations',
-              onTap: () => context.push('/citizen/history'),
-            ),
-            _CitizenTile(
-              icon: Icons.person_outline,
-              color: const Color(0xFF2563EB),
-              title: 'Profile',
-              subtitle: 'View your linked donor profile',
-              onTap: () => context.push('/citizen/profile'),
-            ),
-            _CitizenTile(
-              icon: Icons.calendar_month_outlined,
-              color: const Color(0xFF0F766E),
-              title: 'My Bookings',
-              subtitle: 'Track or cancel camp bookings',
-              onTap: () => context.push('/citizen/bookings'),
-            ),
-          ],
-        ),
+  Widget build(BuildContext context) {
+    return const PageScaffold(
+      title: 'RaktDurg',
+      showLogo: true,
+      body: EmptyState(
+        message: 'Use the bottom navigation to open Stock, Camps, Wallet, History, or Account.',
+        icon: Icons.navigation_outlined,
       ),
     );
   }
@@ -115,16 +32,24 @@ class CitizenProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return _CitizenAsyncPage<Map<String, dynamic>>(
       title: 'Donor Profile',
+      showLogo: false,
       future: ApiClient.instance.getCitizenProfile(),
       builder: (context, data) => ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _InfoCard(title: 'Name', value: '${data['name'] ?? '—'}'),
-          _InfoCard(title: 'Blood Group', value: '${data['blood_group'] ?? '—'}'),
-          _InfoCard(title: 'Phone', value: '${data['contact_phone'] ?? '—'}'),
-          _InfoCard(title: 'Status', value: '${data['status'] ?? '—'}'),
-          _InfoCard(title: 'ABHA', value: '${data['abha_reference'] ?? 'Not added'}'),
-          _InfoCard(title: 'Address', value: '${data['address'] ?? '—'}'),
+          SectionCard(
+            title: 'Profile',
+            child: InfoTable(
+              rows: [
+                ('Name', '${data['name'] ?? '—'}'),
+                ('Blood Group', '${data['blood_group'] ?? '—'}'),
+                ('Phone', '${data['contact_phone'] ?? '—'}'),
+                ('Status', '${data['status'] ?? '—'}'),
+                ('ABHA', '${data['abha_reference'] ?? 'Not added'}'),
+                ('Address', '${data['address'] ?? '—'}'),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -138,6 +63,7 @@ class CitizenWalletScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return _CitizenAsyncPage<Map<String, dynamic>>(
       title: 'Blood Credit Wallet',
+      showLogo: true,
       future: ApiClient.instance.getCitizenWallet(),
       builder: (context, data) {
         final wallet = (data['wallet'] as Map<String, dynamic>? ?? {});
@@ -145,37 +71,37 @@ class CitizenWalletScreen extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Current balance', style: TextStyle(color: Colors.grey.shade600)),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${wallet['balance'] ?? 0}',
-                      style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+            SectionCard(
+              title: 'Current balance',
+              child: Text(
+                '${wallet['balance'] ?? 0}',
+                style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: AppColors.ink),
               ),
             ),
-            const SizedBox(height: 16),
-            ...txns.map((txn) {
-              final item = txn as Map<String, dynamic>;
-              return Card(
-                margin: const EdgeInsets.only(bottom: 10),
-                child: ListTile(
-                  title: Text('${item['type'] ?? ''}'.toUpperCase()),
-                  subtitle: Text('${item['recorded_at'] ?? ''}'),
-                  trailing: Text('${item['amount'] ?? 0}'),
-                ),
-              );
-            }),
+            const SizedBox(height: 12),
             if (txns.isEmpty)
-              Text('No wallet transactions yet.', style: TextStyle(color: Colors.grey.shade600)),
+              const EmptyState(message: 'No wallet transactions yet.', icon: Icons.account_balance_wallet_outlined)
+            else
+              ...txns.map((txn) {
+                final item = txn as Map<String, dynamic>;
+                final type = '${item['type'] ?? ''}'.toUpperCase();
+                final amount = item['amount'] as num? ?? 0;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: ListRowCard(
+                    leading: IconBadge(
+                      amount >= 0 ? Icons.arrow_downward : Icons.arrow_upward,
+                      amount >= 0 ? AppColors.success : AppColors.danger,
+                    ),
+                    title: type.isEmpty ? 'Transaction' : type,
+                    subtitle: '${item['recorded_at'] ?? ''}',
+                    trailing: StatusChip(
+                      '${item['amount'] ?? 0}',
+                      tone: amount >= 0 ? StatusTone.success : StatusTone.danger,
+                    ),
+                  ),
+                );
+              }),
           ],
         );
       },
@@ -190,6 +116,7 @@ class CitizenHistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return _CitizenAsyncPage<_HistoryBundle>(
       title: 'Donation History',
+      showLogo: true,
       future: () async {
         final donations = await ApiClient.instance.getCitizenDonations();
         final certificates = await ApiClient.instance.getCitizenCertificates();
@@ -198,36 +125,38 @@ class CitizenHistoryScreen extends StatelessWidget {
       builder: (context, data) => ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Donations', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          const Text('Donations', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.ink)),
           const SizedBox(height: 8),
-          for (final item in data.donations)
-            Card(
-              margin: const EdgeInsets.only(bottom: 10),
-              child: ListTile(
-                title: Text('${(item as Map<String, dynamic>)['camp_name'] ?? 'Blood bank donation'}'),
-                subtitle: Text('${item['location'] ?? ''}\n${item['collection_datetime'] ?? ''}'),
-                isThreeLine: true,
-                trailing: Text(item['volume_ml'] == null ? '—' : '${item['volume_ml']} ml'),
-              ),
-            ),
           if (data.donations.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text('No donation history yet.', style: TextStyle(color: Colors.grey.shade600)),
-            ),
-          const SizedBox(height: 12),
-          const Text('Certificates', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          for (final raw in data.certificates)
-            _CertificateTile(cert: raw as Map<String, dynamic>),
-          if (data.certificates.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                'Certificates appear after a donation is recorded.',
-                style: TextStyle(color: Colors.grey.shade600),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 16),
+              child: EmptyState(message: 'No donation history yet.', icon: Icons.history),
+            )
+          else
+            for (final raw in data.donations)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ListRowCard(
+                  leading: const IconBadge(Icons.bloodtype_outlined, AppColors.brand),
+                  title: '${(raw as Map<String, dynamic>)['camp_name'] ?? 'Blood bank donation'}',
+                  subtitle: '${raw['location'] ?? ''}\n${raw['collection_datetime'] ?? ''}',
+                  trailing: StatusChip(
+                    raw['volume_ml'] == null ? '—' : '${raw['volume_ml']} ml',
+                    tone: StatusTone.neutral,
+                  ),
+                ),
               ),
-            ),
+          const SizedBox(height: 12),
+          const Text('Certificates', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.ink)),
+          const SizedBox(height: 8),
+          if (data.certificates.isEmpty)
+            const EmptyState(
+              message: 'Certificates appear after a donation is recorded.',
+              icon: Icons.workspace_premium_outlined,
+            )
+          else
+            for (final raw in data.certificates)
+              _CertificateTile(cert: raw as Map<String, dynamic>),
         ],
       ),
     );
@@ -277,13 +206,12 @@ class _CertificateTileState extends State<_CertificateTile> {
   @override
   Widget build(BuildContext context) {
     final cert = widget.cert;
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        title: Text('${cert['certificate_number'] ?? 'Certificate'}'),
-        subtitle: Text(
-          '${cert['donor_name'] ?? ''} · ${cert['blood_group'] ?? '—'} · ${cert['donation_date'] ?? ''}',
-        ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: ListRowCard(
+        leading: const IconBadge(Icons.workspace_premium_outlined, AppColors.warning),
+        title: '${cert['certificate_number'] ?? 'Certificate'}',
+        subtitle: '${cert['donor_name'] ?? ''} · ${cert['blood_group'] ?? '—'} · ${cert['donation_date'] ?? ''}',
         trailing: TextButton(
           onPressed: _busy ? null : _download,
           child: Text(_busy ? '…' : 'PDF'),
@@ -302,6 +230,8 @@ class CitizenCampsScreen extends StatefulWidget {
 
 class _CitizenCampsScreenState extends State<CitizenCampsScreen> {
   late Future<List<dynamic>> _future;
+  String? _bookingError;
+  String? _bookingCampId;
 
   @override
   void initState() {
@@ -309,109 +239,192 @@ class _CitizenCampsScreenState extends State<CitizenCampsScreen> {
     _future = ApiClient.instance.getPublicCamps();
   }
 
+  Future<void> _requestBooking(String campId) async {
+    setState(() {
+      _bookingCampId = campId;
+      _bookingError = null;
+    });
+    try {
+      await ApiClient.instance.createCitizenBooking(campId: campId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Booking requested')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _bookingError = 'Could not request booking. Try again.');
+    } finally {
+      if (mounted) setState(() => _bookingCampId = null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return _CitizenAsyncPage<List<dynamic>>(
       title: 'Upcoming Camps',
+      showLogo: true,
       future: _future,
       builder: (context, data) => ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          for (final item in data)
-            Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('${(item as Map<String, dynamic>)['camp_name'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    const SizedBox(height: 6),
-                    Text('${item['host_facility_name'] ?? ''}', style: TextStyle(color: Colors.grey.shade600)),
-                    const SizedBox(height: 4),
-                    Text('${item['location'] ?? ''}', style: TextStyle(color: Colors.grey.shade700)),
-                    const SizedBox(height: 4),
-                    Text('${item['requested_date'] ?? ''}', style: TextStyle(color: Colors.grey.shade700)),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final messenger = ScaffoldMessenger.of(context);
-                        await ApiClient.instance.createCitizenBooking(campId: '${item['id']}');
-                        if (!mounted) return;
-                        messenger.showSnackBar(
-                          const SnackBar(content: Text('Booking requested')),
-                        );
-                      },
-                      child: const Text('Request booking'),
-                    ),
-                  ],
+          if (_bookingError != null) ...[
+            ErrorBanner(_bookingError!),
+            const SizedBox(height: 12),
+          ],
+          if (data.isEmpty)
+            const EmptyState(message: 'No approved upcoming camps yet.', icon: Icons.event_busy)
+          else
+            for (final raw in data)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ListRowCard(
+                  leading: const IconBadge(Icons.event_available_outlined, AppColors.success),
+                  title: '${(raw as Map<String, dynamic>)['camp_name'] ?? ''}',
+                  subtitle:
+                      '${raw['host_facility_name'] ?? ''}\n${raw['location'] ?? ''}\n${raw['requested_date'] ?? ''}',
+                  trailing: TextButton(
+                    onPressed: _bookingCampId != null
+                        ? null
+                        : () => _requestBooking('${raw['id']}'),
+                    child: Text(_bookingCampId == '${raw['id']}' ? '…' : 'Book'),
+                  ),
                 ),
               ),
-            ),
-          if (data.isEmpty)
-            Text('No approved upcoming camps yet.', style: TextStyle(color: Colors.grey.shade600)),
         ],
       ),
     );
   }
 }
 
-class CitizenBookingsScreen extends StatelessWidget {
+class CitizenBookingsScreen extends StatefulWidget {
   const CitizenBookingsScreen({super.key});
+
+  @override
+  State<CitizenBookingsScreen> createState() => _CitizenBookingsScreenState();
+}
+
+class _CitizenBookingsScreenState extends State<CitizenBookingsScreen> {
+  late Future<List<dynamic>> _future;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _reload();
+  }
+
+  void _reload() {
+    setState(() {
+      _error = null;
+      _future = ApiClient.instance.getCitizenBookings();
+    });
+  }
+
+  Future<void> _cancel(String id) async {
+    try {
+      await ApiClient.instance.cancelCitizenBooking(id);
+      if (!mounted) return;
+      _reload();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _error = 'Could not cancel booking.');
+    }
+  }
+
+  StatusTone _toneFor(String status) {
+    return switch (status) {
+      'confirmed' || 'approved' => StatusTone.success,
+      'cancelled' => StatusTone.danger,
+      'pending' || 'requested' => StatusTone.warning,
+      _ => StatusTone.neutral,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     return _CitizenAsyncPage<List<dynamic>>(
       title: 'My Bookings',
-      future: ApiClient.instance.getCitizenBookings(),
+      showLogo: false,
+      future: _future,
       builder: (context, data) => ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          for (final item in data)
-            Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                title: Text('${(item as Map<String, dynamic>)['camp_name'] ?? ''}'),
-                subtitle: Text('${item['location'] ?? ''}\n${item['requested_date'] ?? ''}'),
-                isThreeLine: true,
-                trailing: item['status'] == 'cancelled'
-                    ? const Text('Cancelled')
-                    : TextButton(
-                        onPressed: () async {
-                          await ApiClient.instance.cancelCitizenBooking('${item['id']}');
-                          if (!context.mounted) return;
-                          context.go('/citizen/bookings');
-                        },
-                        child: const Text('Cancel'),
-                      ),
-              ),
-            ),
+          if (_error != null) ...[
+            ErrorBanner(_error!),
+            const SizedBox(height: 12),
+          ],
           if (data.isEmpty)
-            Text('No camp bookings yet.', style: TextStyle(color: Colors.grey.shade600)),
+            const EmptyState(message: 'No camp bookings yet.', icon: Icons.calendar_month_outlined)
+          else
+            for (final raw in data)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ListRowCard(
+                  leading: const IconBadge(Icons.calendar_month_outlined, AppColors.brand),
+                  title: '${(raw as Map<String, dynamic>)['camp_name'] ?? ''}',
+                  subtitle: '${raw['location'] ?? ''}\n${raw['requested_date'] ?? ''}',
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      StatusChip(
+                        '${raw['status'] ?? '—'}',
+                        tone: _toneFor('${raw['status'] ?? ''}'),
+                      ),
+                      if (raw['status'] != 'cancelled') ...[
+                        const SizedBox(width: 4),
+                        TextButton(
+                          onPressed: () => _cancel('${raw['id']}'),
+                          child: const Text('Cancel'),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
         ],
       ),
     );
   }
 }
 
-class CitizenStockScreen extends StatelessWidget {
+class CitizenStockScreen extends StatefulWidget {
   const CitizenStockScreen({super.key});
+
+  @override
+  State<CitizenStockScreen> createState() => _CitizenStockScreenState();
+}
+
+class _CitizenStockScreenState extends State<CitizenStockScreen> {
+  late Future<Map<String, dynamic>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _reload();
+  }
+
+  void _reload() {
+    setState(() {
+      _future = ApiClient.instance.getCitizenStock();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return _CitizenAsyncPage<Map<String, dynamic>>(
       title: 'Blood Stock',
-      future: ApiClient.instance.getCitizenStock(),
-      builder: (context, data) => _CitizenStockView(data: data),
+      showLogo: true,
+      future: _future,
+      builder: (context, data) => _CitizenStockView(data: data, onRefresh: () async => _reload()),
     );
   }
 }
 
 class _CitizenStockView extends StatelessWidget {
-  const _CitizenStockView({required this.data});
+  const _CitizenStockView({required this.data, required this.onRefresh});
 
   final Map<String, dynamic> data;
+  final Future<void> Function() onRefresh;
 
   static const _componentLabels = {
     'whole_blood': 'Whole Blood',
@@ -433,98 +446,62 @@ class _CitizenStockView extends StatelessWidget {
     }
 
     return RefreshIndicator(
-      onRefresh: () async {
-        if (!context.mounted) return;
-        context.go('/citizen/stock');
-      },
+      onRefresh: onRefresh,
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         children: [
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    data['facility_name'] as String? ?? 'Durg District Blood Bank',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Updated ${data['as_of'] ?? 'recently'}',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
+          ListRowCard(
+            leading: const IconBadge(Icons.local_hospital_outlined, AppColors.brand),
+            title: data['facility_name'] as String? ?? 'Durg District Blood Bank',
+            subtitle: 'Updated ${data['as_of'] ?? 'recently'}',
           ),
           const SizedBox(height: 12),
-          ...grouped.entries.map((entry) {
-            final total = entry.value.fold<int>(
-              0,
-              (sum, item) => sum + ((item['available_count'] as num?)?.toInt() ?? 0),
-            );
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+          if (entries.isEmpty)
+            const EmptyState(message: 'No stock data available right now.', icon: Icons.water_drop_outlined)
+          else
+            for (final entry in grouped.entries)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SectionCard(
+                  title: entry.key,
+                  trailing: Builder(
+                    builder: (_) {
+                      final total = entry.value.fold<int>(
+                        0,
+                        (sum, item) => sum + ((item['available_count'] as num?)?.toInt() ?? 0),
+                      );
+                      return StatusChip(
+                        total == 0 ? 'Shortage' : '$total units',
+                        tone: total == 0 ? StatusTone.danger : StatusTone.success,
+                      );
+                    },
+                  ),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final item in entry.value)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: total == 0 ? Colors.red.shade50 : Colors.green.shade50,
-                            borderRadius: BorderRadius.circular(999),
+                            color: AppColors.canvas,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.line),
                           ),
                           child: Text(
-                            entry.key,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: total == 0 ? Colors.red.shade700 : Colors.green.shade700,
+                            '${_componentLabels['${item['component_type']}'] ?? item['component_type']}: ${item['available_count'] ?? 0}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
-                        Text(
-                          total == 0 ? 'Shortage' : '$total units',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: total == 0 ? Colors.red.shade700 : Colors.green.shade700,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (entry.value.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: entry.value.map((item) {
-                          final ct = '${item['component_type']}';
-                          return Chip(
-                            label: Text(
-                              '${_componentLabels[ct] ?? ct}: ${item['available_count']}',
-                            ),
-                          );
-                        }).toList(),
-                      ),
                     ],
-                  ],
+                  ),
                 ),
               ),
-            );
-          }),
-          if (entries.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Text('No stock data available right now.', style: TextStyle(color: Colors.grey.shade600)),
-            ),
         ],
       ),
     );
@@ -536,102 +513,35 @@ class _CitizenAsyncPage<T> extends StatelessWidget {
     required this.title,
     required this.future,
     required this.builder,
+    this.showLogo = false,
   });
 
   final String title;
   final Future<T> future;
   final Widget Function(BuildContext context, T data) builder;
+  final bool showLogo;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: RaktAppBar(title: title, showLogo: true),
+      appBar: RaktAppBar(title: title, showLogo: showLogo),
       body: FutureBuilder<T>(
         future: future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const PageLoader();
           }
-          if (snapshot.hasError || !snapshot.hasData) {
+          if (snapshot.hasError) {
+            return const Padding(
+              padding: EdgeInsets.all(16),
+              child: ErrorBanner('Unable to load this screen right now.'),
+            );
+          }
+          if (!snapshot.hasData) {
             return const EmptyState(message: 'Unable to load this screen right now.');
           }
           return builder(context, snapshot.data as T);
         },
-      ),
-    );
-  }
-}
-
-class _CitizenTile extends StatelessWidget {
-  const _CitizenTile({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      elevation: 2,
-      shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 26),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                    const SizedBox(height: 2),
-                    Text(subtitle, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, color: Colors.grey.shade400),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.title, required this.value});
-
-  final String title;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text(value),
       ),
     );
   }

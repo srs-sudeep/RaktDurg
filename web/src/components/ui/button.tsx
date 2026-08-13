@@ -4,19 +4,20 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-lg border text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600/30 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center rounded-lg border text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "border-red-700 bg-red-700 text-white hover:bg-red-800",
-        outline: "border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-50",
-        ghost: "border-transparent bg-transparent text-slate-700 hover:bg-slate-100",
-        secondary: "border-slate-200 bg-slate-100 text-slate-900 hover:bg-slate-200",
+        default: "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
+        outline: "border-border bg-card text-foreground shadow-sm hover:bg-muted",
+        ghost: "border-transparent bg-transparent text-foreground hover:bg-muted",
+        secondary: "border-border bg-secondary text-secondary-foreground hover:bg-secondary/80",
       },
       size: {
         default: "h-9 px-3.5",
         sm: "h-8 px-3 text-[12px]",
         lg: "h-10 px-4",
+        icon: "h-8 w-8 p-0",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

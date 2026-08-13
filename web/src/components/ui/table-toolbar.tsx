@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 
@@ -36,21 +37,21 @@ export function TableToolbar({
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
       {search && (
-        <label className="relative block w-full max-w-[260px]">
+        <label className="relative block w-full max-w-sm flex-1">
           <span className="sr-only">Search</span>
-          <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search.value}
             onChange={(e) => search.onChange(e.target.value)}
             placeholder={searchPlaceholder}
-            className="h-8 border-slate-300 pl-8"
+            className="h-9 pl-8"
           />
         </label>
       )}
       {filters.map((f) => (
         <FormSelect
           key={f.key}
-          className={cn("h-8 w-36 border-slate-300", f.className)}
+          className={cn("h-9 min-w-[9rem]", f.className)}
           aria-label={f.label}
           value={filterValues?.[f.key] ?? ""}
           onChange={(e) => onFilterChange?.(f.key, e.target.value)}
@@ -63,7 +64,7 @@ export function TableToolbar({
           ))}
         </FormSelect>
       ))}
-      {children}
+      {children ? <div className="ml-auto flex flex-wrap items-center gap-2">{children}</div> : null}
     </div>
   );
 }
@@ -84,32 +85,34 @@ export function TablePagination({
   const to = Math.min(page * pageSize, total);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-slate-600">
+    <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-muted-foreground">
       <span className="tabular-nums">
         {from}–{to} of {total}
       </span>
-      <div className="flex items-center gap-1">
-        <button
+      <div className="flex items-center gap-1.5">
+        <Button
           type="button"
-          className="inline-flex h-7 items-center gap-0.5 border border-slate-300 bg-white px-2 hover:bg-slate-50 disabled:opacity-40"
+          size="sm"
+          variant="outline"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
           <ChevronLeft className="h-3.5 w-3.5" />
           Prev
-        </button>
-        <span className="border border-slate-300 bg-white px-2 py-1 tabular-nums">
+        </Button>
+        <span className="px-2 tabular-nums text-foreground">
           {page}/{pages}
         </span>
-        <button
+        <Button
           type="button"
-          className="inline-flex h-7 items-center gap-0.5 border border-slate-300 bg-white px-2 hover:bg-slate-50 disabled:opacity-40"
+          size="sm"
+          variant="outline"
           disabled={page >= pages}
           onClick={() => onPageChange(page + 1)}
         >
           Next
           <ChevronRight className="h-3.5 w-3.5" />
-        </button>
+        </Button>
       </div>
     </div>
   );

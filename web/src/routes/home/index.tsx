@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { FeatureIcon, HeroPattern } from "@/components/DecorativeGraphics";
 import { PartnerLogos } from "@/components/PublicLayout";
+import { Button } from "@/components/ui/button";
 
 const FEATURES = [
   {
@@ -23,46 +24,40 @@ const FEATURES = [
 export default function HomePage() {
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-br from-red-50 via-white to-gray-50 px-4 py-16 md:py-24">
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-card to-background px-4 py-16 md:py-24">
         <HeroPattern />
         <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-12 md:flex-row md:items-center">
           <div className="flex-1 text-center md:text-left">
-            <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-red-700">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-primary">
               Durg District Blood Bank
             </span>
             <img src="/logo.svg" alt="RaktDurg" className="mx-auto mt-6 h-28 w-28 md:mx-0" />
-            <h1 className="mt-6 text-4xl font-bold tracking-tight text-gray-900 md:text-5xl lg:text-6xl">
+            <h1 className="mt-6 font-display text-4xl font-semibold tracking-tight text-foreground md:text-5xl lg:text-6xl">
               Saving lives through{" "}
-              <span className="bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
-                smarter blood banking
-              </span>
+              <span className="text-primary">smarter blood banking</span>
             </h1>
-            <p className="mt-4 max-w-xl text-lg text-gray-600">
+            <p className="mt-4 max-w-xl text-lg text-muted-foreground">
               Real-time stock visibility, camp management, and donor workflows — complementing national
               e-RaktKosh for Durg district.
             </p>
-            <p className="mt-2 text-sm font-medium text-gray-500">
+            <p className="mt-2 text-sm font-medium text-muted-foreground">
               By IBITF and IIT Bhilai · Powered by Recogx Init
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
-              <Link
-                to="/public/stock"
-                className="rounded-xl bg-red-600 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/25 transition hover:bg-red-700 hover:shadow-red-600/30"
-              >
-                Check Blood Availability
+              <Link to="/public/stock">
+                <Button size="lg">Check Blood Availability</Button>
               </Link>
-              <Link
-                to="/login"
-                className="rounded-xl border border-gray-300 bg-white px-7 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
-              >
-                Staff Login
+              <Link to="/login">
+                <Button size="lg" variant="outline">
+                  Staff Login
+                </Button>
               </Link>
             </div>
           </div>
 
-          <div className="flex-1 w-full max-w-lg">
-            <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-8 shadow-xl shadow-gray-200/50 backdrop-blur-sm">
-              <div className="grid gap-6 sm:grid-cols-2">
+          <div className="w-full max-w-lg flex-1">
+            <div className="surface-card p-6 sm:p-8">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <AudienceCard
                   title="For citizens"
                   items={[
@@ -70,7 +65,6 @@ export default function HomePage() {
                     "Find donation camps in Durg",
                     "Access donor wallet (coming soon)",
                   ]}
-                  accent="border-red-100 bg-red-50/50"
                 />
                 <AudienceCard
                   title="For staff"
@@ -79,17 +73,16 @@ export default function HomePage() {
                     "Offline mobile at blood camps",
                     "Role-based district access",
                   ]}
-                  accent="border-gray-100 bg-gray-50/50"
                 />
               </div>
-              <div className="mt-6 flex items-center justify-between rounded-xl bg-gradient-to-r from-red-600 to-red-700 px-5 py-4 text-white">
+              <div className="mt-6 flex items-center justify-between rounded-xl bg-sidebar px-5 py-4 text-sidebar-foreground">
                 <div>
-                  <p className="text-xs font-medium text-red-100">Emergency line</p>
-                  <p className="text-lg font-bold">07882-220101</p>
+                  <p className="text-xs font-medium text-sidebar-muted">Emergency line</p>
+                  <p className="text-lg font-semibold tabular-nums">07882-220101</p>
                 </div>
                 <Link
                   to="/contact"
-                  className="rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold backdrop-blur-sm transition hover:bg-white/30"
+                  className="rounded-lg bg-card/15 px-4 py-2 text-xs font-semibold transition hover:bg-card/25"
                 >
                   Contact us →
                 </Link>
@@ -99,21 +92,20 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-gray-100 bg-white px-4 py-14">
+      <section className="border-y border-border bg-card px-4 py-14">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-2xl font-bold text-gray-900">Built for Durg district</h2>
-          <p className="mx-auto mt-2 max-w-xl text-center text-sm text-gray-500">
+          <h2 className="text-center font-display text-2xl font-semibold text-foreground">
+            Built for Durg district
+          </h2>
+          <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">
             Three pillars that make RaktDurg a complete blood bank platform.
           </p>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-12 grid gap-4 md:grid-cols-3">
             {FEATURES.map((f) => (
-              <div
-                key={f.title}
-                className="group rounded-2xl border border-gray-100 bg-gradient-to-b from-white to-gray-50/50 p-6 shadow-sm transition hover:border-red-100 hover:shadow-md"
-              >
+              <div key={f.title} className="surface-card p-6">
                 <FeatureIcon type={f.icon} />
-                <h3 className="mt-4 font-semibold text-gray-900 group-hover:text-red-700">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-gray-600">{f.body}</p>
+                <h3 className="mt-4 font-semibold text-foreground">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
               </div>
             ))}
           </div>
@@ -121,11 +113,11 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="text-center text-2xl font-bold text-gray-900">Our partners</h2>
-        <p className="mx-auto mt-2 max-w-xl text-center text-sm text-gray-500">
+        <h2 className="text-center font-display text-2xl font-semibold text-foreground">Our partners</h2>
+        <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">
           RaktDurg is developed through a collaboration between IBITF, IIT Bhilai, and Recogx Init.
         </p>
-        <div className="mt-10 rounded-2xl border border-gray-100 bg-white p-10 shadow-sm">
+        <div className="mt-10 surface-card p-10">
           <PartnerLogos size="lg" />
         </div>
       </section>
@@ -133,22 +125,14 @@ export default function HomePage() {
   );
 }
 
-function AudienceCard({
-  title,
-  items,
-  accent,
-}: {
-  title: string;
-  items: string[];
-  accent: string;
-}) {
+function AudienceCard({ title, items }: { title: string; items: string[] }) {
   return (
-    <div className={`rounded-xl border p-5 ${accent}`}>
-      <h2 className="font-semibold text-gray-900">{title}</h2>
-      <ul className="mt-3 space-y-2 text-left text-sm text-gray-600">
+    <div className="rounded-lg border border-border bg-muted/40 p-4">
+      <h2 className="font-semibold text-foreground">{title}</h2>
+      <ul className="mt-3 space-y-2 text-left text-sm text-muted-foreground">
         {items.map((item) => (
           <li key={item} className="flex items-start gap-2">
-            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
             {item}
           </li>
         ))}

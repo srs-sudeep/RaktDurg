@@ -10,9 +10,9 @@ import {
 type ActiveToast = Required<ToastPayload> & { open: boolean };
 
 const stylesByVariant: Record<ToastVariant, string> = {
-  info: "border-slate-300 bg-white text-slate-900",
-  success: "border-emerald-600 bg-emerald-50 text-emerald-950",
-  error: "border-red-600 bg-red-50 text-red-950",
+  info: "border-border bg-card text-foreground",
+  success: "border-success/40 bg-success/10 text-foreground",
+  error: "border-destructive/40 bg-destructive/10 text-foreground",
 };
 
 export function Toaster() {
@@ -41,7 +41,7 @@ export function Toaster() {
             }
           }}
           className={cn(
-            "relative w-[340px] rounded-lg border px-3.5 py-3 shadow-lg shadow-slate-900/10",
+            "relative w-[340px] rounded-lg border px-3.5 py-3 shadow-lg shadow-foreground/10",
             stylesByVariant[toast.variant]
           )}
         >

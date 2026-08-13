@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../core/eligibility.dart';
 import '../../data/local/dao/screening_dao.dart';
 import '../../widgets/ui_kit.dart';
+import '../../theme/app_theme.dart';
 
 const _uuid = Uuid();
 
@@ -114,7 +115,7 @@ class _ScreeningFormState extends ConsumerState<ScreeningFormScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.danger),
         );
       }
     } finally {
@@ -144,6 +145,7 @@ class _ScreeningFormState extends ConsumerState<ScreeningFormScreen> {
       value: value,
       onChanged: onChanged,
       dense: true,
+      contentPadding: EdgeInsets.zero,
       controlAffinity: ListTileControlAffinity.leading,
     );
   }
@@ -164,71 +166,69 @@ class _ScreeningFormState extends ConsumerState<ScreeningFormScreen> {
               margin: const EdgeInsets.only(bottom: 16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.shade200),
+                color: AppColors.warning.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.warning.withValues(alpha: 0.25)),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.wifi_off, color: Colors.orange, size: 16),
+                  Icon(Icons.wifi_off, color: AppColors.warning, size: 16),
                   SizedBox(width: 8),
-                  Text(
-                    'Offline mode — data saved locally',
-                    style: TextStyle(color: Colors.orange, fontSize: 13),
+                  Expanded(
+                    child: Text(
+                      'Offline mode — data saved locally',
+                      style: TextStyle(color: AppColors.warning, fontSize: 13),
+                    ),
                   ),
                 ],
               ),
             ),
-
-            // Vitals section
-            const Text('Vitals', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 12),
-            _vitalField('Weight (kg)', _weightCtrl, '65.0', isDecimal: true),
-            const SizedBox(height: 8),
-            _vitalField('Haemoglobin (g/dL)', _hbCtrl, '14.0', isDecimal: true),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(child: _vitalField('BP Systolic', _bpSysCtrl, '120')),
-                const SizedBox(width: 12),
-                Expanded(child: _vitalField('BP Diastolic', _bpDiaCtrl, '80')),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(child: _vitalField('Pulse (bpm)', _pulseCtrl, '72')),
-                const SizedBox(width: 12),
-                Expanded(child: _vitalField('Temp (°C)', _tempCtrl, '36.8', isDecimal: true)),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Questionnaire
-            const Text('Questionnaire', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            _checkbox('Recent illness in last 2 weeks', _recentIllness, (v) => setState(() => _recentIllness = v!)),
-            _checkbox('Surgery or dental procedure in last 6 months', _recentSurgery, (v) => setState(() => _recentSurgery = v!)),
-            _checkbox('Currently pregnant or recently delivered', _isPregnant, (v) => setState(() => _isPregnant = v!)),
-            _checkbox('Tattoo or piercing in last 6 months', _tattooLast6m, (v) => setState(() => _tattooLast6m = v!)),
-            _checkbox('History of sexually transmitted infection (STI)', _hadSti, (v) => setState(() => _hadSti = v!)),
-            _checkbox('Currently on long-term medication', _onMedication, (v) => setState(() => _onMedication = v!)),
-
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _submitting ? null : _save,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFDC2626),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            SectionCard(
+              title: 'Vitals',
+              child: Column(
+                children: [
+                  _vitalField('Weight (kg)', _weightCtrl, '65.0', isDecimal: true),
+                  const SizedBox(height: 8),
+                  _vitalField('Haemoglobin (g/dL)', _hbCtrl, '14.0', isDecimal: true),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(child: _vitalField('BP Systolic', _bpSysCtrl, '120')),
+                      const SizedBox(width: 12),
+                      Expanded(child: _vitalField('BP Diastolic', _bpDiaCtrl, '80')),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(child: _vitalField('Pulse (bpm)', _pulseCtrl, '72')),
+                      const SizedBox(width: 12),
+                      Expanded(child: _vitalField('Temp (°C)', _tempCtrl, '36.8', isDecimal: true)),
+                    ],
+                  ),
+                ],
               ),
-              child: _submitting
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                    )
-                  : const Text('Save Screening', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 12),
+            SectionCard(
+              title: 'Questionnaire',
+              child: Column(
+                children: [
+                  _checkbox('Recent illness in last 2 weeks', _recentIllness, (v) => setState(() => _recentIllness = v!)),
+                  _checkbox('Surgery or dental procedure in last 6 months', _recentSurgery, (v) => setState(() => _recentSurgery = v!)),
+                  _checkbox('Currently pregnant or recently delivered', _isPregnant, (v) => setState(() => _isPregnant = v!)),
+                  _checkbox('Tattoo or piercing in last 6 months', _tattooLast6m, (v) => setState(() => _tattooLast6m = v!)),
+                  _checkbox('History of sexually transmitted infection (STI)', _hadSti, (v) => setState(() => _hadSti = v!)),
+                  _checkbox('Currently on long-term medication', _onMedication, (v) => setState(() => _onMedication = v!)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            PrimaryButton(
+              label: 'Save Screening',
+              icon: Icons.save_outlined,
+              loading: _submitting,
+              onPressed: _save,
             ),
           ],
         ),

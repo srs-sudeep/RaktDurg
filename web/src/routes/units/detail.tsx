@@ -21,18 +21,18 @@ export default function UnitDetailPage() {
   const transition = useTransitionUnit();
   const tests = useRecordTests();
 
-  if (isLoading) return <p className="text-[13px] text-slate-500">Loading…</p>;
-  if (error || !unit) return <p className="text-[13px] text-red-600">Unit not found.</p>;
+  if (isLoading) return <p className="text-[13px] text-muted-foreground">Loading…</p>;
+  if (error || !unit) return <p className="text-[13px] text-destructive">Unit not found.</p>;
 
   const nextStates = NEXT[unit.lifecycle_state] ?? [];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <PageHeader
         title={unit.barcode}
         description="Unit lifecycle, release status, and TTI actions."
         actions={
-          <Link to="/units" className="text-[13px] text-red-700 hover:underline">
+          <Link to="/units" className="text-[13px] text-primary hover:underline">
             ← Units
           </Link>
         }
@@ -47,19 +47,19 @@ export default function UnitDetailPage() {
       <Panel title="Details">
         <dl className="grid gap-3 text-[13px] sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <dt className="text-[11px] text-slate-500">Collected</dt>
+            <dt className="text-[11px] text-muted-foreground">Collected</dt>
             <dd>{formatDateTime(unit.collection_datetime)}</dd>
           </div>
           <div>
-            <dt className="text-[11px] text-slate-500">Expiry</dt>
+            <dt className="text-[11px] text-muted-foreground">Expiry</dt>
             <dd>{formatDateTime(unit.expiry_datetime)}</dd>
           </div>
           <div>
-            <dt className="text-[11px] text-slate-500">Donation</dt>
+            <dt className="text-[11px] text-muted-foreground">Donation</dt>
             <dd className="font-mono text-[12px]">{unit.donation_id}</dd>
           </div>
           <div>
-            <dt className="text-[11px] text-slate-500">Facility</dt>
+            <dt className="text-[11px] text-muted-foreground">Facility</dt>
             <dd className="font-mono text-[12px]">{unit.facility_id}</dd>
           </div>
         </dl>

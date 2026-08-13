@@ -9,9 +9,19 @@ import { useUnits } from "@/api/units";
 import { useOrganizerAccounts } from "@/api/admin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PageHeader, Panel } from "@/components/ui/panel";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { Panel } from "@/components/ui/panel";
 import { type UserRole } from "@/lib/rbac";
 import { cn, formatDateTime } from "@/lib/utils";
+
+const CAMP_STATUS_COLORS: Record<string, string> = {
+  approved: "border-success/30 bg-success/10 text-success",
+  completed: "border-success/30 bg-success/10 text-success",
+  submitted: "border-primary/25 bg-primary/10 text-primary",
+  under_review: "border-warning/30 bg-warning/10 text-warning",
+  rejected: "border-destructive/30 bg-destructive/10 text-destructive",
+  cancelled: "border-border bg-muted text-muted-foreground",
+};
 
 const COMPONENT_LABELS: Record<string, string> = {
   whole_blood: "Whole Blood",
@@ -27,18 +37,18 @@ const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 function stockTone(n: number) {
   if (n === 0) {
     return {
-      cell: "bg-red-50 text-red-800 ring-1 ring-inset ring-red-200/80",
+      cell: "bg-destructive/10 text-destructive ring-1 ring-inset ring-destructive/25",
       label: "Empty",
     };
   }
   if (n <= 2) {
     return {
-      cell: "bg-amber-50 text-amber-900 ring-1 ring-inset ring-amber-200/80",
+      cell: "bg-warning/10 text-warning ring-1 ring-inset ring-warning/30",
       label: "Low",
     };
   }
   return {
-    cell: "bg-emerald-50/70 text-slate-900 ring-1 ring-inset ring-emerald-100",
+    cell: "bg-success/10 text-foreground ring-1 ring-inset ring-success/25",
     label: "OK",
   };
 }
@@ -54,16 +64,16 @@ function KpiStrip({
         const inner = (
           <div className="surface-card h-full px-4 py-3.5 transition-colors">
             <div className="flex items-start justify-between gap-2">
-              <div className="text-[12px] font-medium text-slate-500">{item.label}</div>
-              {item.to ? <ArrowUpRight className="h-3.5 w-3.5 text-slate-300" /> : null}
+              <div className="text-[12px] font-medium text-muted-foreground">{item.label}</div>
+              {item.to ? <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" /> : null}
             </div>
-            <div className="mt-2 text-[28px] font-semibold tabular-nums leading-none tracking-tight text-slate-900">
+            <div className="mt-2 text-[28px] font-semibold tabular-nums leading-none tracking-tight text-foreground">
               {item.value}
             </div>
           </div>
         );
         return item.to ? (
-          <Link key={item.label} to={item.to} className="block hover:[&_.surface-card]:border-slate-400">
+          <Link key={item.label} to={item.to} className="block hover:[&_.surface-card]:border-primary/40">
             {inner}
           </Link>
         ) : (
@@ -119,13 +129,13 @@ function StockGrid({ facilityId }: { facilityId: string }) {
           <span
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium",
-              live ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200" : "bg-slate-100 text-slate-600"
+              live ? "bg-success/10 text-success ring-1 ring-success/30" : "bg-muted text-muted-foreground"
             )}
           >
             <span
               className={cn(
                 "h-1.5 w-1.5 rounded-full",
-                live ? "animate-pulse bg-emerald-500" : "bg-slate-400"
+                live ? "animate-pulse bg-success" : "bg-muted-foreground"
               )}
             />
             {live ? "Live" : "Snapshot"}
@@ -140,30 +150,30 @@ function StockGrid({ facilityId }: { facilityId: string }) {
       bodyClassName="p-0"
     >
       {isLoading && !sseEntries && (
-        <p className="px-4 py-8 text-center text-[13px] text-slate-500">Loading stock…</p>
+        <p className="px-4 py-8 text-center text-[13px] text-muted-foreground">Loading stock…</p>
       )}
       {error && (
-        <p className="border-t border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+        <p className="border-t border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-destructive">
           Failed to load stock data.
         </p>
       )}
       {!isLoading && !error && rows.length === 0 && (
-        <p className="px-4 py-8 text-center text-[13px] text-slate-500">No stock rows yet.</p>
+        <p className="px-4 py-8 text-center text-[13px] text-muted-foreground">No stock rows yet.</p>
       )}
       {rows.length > 0 && (
         <div className="overflow-x-auto p-3 sm:p-4">
           <table className="w-full min-w-[720px] border-separate border-spacing-y-2 text-[13px]">
             <thead>
               <tr>
-                <th className="sticky left-0 z-[1] bg-[#fafbfc] px-2 pb-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                <th className="sticky left-0 z-[1] bg-card px-2 pb-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   Component
                 </th>
                 {BLOOD_GROUPS.map((bg) => (
                   <th
                     key={bg}
-                    className="px-1.5 pb-2 text-center text-[11px] font-semibold tracking-wide text-slate-600"
+                    className="px-1.5 pb-2 text-center text-[11px] font-semibold tracking-wide text-muted-foreground"
                   >
-                    <span className="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-slate-100 px-2 py-1 text-slate-700">
+                    <span className="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-muted px-2 py-1 text-foreground">
                       {bg}
                     </span>
                   </th>
@@ -173,8 +183,8 @@ function StockGrid({ facilityId }: { facilityId: string }) {
             <tbody>
               {rows.map(([compType, bgMap]) => (
                 <tr key={compType}>
-                  <td className="sticky left-0 z-[1] bg-[#fafbfc] px-2 py-1">
-                    <div className="rounded-lg bg-white px-3 py-2.5 font-medium text-slate-800 ring-1 ring-slate-200">
+                  <td className="sticky left-0 z-[1] bg-card px-2 py-1">
+                    <div className="rounded-lg bg-card px-3 py-2.5 font-medium text-foreground ring-1 ring-border">
                       {COMPONENT_LABELS[compType] ?? compType}
                     </div>
                   </td>
@@ -199,15 +209,15 @@ function StockGrid({ facilityId }: { facilityId: string }) {
               ))}
             </tbody>
           </table>
-          <div className="mt-3 flex flex-wrap gap-3 px-1 text-[11px] text-slate-500">
+          <div className="mt-3 flex flex-wrap gap-3 px-1 text-[11px] text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-red-100 ring-1 ring-red-200" /> Empty
+              <span className="h-2.5 w-2.5 rounded-sm bg-destructive/20 ring-1 ring-destructive/30" /> Empty
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-amber-100 ring-1 ring-amber-200" /> Low (≤2)
+              <span className="h-2.5 w-2.5 rounded-sm bg-warning/20 ring-1 ring-warning/30" /> Low (≤2)
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-emerald-100 ring-1 ring-emerald-100" /> Available
+              <span className="h-2.5 w-2.5 rounded-sm bg-success/20 ring-1 ring-success/30" /> Available
             </span>
           </div>
         </div>
@@ -254,7 +264,7 @@ function StaffOpsDashboard({ role }: { role: UserRole }) {
         ]}
       />
       {!facilityId ? (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-900">
+        <p className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-[13px] text-warning">
           No facility assigned on this account — stock grid unavailable.
         </p>
       ) : (
@@ -273,15 +283,38 @@ function OrganizerDashboard() {
     return map;
   }, [items]);
 
+  const recentColumns = useMemo<DataTableColumn<(typeof items)[number]>[]>(
+    () => [
+      {
+        id: "camp_name",
+        header: "Camp",
+        cell: (c) => (
+          <div>
+            <div className="font-medium text-foreground">{c.camp_name}</div>
+            <div className="text-[11px] text-muted-foreground">{c.location}</div>
+          </div>
+        ),
+      },
+      {
+        id: "requested_date",
+        header: "Date",
+        cell: (c) => <span className="text-muted-foreground">{c.requested_date}</span>,
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: (c) => (
+          <Badge className={CAMP_STATUS_COLORS[c.status] ?? ""}>
+            {c.status.replace(/_/g, " ")}
+          </Badge>
+        ),
+      },
+    ],
+    []
+  );
+
   return (
     <div className="space-y-4">
-      <PageHeader
-        actions={
-          <Link to="/camps/apply">
-            <Button size="sm">New application</Button>
-          </Link>
-        }
-      />
       <KpiStrip
         items={[
           { label: "Total camps", value: items.length, to: "/camps" },
@@ -293,39 +326,23 @@ function OrganizerDashboard() {
           { label: "Completed", value: byStatus.completed ?? 0 },
         ]}
       />
-      <Panel title="Recent camps" bodyClassName="p-0">
-        {isLoading ? (
-          <p className="px-4 py-5 text-[13px] text-slate-500">Loading…</p>
-        ) : items.length === 0 ? (
-          <p className="px-4 py-5 text-[13px] text-slate-500">No camps yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-[13px]">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/80 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-                  <th className="px-4 py-2.5">Camp</th>
-                  <th className="px-4 py-2.5">Date</th>
-                  <th className="px-4 py-2.5">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.slice(0, 8).map((c) => (
-                  <tr key={c.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
-                    <td className="px-4 py-2.5">
-                      <div className="font-medium text-slate-900">{c.camp_name}</div>
-                      <div className="text-[11px] text-slate-500">{c.location}</div>
-                    </td>
-                    <td className="px-4 py-2.5 text-slate-600">{c.requested_date}</td>
-                    <td className="px-4 py-2.5">
-                      <Badge>{c.status}</Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <DataTable
+        columns={recentColumns}
+        rows={items.slice(0, 8)}
+        rowKey={(c) => c.id}
+        isLoading={isLoading}
+        emptyMessage="No camps yet."
+        toolbar={
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-sans text-[14px] font-semibold tracking-tight text-foreground">
+              Recent camps
+            </h2>
+            <Link to="/camps/apply">
+              <Button size="sm">New application</Button>
+            </Link>
           </div>
-        )}
-      </Panel>
+        }
+      />
     </div>
   );
 }
@@ -337,9 +354,9 @@ export default function DashboardPage() {
   if (role === "organizer") return <OrganizerDashboard />;
   if (role === "citizen") {
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         <Panel>
-          <Link to="/my-account" className="text-[13px] text-red-700 hover:underline">
+          <Link to="/my-account" className="text-[13px] text-primary hover:underline">
             Open my account →
           </Link>
         </Panel>

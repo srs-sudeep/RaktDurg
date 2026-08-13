@@ -36,12 +36,16 @@ import LinkCitizenPage from "./citizens/link";
 
 function Unauthorized() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 text-center">
-      <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-      <p className="text-gray-500">You don't have permission to view this page.</p>
-      <a href="/dashboard" className="text-red-600 underline hover:text-red-800">
-        Go to dashboard
-      </a>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
+      <div className="surface-card max-w-md space-y-4 p-8">
+        <h1 className="font-display text-2xl font-semibold text-foreground">Access Denied</h1>
+        <p className="text-sm text-muted-foreground">
+          You don't have permission to view this page.
+        </p>
+        <a href="/dashboard" className="inline-block text-sm font-medium text-primary hover:underline">
+          Go to dashboard
+        </a>
+      </div>
     </div>
   );
 }

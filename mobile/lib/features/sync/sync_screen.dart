@@ -32,17 +32,9 @@ class SyncScreen extends ConsumerWidget {
           ),
           if (state.lastError != null) ...[
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF2F2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.red.shade100),
-              ),
-              child: Text(state.lastError!, style: TextStyle(color: Colors.red.shade800, fontSize: 13)),
-            ),
+            ErrorBanner(state.lastError!),
           ],
-          const Spacer(),
+          const SizedBox(height: 16),
           PrimaryButton(
             label: state.isSyncing ? 'Syncing…' : 'Sync now',
             icon: Icons.sync,

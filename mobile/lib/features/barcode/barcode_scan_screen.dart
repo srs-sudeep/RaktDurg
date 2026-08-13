@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../theme/app_theme.dart';
 
 import '../../core/eligibility.dart';
 import '../../data/remote/api_client.dart';
@@ -254,15 +255,7 @@ class _BarcodeScanScreenState extends ConsumerState<BarcodeScanScreen> {
           ],
           if (_error != null) ...[
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF2F2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.red.shade100),
-              ),
-              child: Text(_error!, style: TextStyle(color: Colors.red.shade800, fontSize: 13)),
-            ),
+            ErrorBanner(_error!),
           ],
           if (_allocated.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -270,16 +263,42 @@ class _BarcodeScanScreenState extends ConsumerState<BarcodeScanScreen> {
               title: 'Pre-allocated range',
               subtitle: '${_allocated.length} codes',
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  QrImageView(data: _allocated.first, size: 132),
-                  const SizedBox(height: 8),
-                  DataTableCard(
-                    columns: const ['#', 'Barcode'],
-                    rows: [
-                      for (var i = 0; i < _allocated.length; i++)
-                        ['${i + 1}', _allocated[i]],
-                    ],
-                  ),
+                  Center(child: QrImageView(data: _allocated.first, size: 132)),
+                  const SizedBox(height: 12),
+                  for (var i = 0; i < _allocated.length; i++) ...[
+                    if (i > 0) const Divider(height: 1),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 28,
+                            child: Text(
+                              '${i + 1}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.muted,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              _allocated[i],
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.ink,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
